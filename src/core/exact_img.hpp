@@ -22,26 +22,26 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-#include "store.hpp"
-#include "commands/mighty.hpp"
-#include "commands/load.hpp"
-#include "commands/exact_imp.hpp"
 
-ALICE_MAIN( also )
+/**
+ * @file exact_img.hpp
+ *
+ * @brief exact IMG synthesis using ssv_encoder by restricting the primitives
+ *
+ * @author Zhufei Chu
+ * @since  0.1
+ */
+
+#ifndef EXACT_IMG_HPP
+#define EXACT_IMG_HPP
+
+#include <kitty/kitty.hpp>
 
 namespace also
 {
 
-/******************************************************************************
- * Types                                                                      *
- ******************************************************************************/
-
-/******************************************************************************
- * Private functions                                                          *
- ******************************************************************************/
-
-/******************************************************************************
- * Public functions                                                           *
- ******************************************************************************/
+  void img_syn( const kitty::dynamic_truth_table& tt, const bool& verbose = false );
 
 }
+
+#endif

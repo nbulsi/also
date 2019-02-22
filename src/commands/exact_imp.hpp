@@ -22,26 +22,35 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-#include "store.hpp"
-#include "commands/mighty.hpp"
-#include "commands/load.hpp"
-#include "commands/exact_imp.hpp"
 
-ALICE_MAIN( also )
+/**
+ * @file exact_imp.hpp
+ *
+ * @brief exact synthesis to generate an imply logic network
+ *
+ * @author Zhufei Chu
+ * @since  0.1
+ */
 
-namespace also
+#ifndef EXACT_IMP_HPP
+#define EXACT_IMP_HPP
+
+#include <alice/alice.hpp>
+#include <mockturtle/mockturtle.hpp>
+
+#include "../store.hpp"
+#include "../core/exact_img.hpp"
+
+namespace alice
 {
 
-/******************************************************************************
- * Types                                                                      *
- ******************************************************************************/
+  ALICE_COMMAND( exact_imply, "Exact synthesis", "using primitive encoding technique to find optimal IMPLY chains")
+  {
+    auto& opt = store<optimum_network>().current();
 
-/******************************************************************************
- * Private functions                                                          *
- ******************************************************************************/
-
-/******************************************************************************
- * Public functions                                                           *
- ******************************************************************************/
+    also::img_syn( opt.function );
+  }
 
 }
+
+#endif
