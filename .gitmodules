@@ -1,0 +1,6 @@
+[submodule "lib/alice"]
+	path = lib/alice
+	url = https://github.com/msoeken/alice
+[submodule "lib/mockturtle"]
+	path = lib/mockturtle
+	url = https://github.com/lsils/mockturtle
