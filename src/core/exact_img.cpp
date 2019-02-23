@@ -23,6 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 #include <percy/percy.hpp>
+#include <mockturtle/utils/stopwatch.hpp>
 
 #include "exact_img.hpp"
 #include "../networks/img.hpp"
@@ -64,8 +65,7 @@ namespace also
       const auto& step = c.get_step( i );
       const auto  idx  = nr_in + i + 1;
       const auto op = c.get_operator( i );
-      //std::cout << "node " << idx << " inputs: " << step[0] + 1 << "  " << step[1] + 1 << " op: " << kitty::to_binary( op ) << std::endl;
-
+      
       auto ops = kitty::to_binary( op );
       if( ops == "0010" )
       {
@@ -116,30 +116,55 @@ namespace also
     {
       std::cout << "Synthesizing function " << kitty::to_hex( spec[0] ) << std::endl;
     }
-
-    //synthesis 
+    
+    stopwatch<>::duration time{0};
     int nr_solutions = 0;
-    while (next_solution(spec, c, solver, encoder) == success) 
+    
+    { 
+      stopwatch t( time );
+      
+      //synthesis 
+      int min_num_gates = INT_MAX;
+      img_network best_img;
+
+      while (next_solution(spec, c, solver, encoder) == success) 
+      {
+        //c.print_expression();
+        auto tts = c.simulate();
+        assert( tts[0] == spec[0] );
+        assert( c.is_aig() );
+        nr_solutions++;
+
+        auto r = c;
+        auto img = img_from_chain( r );
+        //printf( "IMG size: %d\n", img.num_gates() );
+
+        auto img_new = img_rewriting( img );
+        if( img_new.num_gates() < min_num_gates )
+        {
+          min_num_gates = img_new.num_gates();
+          best_img = img_new;
+        }
+        
+        if( verbose )
+        {
+          printf( "NEW IMG size: %d\n", img_new.num_gates() );
+          img_to_expression( std::cout, img_new);
+        }
+      }
+      
+      if( nr_solutions != 0 )
+      {
+        printf( "[i]: found img_network with minimum number of gates: %d\n", min_num_gates );
+        img_to_expression( std::cout, best_img );
+      }
+    } 
+      
+    if( verbose )
     {
-      printf("\ngot solution: ");
-      c.print_expression();
-      auto tts = c.simulate();
-      assert( tts[0] == spec[0] );
-      assert( c.is_aig() );
-      printf("\n");
-      nr_solutions++;
-
-      auto r = c;
-      auto img = img_from_chain( r );
-      printf( "IMG size: %d\n", img.num_gates() );
-
-      auto img_new = img_rewriting( img );
-      printf( "NEW IMG size: %d\n", img_new.num_gates() );
-      img_to_expression( std::cout, img_new);
-
+      std::cout << fmt::format( "[i]: {:5.2f} seconds passed to enumerate {} solutions\n", 
+          to_seconds( time ), nr_solutions );
     }
-    printf("\nfound %d solutions\n", nr_solutions);
-
   }
 
 }

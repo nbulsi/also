@@ -43,14 +43,38 @@
 
 namespace alice
 {
-
-  ALICE_COMMAND( exact_imply, "Exact synthesis", "using primitive encoding technique to find optimal IMPLY chains")
+  
+  class exact_imply_command: public command
   {
-    auto& opt = store<optimum_network>().current();
+    public:
+      explicit exact_imply_command( const environment::ptr& env ) : command( env, "using exact synthesis to find optimal imgs" )
+      {
+        add_flag( "--verbose, -v",  "print the information" );
+      }
 
-    also::img_syn( opt.function );
-  }
+      rules validity_rules() const
+      {
+        return { has_store_element<optimum_network>( env ) };
+      }
 
+
+    protected:
+      void execute()
+      {
+        bool verb = false;
+
+        if( is_set( "verbose" ) )
+        {
+          verb = true;
+        }
+
+        auto& opt = store<optimum_network>().current();
+        also::img_syn( opt.function, verb );
+      }
+
+  };
+
+  ALICE_ADD_COMMAND( exact_imply, "Exact synthesis" )
 }
 
 #endif
