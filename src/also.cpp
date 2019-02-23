@@ -25,7 +25,9 @@
 #include "store.hpp"
 #include "commands/mighty.hpp"
 #include "commands/load.hpp"
-#include "commands/exact_imp.hpp"
+#include "commands/exact_imply.hpp"
+#include "commands/lut_mapping.hpp"
+#include "commands/lut_resyn.hpp"
 
 ALICE_MAIN( also )
 

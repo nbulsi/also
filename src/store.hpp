@@ -74,15 +74,28 @@ namespace alice
   {
     os << fmt::format( " xmg i/o = {}/{} gates = {} ", element.num_pis(), element.num_pos(), element.num_gates() );
     os << "\n";
-    //os << "xmg PI/PO = " << element.num_pis() << "/" << element.num_pos() << "\n";
   }
   
   ALICE_DESCRIBE_STORE( xmg_network, element )
   {
     return fmt::format( "{} nodes", element.size() );
   }
+  
+  /*klut network*/
+  ALICE_ADD_STORE( klut_network, "lut", "l", "LUT network", "LUT networks" )
+  
+  ALICE_PRINT_STORE( klut_network, os, element )
+  {
+    os << fmt::format( " klut i/o = {}/{} gates = {} ", element.num_pis(), element.num_pos(), element.num_gates() );
+    os << "\n";
+  }
+  
+  ALICE_DESCRIBE_STORE( klut_network, element )
+  {
+    return fmt::format( "{} nodes", element.size() );
+  }
+  
   /* opt_network */
-
   class optimum_network
   {
     public:
