@@ -28,6 +28,7 @@
 #include "commands/exact_imply.hpp"
 #include "commands/lut_mapping.hpp"
 #include "commands/lut_resyn.hpp"
+#include "commands/xmginv.hpp"
 
 ALICE_MAIN( also )
 

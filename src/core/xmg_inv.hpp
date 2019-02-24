@@ -1,0 +1,25 @@
+/* also: Advanced Logic Synthesis and Optimization tool
+ * Copyright (C) 2019- Ningbo University, Ningbo, China */
+
+/**
+ * @file xmginv.hpp
+ *
+ * @brief TODO
+ *
+ * @author Zhufei Chu
+ * @since  0.1
+ */
+
+#ifndef XMG_INV_HPP
+#define XMG_INV_HPP
+
+#include <mockturtle/mockturtle.hpp>
+
+namespace also
+{
+
+  void xmg_inv_optimization( xmg_network& xmg );
+
+}
+
+#endif
