@@ -19,8 +19,10 @@ namespace also
     
     unsigned count_current_invs();
     void run();
-    void complement_node_maj( node<xmg_network>& n );
-    void print( node<xmg_network>& n );
+    void complement_node( node<xmg_network> const& n );
+    std::array<signal<xmg_network>, 3> get_children( node<xmg_network> const& n ) const;
+    void print_node( node<xmg_network> const& n ) const;
+    void print_network() const;
 
     private:
     xmg_network xmg;
@@ -36,66 +38,58 @@ namespace also
 
   void inv_manager::run()
   {
-    count_current_invs();
+    complement_node( xmg.index_to_node( 9 ) );
+    print_network();
+    std::cout << "Optimized: " << num_inverters( xmg ) << std::endl;
   }
 
-  void inv_manager::complement_node_maj( node<xmg_network>& n )
+  void inv_manager::complement_node( node<xmg_network> const& n )
   {
-    topo_view xmg_topo{ xmg };
-    
-    xmg_topo.foreach_fanin( n, [&]( auto s ) 
-        { 
-          if( xmg.is_complemented( xmg.get_node( s ) ) )
-          {
-            s = !s;
-          }
-         } );
+    auto children = get_children( n );
 
-    /* compute the parent nodes */
-    std::vector<node<xmg_network>> parent_nodes;
-    fanout_view xmg_fanout( xmg );
-    xmg_fanout.foreach_fanout( n, [&]( auto p ) { parent_nodes.push_back( p ); } );
-
-    /* foreach parent node, find the signal that connect to node n */
-    for( auto pn : parent_nodes )
+    if( xmg.is_maj( n ) )
     {
-      xmg_topo.foreach_fanin( pn, [&]( auto s ) 
-          { 
-          if( xmg.get_node( s ) == n )
-          {
-            s = !s;
-          }
-          } );
+      children[0] = !children[0];
+      children[1] = !children[1];
+      children[2] = !children[2];
+
+      auto opt = xmg.create_maj_without_complement_opt( children[0], children[1], children[2] ) ^ true ;
+      xmg.substitute_node_without_complement_opt( n, opt );
     }
+    else
+    {
+      if( xmg.is_complemented( children[2] ) ) 
+      {
+        children[2] = !children[2];
+      }
+      else
+      {
+        children[1] = !children[1];
+      }
+      
+      auto opt = xmg.create_xor_without_complement_opt( children[1], children[2] ) ^ true ;
+      xmg.substitute_node_without_complement_opt( n, opt );
+    }
+  }
+  
+  std::array<signal<xmg_network>, 3> inv_manager::get_children( node<xmg_network> const& n ) const
+  {
+    std::array<signal<xmg_network>, 3> children;
+    xmg.foreach_fanin( n, [&children]( auto const& f, auto i ) { children[i] = f; } );
+    return children;
   }
 
   /* print information */
-  void inv_manager::print( node<xmg_network>& n )
+  void inv_manager::print_node( node<xmg_network> const& n ) const
   {
-    std::cout << " node " << n << " inverters infor: " << std::endl;
-    xmg.foreach_fanin(n, [&]( auto s ) { std::cout << "fanin: " << s.index << " " << s.complement << std::endl; } ); 
-
-    //fanout_view xmg_fanout{ xmg };
-    //xmg_fanout.foreach_fanout( n, [&]( auto p ) { std::cout << "fanout: " << p.index << " " << p.complement << std::endl; } );
+    std::cout << " node " << n << " inverters infor: ";
+    xmg.foreach_fanin(n, [&]( auto s ) { std::cout << " { " << s.index << " , " << s.complement << " } "; } ); 
+    std::cout << std::endl;
   }
 
-  unsigned inv_manager::count_current_invs()
+  void inv_manager::print_network() const
   {
-    topo_view   xmg_topo{ xmg };
-    fanout_view xmg_fanout{ xmg };
-
-    std::vector<node<xmg_network>> nodes;
-    xmg_topo.foreach_gate( [&nodes]( auto node ) { nodes.push_back( node ); } );
-
-    for( const auto n : nodes )
-    {
-      std::cout << " \n node : " << n << std::endl;
-      xmg_topo.foreach_fanin( n, [&]( auto s ) { std::cout << " fanin: " << xmg_topo.get_node( s ); } );
-    }
-    
-    xmg_topo.foreach_po( [&]( auto s, auto i ) { std::cout << " PO: " << xmg_topo.get_node( s ); } );
-    
-    return nodes.size();
+    xmg.foreach_gate( [&]( auto n ) { print_node( n ); } );
   }
 
 /******************************************************************************
