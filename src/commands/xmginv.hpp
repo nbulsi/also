@@ -14,6 +14,7 @@
 #define XMGINV_HPP
 
 #include <mockturtle/mockturtle.hpp>
+#include <mockturtle/utils/stopwatch.hpp>
 #include "../core/xmg_inv.hpp"
 
 namespace alice
@@ -39,11 +40,11 @@ namespace alice
       {
         /* derive some XMG */
          xmg_network xmg = store<xmg_network>().current();
-
-         auto xmg_opt = also::xmg_inv_optimization( xmg );
          
-         store<xmg_network>().extend(); 
-         store<xmg_network>().current() = xmg_opt;
+         stopwatch<>::duration time{0};
+         call_with_stopwatch( time, [&]() { also::xmg_inv_optimization( xmg ); } );
+
+         std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
       }
 
   };

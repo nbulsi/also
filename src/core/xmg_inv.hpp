@@ -19,7 +19,7 @@
 namespace also
 {
 
-  xmg_network xmg_inv_optimization( xmg_network& xmg );
+  void xmg_inv_optimization( xmg_network& xmg );
 
 }
 

@@ -94,26 +94,6 @@ namespace also
     return num_invs_fanins( xmg, n ) + num_invs_fanouts( xmg, n );
   }
   
-  /* print information */
-  void print_node( ntk const& xmg, nd_t const& n ) 
-  {
-    std::cout << " node " << n << " inverters infor: ";
-    xmg.foreach_fanin(n, [&]( auto s ) { std::cout << " { " << s.index << " , " << s.complement << " } "; } ); 
-    std::cout << std::endl;
-  }
-
-  void print_network( ntk const& xmg ) 
-  {
-    xmg.foreach_gate( [&]( auto n ) 
-        { 
-          print_node( xmg, n ); 
-          if( !xmg.is_maj( n ) && !xmg.is_xor3( n ) )
-          {
-            std::cout << "NODE: " << n << std::endl;
-          }
-          std::cout << " cost= " << num_invs( xmg, n ) << " edges= " << num_edges( xmg, n ) << std::endl; 
-        } );
-  }
   
   int one_level_savings( ntk const& xmg, nd_t const& n ) 
   {
@@ -160,7 +140,7 @@ namespace also
     int  total_savings = 0;
 
     /* no parents */
-    if( parents.size() == 0u )
+    if( parents.size() == 0 )
     {
       return one_level_savings( xmg, n );
     }
@@ -172,15 +152,18 @@ namespace also
       {
         total_savings += one_level_savings( xmg, p );
 
-        xmg.foreach_fanin( n, [&]( auto s ) 
+        xmg.foreach_fanin( p, [&]( auto s ) 
             {
               if( xmg.get_node( s ) == n && xmg.is_complemented( s ) )
               {
-                total_savings--;
-              }
-              else
-              {
-                total_savings++;
+                if( xmg.is_complemented( s ) )
+                {
+                  total_savings -= 2;
+                }
+                else
+                {
+                  total_savings += 2;
+                }
               }
             }
             );
@@ -225,30 +208,46 @@ namespace also
     return xmg;
   }
 
+  /* print information */
+  void print_node( ntk const& xmg, nd_t const& n ) 
+  {
+    std::cout << " node " << n << " inverters infor: ";
+    xmg.foreach_fanin(n, [&]( auto s ) { std::cout << " { " << s.index << " , " << s.complement << " } "; } ); 
+    std::cout << std::endl;
+  }
+
+  void print_network( ntk const& xmg ) 
+  {
+    xmg.foreach_gate( [&]( auto n ) 
+        { 
+          print_node( xmg, n ); 
+          std::cout << " num_invs = " << num_invs( xmg, n ) << " edges= " << num_edges( xmg, n ) 
+                    << " one level: " << one_level_savings( xmg, n ) 
+                    << " two level: " << two_level_savings( xmg, n ) << std::endl; 
+        } );
+  }
 /******************************************************************************
  * Types                                                                      *
  ******************************************************************************/
   class inv_manager
   {
     public:
-    inv_manager( ntk& xmg );
+    inv_manager( ntk xmg );
     
     void compute_parents();
     void one_level_optimization();
     void two_level_optimization();
-    xmg_network run();
+    void run();
 
     private:
     xmg_network xmg;
-    xmg_network xmg_opt;
     std::map<nd_t, std::vector<nd_t>> pmap;
   };
 
-  inv_manager::inv_manager( ntk& xmg )
+  inv_manager::inv_manager( ntk xmg )
     : xmg( xmg )
   {
     compute_parents();
-    xmg_opt = xmg;
   }
   
   /* compute the node parents information and save it */
@@ -285,7 +284,18 @@ namespace also
         {
           if( one_level_savings( xmg, n ) >= 0 )
           {
-            xmg_opt.complement_node( n, pmap[n] );
+            xmg.complement_node( n, pmap[n] );
+          }
+          else if( two_level_savings( xmg, n ) >= 0 )
+          {
+           auto parents = pmap[n];
+           xmg.complement_node( n, pmap[n] );
+
+           for( const auto& p : parents )
+           {
+            xmg.complement_node( p, pmap[p] );
+           }
+
           }
         }
         );
@@ -300,33 +310,34 @@ namespace also
 
          if( savings > 0 )
          {
-           xmg_opt.complement_node( n, pmap[n] );
+           xmg.complement_node( n, pmap[n] );
 
            for( const auto& p : parents )
            {
-            xmg_opt.complement_node( p, pmap[p] );
+            xmg.complement_node( p, pmap[p] );
            }
+         }
+         else if( one_level_savings( xmg, n ) > 0 )
+         {
+          xmg.complement_node( n, pmap[n] );
          }
         } );
   }
 
-  xmg_network inv_manager::run()
+  void inv_manager::run()
   {
     one_level_optimization();
     two_level_optimization();
-    return xmg_opt;
   }
   
   /* public function */
-  xmg_network xmg_inv_optimization( xmg_network& xmg )
+  void xmg_inv_optimization( xmg_network& xmg )
   {
-    std::cout << "num_invs: " << num_inverters( xmg ) << std::endl;
-    //print_network( xmg );
+    std::cout << "Before optimization: " << num_inverters( xmg ) << std::endl;
     inv_manager mgr( xmg );
-    return mgr.run();
+    mgr.run();
 
-    std::cout << "num_invs: " << num_inverters( xmg ) << std::endl;
-    //print_network( xmg);
+    std::cout << "After  optimization: " << num_inverters( xmg ) << std::endl;
   }
 
 }
