@@ -40,7 +40,10 @@ namespace alice
         /* derive some XMG */
          xmg_network xmg = store<xmg_network>().current();
 
-         also::xmg_inv_optimization( xmg );
+         auto xmg_opt = also::xmg_inv_optimization( xmg );
+         
+         store<xmg_network>().extend(); 
+         store<xmg_network>().current() = xmg_opt;
       }
 
   };

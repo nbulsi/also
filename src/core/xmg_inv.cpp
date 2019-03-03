@@ -8,64 +8,22 @@ using namespace mockturtle;
 
 namespace also
 {
+  using ntk   = xmg_network;
+  using nd_t  = node<ntk>;
+  using sig_t = signal<ntk>;
+
 
 /******************************************************************************
- * Types                                                                      *
+ * XMG utilizations, public functions                                         *
  ******************************************************************************/
-  using nd_t = node<xmg_network>;
-
-  class inv_manager
+  std::array<sig_t, 3> get_children( ntk const& xmg, nd_t const& n ) 
   {
-    public:
-    inv_manager( xmg_network& xmg );
-    
-    unsigned count_current_invs();
-    void run();
-    void complement_node( nd_t const& n );
-    std::array<signal<xmg_network>, 3> get_children( nd_t const& n ) const;
-    std::vector<nd_t> get_parents( nd_t const& n ) const;
-    void print_node( nd_t const& n ) const;
-    void print_network() const;
-    
-    unsigned num_invs_fanins( nd_t const& n ) const;
-    unsigned num_invs_fanouts( nd_t const& n ) const;
-    unsigned num_invs_before( nd_t const& n ) const;
-    
-    unsigned num_in_edges( nd_t const& n ) const;
-    unsigned num_out_edges( nd_t const& n ) const;
-    unsigned num_edges( nd_t const& n ) const;
+    std::array<sig_t, 3> children;
+    xmg.foreach_fanin( n, [&children]( auto const& f, auto i ) { children[i] = f; } );
+    return children;
+  }
   
-    int one_level_savings( nd_t const& n ) const;
-    int two_level_savings( nd_t const& n ) const;
-
-    private:
-    xmg_network xmg;
-  };
-
-/******************************************************************************
- * Private functions                                                          *
- ******************************************************************************/
-  inv_manager::inv_manager( xmg_network& xmg )
-    : xmg( xmg )
-  {
-  }
-
-  void inv_manager::run()
-  {
-    //complement_node( xmg.index_to_node( 9 ) );
-    print_network();
-    std::cout << "Optimized: " << num_inverters( xmg ) << std::endl;
-  }
-
-  unsigned inv_manager::num_invs_fanins( nd_t const& n ) const
-  {
-    unsigned cost = 0u;
-    
-    xmg.foreach_fanin( n, [&]( auto s ) { if( xmg.is_complemented( s ) ) { cost++; } } );
-    return cost;
-  }
-
-  std::vector<nd_t> inv_manager::get_parents( nd_t const& n ) const
+  std::vector<nd_t> get_parents( ntk const& xmg, nd_t const& n ) 
   {
     std::vector<nd_t> parents;
     fanout_view xmg_fanout{ xmg };
@@ -73,12 +31,20 @@ namespace also
     return parents;
   }
 
-  unsigned inv_manager::num_invs_fanouts( nd_t const& n ) const
+  int num_invs_fanins( ntk const& xmg, nd_t const& n ) 
   {
-    unsigned cost = 0u;
+    int cost = 0;
+
+    xmg.foreach_fanin( n, [&]( auto s ) { if( xmg.is_complemented( s ) ) { cost++; } } );
+    return cost;
+  }
+
+  int num_invs_fanouts( ntk const& xmg, nd_t const& n ) 
+  {
+    int cost = 0u;
     
     /* ordinary fanouts */
-    auto parents = get_parents( n );
+    auto parents = get_parents( xmg, n );
     for( const auto pn : parents )
     {
       xmg.foreach_fanin( pn, [&]( auto s ) 
@@ -102,49 +68,70 @@ namespace also
     return cost;
   }
 
-  unsigned inv_manager::num_in_edges( nd_t const& n ) const
+  int num_in_edges( ntk const& xmg, nd_t const& n ) 
   {
-    auto num_in = ( xmg.is_maj( n ) ? 3u : 2u );
+    auto num_in = ( xmg.is_maj( n ) ? 3 : 2 );
     return num_in;
   }
   
-  unsigned inv_manager::num_out_edges( nd_t const& n ) const
+  int num_out_edges( ntk const& xmg, nd_t const& n ) 
   {
     /* pos */
-    auto num_po = 0u;
+    int num_po = 0;
     xmg.foreach_po( [&]( auto const& f ) { if( xmg.get_node( f ) == n ) { num_po++; } } );
     
-    return get_parents( n ).size() + num_po;
+    return get_parents( xmg, n ).size() + num_po;
   }
 
-  unsigned inv_manager::num_edges( nd_t const& n ) const
+  int num_edges( ntk const& xmg, nd_t const& n ) 
   {
-    assert( xmg.is_maj( n ) || xmg.is_xor( n ) );
-    return num_in_edges( n ) + num_out_edges( n );
+    assert( xmg.is_maj( n ) || xmg.is_xor3( n ) );
+    return num_in_edges( xmg, n ) + num_out_edges( xmg, n );
   }
 
-  unsigned inv_manager::num_invs_before( nd_t const& n ) const
+  int num_invs( ntk const& xmg, nd_t const& n ) 
   {
-    return num_invs_fanins( n ) + num_invs_fanouts( n );
+    return num_invs_fanins( xmg, n ) + num_invs_fanouts( xmg, n );
+  }
+  
+  /* print information */
+  void print_node( ntk const& xmg, nd_t const& n ) 
+  {
+    std::cout << " node " << n << " inverters infor: ";
+    xmg.foreach_fanin(n, [&]( auto s ) { std::cout << " { " << s.index << " , " << s.complement << " } "; } ); 
+    std::cout << std::endl;
   }
 
-  int inv_manager::one_level_savings( nd_t const& n ) const
+  void print_network( ntk const& xmg ) 
+  {
+    xmg.foreach_gate( [&]( auto n ) 
+        { 
+          print_node( xmg, n ); 
+          if( !xmg.is_maj( n ) && !xmg.is_xor3( n ) )
+          {
+            std::cout << "NODE: " << n << std::endl;
+          }
+          std::cout << " cost= " << num_invs( xmg, n ) << " edges= " << num_edges( xmg, n ) << std::endl; 
+        } );
+  }
+  
+  int one_level_savings( ntk const& xmg, nd_t const& n ) 
   {
     int before, after;
 
-    before = (int) num_invs_before( n );
+    before = num_invs( xmg, n );
 
     if( xmg.is_maj( n ) )
     {
-      after = (int) num_edges( n ) - before;
+      after = num_edges( xmg, n ) - before;
     }
     else
     {
        int in, out;
 
-       out = (int) num_out_edges( n ) - (int) num_invs_fanouts( n ); 
+       out = num_out_edges( xmg, n ) - num_invs_fanouts( xmg, n ); 
        
-       auto tmp = (int) num_invs_fanins( n );
+       auto tmp = num_invs_fanins( xmg, n );
        
        if( tmp == 1 )
        {
@@ -165,25 +152,25 @@ namespace also
     return before - after;
   }
    
-  int inv_manager::two_level_savings( nd_t const& n ) const
+  int two_level_savings( ntk const& xmg, nd_t const& n ) 
   {
     assert( !xmg.is_pi( n ) );
 
-    auto parents = get_parents( n );
+    auto parents = get_parents( xmg, n );
     int  total_savings = 0;
 
     /* no parents */
     if( parents.size() == 0u )
     {
-      return one_level_savings( n );
+      return one_level_savings( xmg, n );
     }
     else
     {
-      auto child_savings = one_level_savings( n );
+      auto child_savings = one_level_savings( xmg, n );
 
       for( const auto& p : parents )
       {
-        total_savings += one_level_savings( p );
+        total_savings += one_level_savings( xmg, p );
 
         xmg.foreach_fanin( n, [&]( auto s ) 
             {
@@ -204,10 +191,12 @@ namespace also
 
     return total_savings;
   }
-
-  void inv_manager::complement_node( nd_t const& n )
+  
+  /* use substitue method for inveters propagation */
+  ntk complement_node( ntk & xmg, nd_t const& n )
   {
-    auto children = get_children( n );
+    sig_t opt;
+    auto children = get_children( xmg, n );
 
     if( xmg.is_maj( n ) )
     {
@@ -215,8 +204,7 @@ namespace also
       children[1] = !children[1];
       children[2] = !children[2];
 
-      auto opt = xmg.create_maj_without_complement_opt( children[0], children[1], children[2] ) ^ true ;
-      xmg.substitute_node_without_complement_opt( n, opt );
+      opt = xmg.create_maj_without_complement_opt( children[0], children[1], children[2] ) ^ true ;
     }
     else
     {
@@ -229,39 +217,116 @@ namespace also
         children[1] = !children[1];
       }
       
-      auto opt = xmg.create_xor_without_complement_opt( children[1], children[2] ) ^ true ;
-      xmg.substitute_node_without_complement_opt( n, opt );
+      opt = xmg.create_xor_without_complement_opt( children[1], children[2] ) ^ true ;
     }
-  }
-  
-  std::array<signal<xmg_network>, 3> inv_manager::get_children( nd_t const& n ) const
-  {
-    std::array<signal<xmg_network>, 3> children;
-    xmg.foreach_fanin( n, [&children]( auto const& f, auto i ) { children[i] = f; } );
-    return children;
-  }
+    
+    xmg.substitute_node_without_complement_opt( n, opt );
 
-  /* print information */
-  void inv_manager::print_node( nd_t const& n ) const
-  {
-    std::cout << " node " << n << " inverters infor: ";
-    xmg.foreach_fanin(n, [&]( auto s ) { std::cout << " { " << s.index << " , " << s.complement << " } "; } ); 
-    std::cout << std::endl;
-  }
-
-  void inv_manager::print_network() const
-  {
-    xmg.foreach_gate( [&]( auto n ) { print_node( n ); std::cout << " cost= " << num_invs_before( n ) << " edges= " << num_edges( n ) << " one level savings: " << one_level_savings( n ) << " two level savings: " << two_level_savings( n ) << std::endl; } );
+    return xmg;
   }
 
 /******************************************************************************
- * Public functions                                                           *
+ * Types                                                                      *
  ******************************************************************************/
-  void xmg_inv_optimization( xmg_network& xmg )
+  class inv_manager
+  {
+    public:
+    inv_manager( ntk& xmg );
+    
+    void compute_parents();
+    void one_level_optimization();
+    void two_level_optimization();
+    xmg_network run();
+
+    private:
+    xmg_network xmg;
+    xmg_network xmg_opt;
+    std::map<nd_t, std::vector<nd_t>> pmap;
+  };
+
+  inv_manager::inv_manager( ntk& xmg )
+    : xmg( xmg )
+  {
+    compute_parents();
+    xmg_opt = xmg;
+  }
+  
+  /* compute the node parents information and save it */
+  void inv_manager::compute_parents()
+  {
+    xmg.foreach_gate( [&]( auto n ) 
+        {
+          xmg.foreach_fanin( n, [&]( auto c ) 
+              {
+                auto it = pmap.find( xmg.get_node( c ) );
+
+                if( it == pmap.end() )
+                {
+                  std::vector<nd_t> fout;
+                  fout.push_back( n );
+                  pmap[ xmg.get_node( c ) ] = fout;
+                }
+                else
+                {
+                  auto& f = it->second;
+                  if( std::find( f.begin(), f.end(), n ) == f.end() )
+                  {
+                    f.push_back( n );
+                  }
+                }
+              });
+        });
+  }
+    
+
+  void inv_manager::one_level_optimization()
+  {
+    xmg.foreach_gate( [&]( auto n ) 
+        {
+          if( one_level_savings( xmg, n ) >= 0 )
+          {
+            xmg_opt.complement_node( n, pmap[n] );
+          }
+        }
+        );
+  }
+  
+  void inv_manager::two_level_optimization()
+  {
+    xmg.foreach_gate( [&]( auto n ) 
+        {
+         auto parents = pmap[n];
+         auto savings = two_level_savings( xmg, n );
+
+         if( savings > 0 )
+         {
+           xmg_opt.complement_node( n, pmap[n] );
+
+           for( const auto& p : parents )
+           {
+            xmg_opt.complement_node( p, pmap[p] );
+           }
+         }
+        } );
+  }
+
+  xmg_network inv_manager::run()
+  {
+    one_level_optimization();
+    two_level_optimization();
+    return xmg_opt;
+  }
+  
+  /* public function */
+  xmg_network xmg_inv_optimization( xmg_network& xmg )
   {
     std::cout << "num_invs: " << num_inverters( xmg ) << std::endl;
+    //print_network( xmg );
     inv_manager mgr( xmg );
     return mgr.run();
+
+    std::cout << "num_invs: " << num_inverters( xmg ) << std::endl;
+    //print_network( xmg);
   }
 
 }

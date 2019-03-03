@@ -14,11 +14,12 @@
 #define XMG_INV_HPP
 
 #include <mockturtle/mockturtle.hpp>
+#include <mockturtle/networks/xmg.hpp>
 
 namespace also
 {
 
-  void xmg_inv_optimization( xmg_network& xmg );
+  xmg_network xmg_inv_optimization( xmg_network& xmg );
 
 }
 
