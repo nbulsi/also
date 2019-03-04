@@ -16,6 +16,8 @@
 #include <mockturtle/mockturtle.hpp>
 #include <mockturtle/algorithms/node_resynthesis/xmg_npn.hpp>
 
+#include "../networks/m5ig/m5ig_npn.hpp"
+
 namespace alice
 {
   
@@ -28,7 +30,8 @@ namespace alice
         add_option( "cut_size, -k", cut_size, "set the cut size from 2 to 8, default = 4" );
         add_flag( "--verbose, -v", "print the information" );
         add_flag( "--xmg, -x", "using xmg as target logic network" );
-        add_flag( "-n,--notnew", "not adds new store entry" );
+        add_flag( "--m5ig, -r", "using m5ig as target logic network" );
+        add_flag( "--new_entry, -n", "adds new store entry" );
       }
 
       rules validity_rules() const
@@ -54,10 +57,26 @@ namespace alice
                     << xmg.num_gates() << " XMG depth: " << xmg_depth.depth() << std::endl;
 
           /* add to store */
-          if( !is_set( "notnew" ) )
+          if( is_set( "new_entry" ) )
           {
             store<xmg_network>().extend(); 
             store<xmg_network>().current() = xmg;
+          }
+        }
+        else if( is_set( "m5ig" ) )
+        {
+          m5ig_npn_resynthesis resyn;
+          const auto m5ig = node_resynthesis<m5ig_network>( klut, resyn );
+
+          depth_view m5ig_depth{m5ig};
+          std::cout << "[I/O:" << m5ig.num_pis() << "/" << m5ig.num_pos() << "] M5IG gates: " 
+                    << m5ig.num_gates() << " M5IG depth: " << m5ig_depth.depth() << std::endl;
+
+          /* add to store */
+          if( is_set( "new_entry" ) )
+          {
+            //store<xmg_network>().extend(); 
+            //store<xmg_network>().current() = xmg;
           }
         }
         else

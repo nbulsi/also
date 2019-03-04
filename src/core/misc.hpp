@@ -3,11 +3,30 @@
 #include <algorithm>
 #include <mockturtle/mockturtle.hpp>
 #include <percy/percy.hpp>
+#include <string>
+#include <sstream>
 
 using namespace percy;
 
 namespace also
 {
+
+  template<typename Out>
+    void split_by_delim(const std::string &s, char delim, Out result) 
+    {
+      std::stringstream ss(s);
+      std::string item;
+      while (std::getline(ss, item, delim)) {
+        *(result++) = item;
+      }
+    }
+
+  std::vector<std::string> split_by_delim(const std::string &s, char delim) 
+  {
+    std::vector<std::string> elems;
+    split_by_delim(s, delim, std::back_inserter(elems));
+    return elems;
+  }
 
     template <typename Iterator>
       inline bool next_combination(const Iterator first, Iterator k, const Iterator last)

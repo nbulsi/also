@@ -26,8 +26,8 @@
 #include <mockturtle/utils/stopwatch.hpp>
 
 #include "exact_img.hpp"
-#include "../networks/img.hpp"
-#include "../networks/img_rewrite.hpp"
+#include "../networks/img/img.hpp"
+#include "../networks/img/img_rewrite.hpp"
 
 using namespace percy; 
 using namespace mockturtle; 

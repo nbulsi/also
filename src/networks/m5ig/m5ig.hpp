@@ -40,10 +40,17 @@
 #include <kitty/dynamic_truth_table.hpp>
 #include <kitty/operators.hpp>
 #include <mockturtle/mockturtle.hpp>
+#include <mockturtle/traits.hpp>
 
 namespace mockturtle
 {
 
+struct m5ig_storage_data
+{
+  uint32_t num_pis = 0u;
+  uint32_t num_pos = 0u;
+  uint32_t trav_id = 0u;
+};
 /*! \brief m5ig storage container
 
   m5igs have nodes with fan-in 3.  We split of one bit of the index pointer to
@@ -57,7 +64,7 @@ namespace mockturtle
 
 using m5ig_node = regular_node<5, 2, 1>;
 using m5ig_storage = storage<m5ig_node,
-                            empty_storage_data>;
+                            m5ig_storage_data>;
 
 class m5ig_network
 {
@@ -66,6 +73,7 @@ public:
   static constexpr auto min_fanin_size = 5u;
   static constexpr auto max_fanin_size = 5u;
 
+  using base_type = m5ig_network;
   using storage = std::shared_ptr<m5ig_storage>;
   using node = uint64_t;
 
@@ -715,6 +723,15 @@ public:
   void set_visited( node const& n, uint32_t v ) const
   {
     _storage->nodes[n].data[1].h1 = v;
+  }
+  uint32_t trav_id() const
+  {
+    return _storage->data.trav_id;
+  }
+
+  void incr_trav_id() const
+  {
+    ++_storage->data.trav_id;
   }
 #pragma endregion
 

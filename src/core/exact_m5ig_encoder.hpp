@@ -17,7 +17,7 @@
 #include <mockturtle/mockturtle.hpp>
 
 #include "misc.hpp"
-#include "../networks/m5ig.hpp"
+#include "../networks/m5ig/m5ig.hpp"
 
 using namespace percy;
 using namespace mockturtle;

@@ -44,7 +44,7 @@
 #include <mockturtle/mockturtle.hpp>
 
 #include "m5ig.hpp"
-#include "util_str.hpp"
+#include "../core/misc.hpp"
 
 namespace mockturtle
 {
@@ -127,7 +127,7 @@ private:
   
   void load_optimal_m5ig()
   {
-    std::ifstream infile( "../benchmarks/opt_m5ig.txt" );
+    std::ifstream infile( "../src/networks/m5ig/opt_m5ig.txt" );
     if( !infile )
     {
       std::cout << " Cannot open file " << std::endl; 
@@ -139,7 +139,7 @@ private:
     while (std::getline(infile, line) )
     {
       v.clear();
-      auto strs = split_by_delim( line, ' ' );
+      auto strs = also::split_by_delim( line, ' ' );
       for( auto i = 1u; i < strs.size(); i++ )
       {
         v.push_back( strs[i] );
@@ -160,7 +160,7 @@ private:
 
     for( auto i = 1; i < size; i++ )
     {
-      const auto substrs = split_by_delim( strs[i], '-' );
+      const auto substrs = also::split_by_delim( strs[i], '-' );
 
       assert( substrs.size() == 3u );
       
@@ -240,7 +240,6 @@ private:
       }
     }
     
-    //std::cout << "#pis: " << db.num_pis() << " #pos: " << db.num_pos() << " #gates: " << db.num_gates() << std::endl;
     const auto driver = sig[ sig.size() - 1] ^ ( pol ? true : false );
     db.create_po( driver );
     result.push_back( driver ); 
