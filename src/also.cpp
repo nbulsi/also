@@ -29,6 +29,7 @@
 #include "commands/lut_mapping.hpp"
 #include "commands/lut_resyn.hpp"
 #include "commands/xmginv.hpp"
+#include "commands/exact_m5ig.hpp"
 
 ALICE_MAIN( also )
 
