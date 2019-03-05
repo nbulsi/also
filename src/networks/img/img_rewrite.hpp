@@ -40,6 +40,13 @@
 
 namespace mockturtle
 {
+  std::array<img_network::signal, 2> get_children( const img_network& img, img_network::node const& n ) 
+  {
+    std::array<img_network::signal, 2> children;
+    img.foreach_fanin( n, [&children]( auto const& f, auto i ) { children[i] = f; } );
+    return children;
+  }
+
   class img_rewrite
   {
     public:

@@ -32,6 +32,9 @@
 #include <fmt/format.h>
 #include <kitty/kitty.hpp>
 
+#include "networks/m5ig/m5ig.hpp"
+#include "networks/img/img.hpp"
+
 using namespace mockturtle;
 
 namespace alice
@@ -81,6 +84,34 @@ namespace alice
     return fmt::format( "{} nodes", element.size() );
   }
   
+  /* m5ig */
+  ALICE_ADD_STORE( m5ig_network, "m5ig", "r", "m5ig", "m5igs" )
+
+  ALICE_PRINT_STORE( m5ig_network, os, element )
+  {
+    os << fmt::format( " m5ig i/o = {}/{} gates = {} ", element.num_pis(), element.num_pos(), element.num_gates() );
+    os << "\n";
+  }
+  
+  ALICE_DESCRIBE_STORE( m5ig_network, element )
+  {
+    return fmt::format( "{} nodes", element.size() );
+  }
+
+  /* img */
+  ALICE_ADD_STORE( img_network, "img", "i", "img", "imgs" )
+
+  ALICE_PRINT_STORE( img_network, os, element )
+  {
+    os << fmt::format( " img i/o = {}/{} gates = {} ", element.num_pis(), element.num_pos(), element.num_gates() );
+    os << "\n";
+  }
+  
+  ALICE_DESCRIBE_STORE( img_network, element )
+  {
+    return fmt::format( "{} nodes", element.size() );
+  }
+
   /*klut network*/
   ALICE_ADD_STORE( klut_network, "lut", "l", "LUT network", "LUT networks" )
   

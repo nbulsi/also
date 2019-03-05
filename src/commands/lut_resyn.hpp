@@ -75,8 +75,8 @@ namespace alice
           /* add to store */
           if( is_set( "new_entry" ) )
           {
-            //store<xmg_network>().extend(); 
-            //store<xmg_network>().current() = xmg;
+            store<m5ig_network>().extend(); 
+            store<m5ig_network>().current() = m5ig;
           }
         }
         else
