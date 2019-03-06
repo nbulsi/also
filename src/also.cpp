@@ -30,6 +30,7 @@
 #include "commands/lut_resyn.hpp"
 #include "commands/xmginv.hpp"
 #include "commands/exact_m5ig.hpp"
+#include "commands/exprsim.hpp"
 
 ALICE_MAIN( also )
 
