@@ -55,7 +55,7 @@ namespace alice
         return {
           has_store_element<mig_network>( env ),
             {
-              [this]() { return ( strategy <= 2u && strategy >= 0u ) ; },
+              [this]() { return ( strategy <= 2 && strategy >= 0 ) ; },
               "strategy must in [0,2] "
             }
           };
@@ -124,7 +124,7 @@ namespace alice
     
     private:
       mig_algebraic_depth_rewriting_params ps;
-      unsigned strategy = 0u;
+      int strategy = 0;
   };
 
   ALICE_ADD_COMMAND( mighty, "Rewriting" )

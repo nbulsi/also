@@ -116,13 +116,7 @@ namespace alice
     protected:
       void execute()
       {
-        bool verb = false;
-
-        if( is_set( "verbose" ) )
-        {
-          verb = true;
-        }
-
+        
         auto& opt = store<optimum_network>().current();
         const auto config = kitty::exact_npn_canonization( opt.function );
         std::cout << kitty::to_hex( opt.function ) << " npn : " << kitty::to_hex( std::get<0>( config ) ) << std::endl;
