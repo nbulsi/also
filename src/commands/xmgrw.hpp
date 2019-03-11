@@ -15,6 +15,8 @@
 
 #include <mockturtle/mockturtle.hpp>
 
+#include "../core/xmg_rewriting.hpp"
+
 namespace alice
 {
 
@@ -81,6 +83,11 @@ namespace alice
         {
           /* TODO */
           std::cout << "TODO: an improved XMG rewriting version" << std::endl;
+          depth_view depth_xmg( xmg );
+          xmg_depth_rewriting( depth_xmg );
+          xmg = cleanup_dangling( xmg );
+          
+          print_stats( xmg );
         }
 
         
