@@ -16,6 +16,7 @@
 #include <mockturtle/mockturtle.hpp>
 
 #include "../core/xmg_rewriting.hpp"
+#include "../core/misc.hpp"
 
 namespace alice
 {
@@ -41,19 +42,13 @@ namespace alice
           };
       }
 
-      void print_stats( const xmg_network& xmg )
-      {
-        depth_view depth_xmg( xmg );
-        std::cout << fmt::format( "xmg   i/o = {}/{}   gates = {}   level = {}\n", 
-                     xmg.num_pis(), xmg.num_pos(), xmg.num_gates(), depth_xmg.depth() );
-      }
 
       protected:
       void execute()
       {
         xmg_network xmg = store<xmg_network>().current();
 
-        print_stats( xmg );
+        also::print_stats( xmg );
         
         if( is_set( "only_maj" ) )
         {
@@ -77,7 +72,7 @@ namespace alice
           mig_algebraic_depth_rewriting( depth_xmg, ps_mig );
           xmg = cleanup_dangling( xmg );
           
-          print_stats( xmg );
+          also::print_stats( xmg );
         }
         else
         {
@@ -87,11 +82,9 @@ namespace alice
           xmg_depth_rewriting( depth_xmg );
           xmg = cleanup_dangling( xmg );
           
-          print_stats( xmg );
+          also::print_stats( xmg );
         }
 
-        
-        print_stats( xmg );
         store<xmg_network>().extend(); 
         store<xmg_network>().current() = xmg;
       }

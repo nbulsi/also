@@ -146,5 +146,12 @@ namespace also
         fprintf(f, "0\n");
       }
     }
+    
+    void print_stats( const xmg_network& xmg )
+    {
+      depth_view depth_xmg( xmg );
+      std::cout << fmt::format( "xmg   i/o = {}/{}   gates = {}   level = {}\n", 
+          xmg.num_pis(), xmg.num_pos(), xmg.num_gates(), depth_xmg.depth() );
+    }
 }
 

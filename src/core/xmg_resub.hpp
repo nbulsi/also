@@ -83,7 +83,7 @@ struct xmg_resub_stats
 
   void report() const
   {
-    std::cout << "[i] kernel: mig_resub_functor\n";
+    std::cout << "[i] kernel: xmg_resub_functor\n";
     std::cout << fmt::format( "[i]     constant-resub {:6d}                                   ({:>5.2f} secs)\n",
                               num_const_accepts, to_seconds( time_resubC ) );
     std::cout << fmt::format( "[i]            0-resub {:6d}                                   ({:>5.2f} secs)\n",

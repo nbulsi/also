@@ -196,6 +196,23 @@ namespace alice
   }
   
   ALICE_ADD_FILE_TYPE( verilog, "Verilog" );
+
+  ALICE_READ_FILE( xmg_network, verilog, filename, cmd )
+  {
+    xmg_network xmg;
+
+    lorina::diagnostic_engine diag;
+    if ( lorina::read_verilog( filename, mockturtle::verilog_reader( xmg ), &diag ) != lorina::return_code::success )
+    {
+      std::cout << "[w] parse error\n";
+    }
+    return xmg;
+  }
+
+  ALICE_WRITE_FILE( xmg_network, verilog, xmg, filename, cmd )
+  {
+    mockturtle::write_verilog( xmg, filename );
+  }
   
   ALICE_READ_FILE( mig_network, verilog, filename, cmd )
   {
@@ -209,18 +226,6 @@ namespace alice
      mockturtle::write_verilog( mig, filename );
   }
   
-  ALICE_READ_FILE( xmg_network, verilog, filename, cmd )
-  {
-    xmg_network xmg;
-    lorina::read_verilog( filename, mockturtle::verilog_reader( xmg ) );
-    return xmg;
-  }
-
-  ALICE_WRITE_FILE( xmg_network, verilog, xmg, filename, cmd )
-  {
-     mockturtle::write_verilog( xmg, filename );
-  }
-
   ALICE_ADD_FILE_TYPE( bench, "BENCH" );
   
   ALICE_WRITE_FILE( xmg_network, bench, xmg, filename, cmd )

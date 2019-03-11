@@ -16,6 +16,7 @@
 #include <mockturtle/mockturtle.hpp>
 
 #include "../core/xmg_resub.hpp"
+#include "../core/misc.hpp"
 
 namespace alice
 {
@@ -46,6 +47,7 @@ namespace alice
          xmg = cleanup_dangling( xmg );
 
          std::cout << "TODO: an improved XMG resubstitution version " << std::endl;
+         also::print_stats( xmg );
       }
     
     private:
