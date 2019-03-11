@@ -1,3 +1,6 @@
+/* also: Advanced Logic Synthesis and Optimization tool
+ * Copyright (C) 2019- Ningbo University, Ningbo, China */
+
 /*!
   \file xmg_algebraic_rewriting.hpp
   \brief xmg algebraric rewriting

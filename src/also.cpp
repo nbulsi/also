@@ -32,6 +32,7 @@
 #include "commands/exact_m5ig.hpp"
 #include "commands/exprsim.hpp"
 #include "commands/xmgrw.hpp"
+#include "commands/xmgrs.hpp"
 
 ALICE_MAIN( also )
 
