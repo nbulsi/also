@@ -195,6 +195,14 @@ namespace alice
     return aig;
   }
   
+  ALICE_PRINT_STORE_STATISTICS( aig_network, os, aig )
+  {
+    mockturtle::depth_view depth_aig{aig};
+    os << fmt::format( "AIG   i/o = {}/{}   gates = {}   level = {}", 
+          aig.num_pis(), aig.num_pos(), aig.num_gates(), depth_aig.depth() );
+    os << "\n";
+  }
+  
   ALICE_ADD_FILE_TYPE( verilog, "Verilog" );
 
   ALICE_READ_FILE( xmg_network, verilog, filename, cmd )
@@ -214,6 +222,14 @@ namespace alice
     mockturtle::write_verilog( xmg, filename );
   }
   
+  ALICE_PRINT_STORE_STATISTICS( xmg_network, os, xmg )
+  {
+    mockturtle::depth_view depth_xmg{xmg};
+    os << fmt::format( "XMG   i/o = {}/{}   gates = {}   level = {}", 
+          xmg.num_pis(), xmg.num_pos(), xmg.num_gates(), depth_xmg.depth() );
+    os << "\n";
+  }
+  
   ALICE_READ_FILE( mig_network, verilog, filename, cmd )
   {
     mig_network mig;
@@ -224,6 +240,14 @@ namespace alice
   ALICE_WRITE_FILE( mig_network, verilog, mig, filename, cmd )
   {
      mockturtle::write_verilog( mig, filename );
+  }
+  
+  ALICE_PRINT_STORE_STATISTICS( mig_network, os, mig )
+  {
+    mockturtle::depth_view depth_mig{mig};
+    os << fmt::format( "MIG   i/o = {}/{}   gates = {}   level = {}", 
+          mig.num_pis(), mig.num_pos(), mig.num_gates(), depth_mig.depth() );
+    os << "\n";
   }
   
   ALICE_ADD_FILE_TYPE( bench, "BENCH" );
