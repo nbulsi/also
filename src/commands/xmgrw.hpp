@@ -36,7 +36,7 @@ namespace alice
         return {
           has_store_element<xmg_network>( env ),
             {
-              [this]() { return ( strategy <= 2u && strategy >= 0u ) ; },
+              [this]() { return ( strategy <= 2 && strategy >= 0 ) ; },
               "strategy must in [0,2] "
             }
           };
@@ -55,11 +55,11 @@ namespace alice
           /* parameters */
           ps_mig.allow_area_increase = !is_set( "area_aware" );
 
-          if( strategy == 0u )
+          if( strategy == 0 )
           {
             ps_mig.strategy = mig_algebraic_depth_rewriting_params::dfs;
           }
-          else if( strategy == 1u )
+          else if( strategy == 1 )
           {
             ps_mig.strategy = mig_algebraic_depth_rewriting_params::aggressive;
           }
@@ -91,7 +91,7 @@ namespace alice
     
     private:
       mig_algebraic_depth_rewriting_params ps_mig;
-      unsigned strategy = 0u;
+      int strategy = 0;
   };
 
   ALICE_ADD_COMMAND( xmgrw, "Rewriting" )
