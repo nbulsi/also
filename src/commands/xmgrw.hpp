@@ -76,10 +76,24 @@ namespace alice
         }
         else
         {
-          /* TODO */
-          std::cout << "TODO: an improved XMG rewriting version" << std::endl;
+          /* parameters */
+          ps_xmg.allow_area_increase = !is_set( "area_aware" );
+
+          if( strategy == 0 )
+          {
+            ps_xmg.strategy = xmg_depth_rewriting_params::dfs;
+          }
+          else if( strategy == 1 )
+          {
+            ps_xmg.strategy = xmg_depth_rewriting_params::aggressive;
+          }
+          else
+          {
+            ps_xmg.strategy = xmg_depth_rewriting_params::selective;
+          }
+
           depth_view depth_xmg( xmg );
-          xmg_depth_rewriting( depth_xmg );
+          xmg_depth_rewriting( depth_xmg, ps_xmg );
           xmg = cleanup_dangling( xmg );
           
           also::print_stats( xmg );
@@ -91,6 +105,7 @@ namespace alice
     
     private:
       mig_algebraic_depth_rewriting_params ps_mig;
+      xmg_depth_rewriting_params ps_xmg;
       int strategy = 0;
   };
 
