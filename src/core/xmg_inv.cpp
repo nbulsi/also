@@ -3,6 +3,7 @@
 
 #include <mockturtle/mockturtle.hpp>
 #include <mockturtle/properties/migcost.hpp>
+#include <mockturtle/utils/stopwatch.hpp>
 
 using namespace mockturtle;
 
@@ -23,157 +24,6 @@ namespace also
     return children;
   }
   
-  std::vector<nd_t> get_parents( ntk const& xmg, nd_t const& n ) 
-  {
-    std::vector<nd_t> parents;
-    fanout_view xmg_fanout{ xmg };
-    xmg_fanout.foreach_fanout( n, [&]( const auto& p ){ parents.push_back( p ); } );
-    return parents;
-  }
-
-  int num_invs_fanins( ntk const& xmg, nd_t const& n ) 
-  {
-    int cost = 0;
-
-    xmg.foreach_fanin( n, [&]( auto s ) { if( xmg.is_complemented( s ) ) { cost++; } } );
-    return cost;
-  }
-
-  int num_invs_fanouts( ntk const& xmg, nd_t const& n ) 
-  {
-    int cost = 0u;
-    
-    /* ordinary fanouts */
-    auto parents = get_parents( xmg, n );
-    for( const auto pn : parents )
-    {
-      xmg.foreach_fanin( pn, [&]( auto s ) 
-          {
-            if( xmg.get_node( s ) == n && xmg.is_complemented( s ) )
-            {
-              cost++;
-            }
-          }
-          );
-    }
-
-    /* POs */
-    xmg.foreach_po( [&]( auto const& f )
-    {
-      if( xmg.get_node( f ) == n && xmg.is_complemented( f ) )
-      {
-        cost++;
-      }
-    });
-    return cost;
-  }
-
-  int num_in_edges( ntk const& xmg, nd_t const& n ) 
-  {
-    auto num_in = ( xmg.is_maj( n ) ? 3 : 2 );
-    return num_in;
-  }
-  
-  int num_out_edges( ntk const& xmg, nd_t const& n ) 
-  {
-    /* pos */
-    int num_po = 0;
-    xmg.foreach_po( [&]( auto const& f ) { if( xmg.get_node( f ) == n ) { num_po++; } } );
-    
-    return get_parents( xmg, n ).size() + num_po;
-  }
-
-  int num_edges( ntk const& xmg, nd_t const& n ) 
-  {
-    assert( xmg.is_maj( n ) || xmg.is_xor3( n ) );
-    return num_in_edges( xmg, n ) + num_out_edges( xmg, n );
-  }
-
-  int num_invs( ntk const& xmg, nd_t const& n ) 
-  {
-    return num_invs_fanins( xmg, n ) + num_invs_fanouts( xmg, n );
-  }
-  
-  
-  int one_level_savings( ntk const& xmg, nd_t const& n ) 
-  {
-    int before, after;
-
-    before = num_invs( xmg, n );
-
-    if( xmg.is_maj( n ) )
-    {
-      after = num_edges( xmg, n ) - before;
-    }
-    else
-    {
-       int in, out;
-
-       out = num_out_edges( xmg, n ) - num_invs_fanouts( xmg, n ); 
-       
-       auto tmp = num_invs_fanins( xmg, n );
-       
-       if( tmp == 1 )
-       {
-          in = 0; 
-       }
-       else if( tmp == 2 || tmp == 0 )
-       {
-         in = 1;
-       }
-       else
-       {
-         assert( false );
-       }
-       
-       after = in + out; 
-    }
-
-    return before - after;
-  }
-   
-  int two_level_savings( ntk const& xmg, nd_t const& n ) 
-  {
-    assert( !xmg.is_pi( n ) );
-
-    auto parents = get_parents( xmg, n );
-    int  total_savings = 0;
-
-    /* no parents */
-    if( parents.size() == 0 )
-    {
-      return one_level_savings( xmg, n );
-    }
-    else
-    {
-      auto child_savings = one_level_savings( xmg, n );
-
-      for( const auto& p : parents )
-      {
-        total_savings += one_level_savings( xmg, p );
-
-        xmg.foreach_fanin( p, [&]( auto s ) 
-            {
-              if( xmg.get_node( s ) == n && xmg.is_complemented( s ) )
-              {
-                if( xmg.is_complemented( s ) )
-                {
-                  total_savings -= 2;
-                }
-                else
-                {
-                  total_savings += 2;
-                }
-              }
-            }
-            );
-      }
-
-      total_savings += child_savings;
-    }
-
-    return total_savings;
-  }
   
   /* use substitue method for inveters propagation */
   ntk complement_node( ntk & xmg, nd_t const& n )
@@ -221,9 +71,6 @@ namespace also
     xmg.foreach_gate( [&]( auto n ) 
         { 
           print_node( xmg, n ); 
-          std::cout << " num_invs = " << num_invs( xmg, n ) << " edges= " << num_edges( xmg, n ) 
-                    << " one level: " << one_level_savings( xmg, n ) 
-                    << " two level: " << two_level_savings( xmg, n ) << std::endl; 
         } );
   }
 /******************************************************************************
@@ -235,6 +82,17 @@ namespace also
     inv_manager( ntk xmg );
     
     void compute_parents();
+
+    std::vector<nd_t> get_parents( nd_t const& n );
+    int num_invs_fanins( nd_t const& n ); 
+    int num_invs_fanouts( nd_t const& n ); 
+    int num_in_edges( nd_t const& n ); 
+    int num_out_edges( nd_t const& n ); 
+    int num_edges(  nd_t const& n ); 
+    int num_invs(  nd_t const& n ); 
+    int one_level_savings( nd_t const& n ); 
+    int two_level_savings( nd_t const& n ); 
+    
     void one_level_optimization();
     void two_level_optimization();
     void run();
@@ -277,16 +135,163 @@ namespace also
         });
   }
     
+  std::vector<nd_t> inv_manager::get_parents( nd_t const& n )
+  {
+    return pmap[n];
+  }
+
+  int inv_manager::num_invs_fanins( nd_t const& n ) 
+  {
+    int cost = 0;
+
+    xmg.foreach_fanin( n, [&]( auto s ) { if( xmg.is_complemented( s ) ) { cost++; } } );
+    return cost;
+  }
+
+  int inv_manager::num_invs_fanouts( nd_t const& n ) 
+  {
+    int cost = 0u;
+    
+    /* ordinary fanouts */
+    auto parents = get_parents( n );
+    for( const auto pn : parents )
+    {
+      xmg.foreach_fanin( pn, [&]( auto s ) 
+          {
+            if( xmg.get_node( s ) == n && xmg.is_complemented( s ) )
+            {
+              cost++;
+            }
+          }
+          );
+    }
+
+    /* POs */
+    xmg.foreach_po( [&]( auto const& f )
+    {
+      if( xmg.get_node( f ) == n && xmg.is_complemented( f ) )
+      {
+        cost++;
+      }
+    });
+    return cost;
+  }
+
+  int inv_manager::num_in_edges( nd_t const& n ) 
+  {
+    auto num_in = ( xmg.is_maj( n ) ? 3 : 2 );
+    return num_in;
+  }
+  
+  int inv_manager::num_out_edges( nd_t const& n ) 
+  {
+    /* pos */
+    int num_po = 0;
+    xmg.foreach_po( [&]( auto const& f ) { if( xmg.get_node( f ) == n ) { num_po++; } } );
+    
+    return get_parents( n ).size() + num_po;
+  }
+
+  int inv_manager::num_edges(  nd_t const& n ) 
+  {
+    assert( xmg.is_maj( n ) || xmg.is_xor3( n ) );
+    return num_in_edges( n ) + num_out_edges( n );
+  }
+
+  int inv_manager::num_invs( nd_t const& n ) 
+  {
+    return num_invs_fanins( n ) + num_invs_fanouts( n );
+  }
+  
+  int inv_manager::one_level_savings( nd_t const& n ) 
+  {
+    int before, after;
+
+    before = num_invs( n );
+
+    if( xmg.is_maj( n ) )
+    {
+      after = num_edges( n ) - before;
+    }
+    else
+    {
+       int in, out;
+
+       out = num_out_edges( n ) - num_invs_fanouts( n ); 
+       
+       auto tmp = num_invs_fanins( n );
+       
+       if( tmp == 1 )
+       {
+          in = 0; 
+       }
+       else if( tmp == 2 || tmp == 0 )
+       {
+         in = 1;
+       }
+       else
+       {
+         assert( false );
+       }
+       
+       after = in + out; 
+    }
+
+    return before - after;
+  }
+   
+  int inv_manager::two_level_savings( nd_t const& n ) 
+  {
+    assert( !xmg.is_pi( n ) );
+
+    auto parents = get_parents( n );
+    int  total_savings = 0;
+
+    /* no parents */
+    if( parents.size() == 0 )
+    {
+      return one_level_savings( n );
+    }
+    else
+    {
+      auto child_savings = one_level_savings( n );
+
+      for( const auto& p : parents )
+      {
+        total_savings += one_level_savings( p );
+
+        xmg.foreach_fanin( p, [&]( auto s ) 
+            {
+              if( xmg.get_node( s ) == n && xmg.is_complemented( s ) )
+              {
+                if( xmg.is_complemented( s ) )
+                {
+                  total_savings -= 2;
+                }
+                else
+                {
+                  total_savings += 2;
+                }
+              }
+            }
+            );
+      }
+
+      total_savings += child_savings;
+    }
+
+    return total_savings;
+  }
 
   void inv_manager::one_level_optimization()
   {
     xmg.foreach_gate( [&]( auto n ) 
         {
-          if( one_level_savings( xmg, n ) >= 0 )
+          if( one_level_savings( n ) >= 0 )
           {
             xmg.complement_node( n, pmap[n] );
           }
-          else if( two_level_savings( xmg, n ) >= 0 )
+          else if( two_level_savings( n ) >= 0 )
           {
            auto parents = pmap[n];
            xmg.complement_node( n, pmap[n] );
@@ -306,7 +311,7 @@ namespace also
     xmg.foreach_gate( [&]( auto n ) 
         {
          auto parents = pmap[n];
-         auto savings = two_level_savings( xmg, n );
+         auto savings = two_level_savings( n );
 
          if( savings > 0 )
          {
@@ -317,7 +322,7 @@ namespace also
             xmg.complement_node( p, pmap[p] );
            }
          }
-         else if( one_level_savings( xmg, n ) > 0 )
+         else if( one_level_savings( n ) > 0 )
          {
           xmg.complement_node( n, pmap[n] );
          }
@@ -326,6 +331,10 @@ namespace also
 
   void inv_manager::run()
   {
+    /*stopwatch<>::duration time{0};
+    call_with_stopwatch( time, [&]() { one_level_optimization(); } );
+
+    std::cout << fmt::format( "[ one level optimization time]: {:5.2f} seconds\n", to_seconds( time ) );*/
     one_level_optimization();
     two_level_optimization();
   }
