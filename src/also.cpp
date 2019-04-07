@@ -34,6 +34,7 @@
 #include "commands/xmgrw.hpp"
 #include "commands/xmgrs.hpp"
 #include "commands/cutrw.hpp"
+#include "commands/xmgcost.hpp"
 
 ALICE_MAIN( also )
 
