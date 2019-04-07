@@ -92,9 +92,10 @@ namespace also
     int num_invs(  nd_t const& n ); 
     int one_level_savings( nd_t const& n ); 
     int two_level_savings( nd_t const& n ); 
+    void xor_jump();
     
-    void one_level_optimization();
-    void two_level_optimization();
+    void one_level_optimization( const int& thres1, const int& thres2 );
+    void two_level_optimization( const int& thres1, const int& thres2 );
     void run();
 
     private:
@@ -283,15 +284,15 @@ namespace also
     return total_savings;
   }
 
-  void inv_manager::one_level_optimization()
+  void inv_manager::one_level_optimization( const int& thres1, const int& thres2 )
   {
     xmg.foreach_gate( [&]( auto n ) 
         {
-          if( one_level_savings( n ) >= 0 )
+          if( one_level_savings( n ) >= thres1 )
           {
             xmg.complement_node( n, pmap[n] );
           }
-          else if( two_level_savings( n ) >= 0 )
+          else if( two_level_savings( n ) >= thres2 )
           {
            auto parents = pmap[n];
            xmg.complement_node( n, pmap[n] );
@@ -306,14 +307,14 @@ namespace also
         );
   }
   
-  void inv_manager::two_level_optimization()
+  void inv_manager::two_level_optimization( const int& thres1, const int& thres2 )
   {
     xmg.foreach_gate( [&]( auto n ) 
         {
          auto parents = pmap[n];
          auto savings = two_level_savings( n );
 
-         if( savings > 0 )
+         if( savings >= thres1 )
          {
            xmg.complement_node( n, pmap[n] );
 
@@ -322,21 +323,32 @@ namespace also
             xmg.complement_node( p, pmap[p] );
            }
          }
-         else if( one_level_savings( n ) > 0 )
+         else if( one_level_savings( n ) >= thres2 )
          {
           xmg.complement_node( n, pmap[n] );
          }
         } );
   }
 
+  void inv_manager::xor_jump()
+  {
+    xmg.foreach_gate( [&]( auto n ) 
+        {
+          if( xmg.is_xor( n ) )
+          {
+            xmg.xor_inv_jump( n );
+          }
+        }
+        );
+  }
+
   void inv_manager::run()
   {
-    /*stopwatch<>::duration time{0};
-    call_with_stopwatch( time, [&]() { one_level_optimization(); } );
-
-    std::cout << fmt::format( "[ one level optimization time]: {:5.2f} seconds\n", to_seconds( time ) );*/
-    one_level_optimization();
-    two_level_optimization();
+    one_level_optimization( 1, 1 );
+    two_level_optimization( 1, 1 );
+    
+    one_level_optimization( 0, 0 );
+    two_level_optimization( 1, 1 );
   }
   
   /* public function */
