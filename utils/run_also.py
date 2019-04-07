@@ -37,7 +37,7 @@ bench_mcnc_path = '/Users/chu/benchmarks/aiger/'
 verilog_path = '/Users/chu/also/utils/'
 
 abc_exe_path = '/Users/chu/abc/abc'
-also_cmds = 'lut_mapping; lut_resyn -nx; xmgrw; xmginv'
+also_cmds = 'lut_mapping; lut_resyn -nx; xmgrw --area_aware; xmginv'
 
 def parse_file_name( fname ):
     return fname.split('.')[0]
@@ -45,11 +45,13 @@ def parse_file_name( fname ):
 def run_epfl():
     for i in range(len(bench)):
       name = parse_file_name( bench[i] )
-      print bench[i]
+      print name
       cmd_mig = ''+ also_exe_path + ' -c \" read_aiger ' + bench_epfl_path + bench[i] + '; '+ also_cmds + '; write_verilog -x '+ name +'.v \"'
       cmd_abc = ''+ abc_exe_path + ' -c \" cec -n '+ bench_epfl_path + bench[i] + ' '+ verilog_path + name +'.v \" '
+      cmd_abc_map = ''+ abc_exe_path + ' -c \" read '+ verilog_path + name +'.v; if -K 6; print_stats \" '
       os.system( cmd_mig )
       os.system( cmd_abc)
+      os.system( cmd_abc_map)
       print '\n\n'
 
 def run_mcnc():

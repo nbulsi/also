@@ -97,10 +97,12 @@ namespace also
     void one_level_optimization( const int& thres1, const int& thres2 );
     void two_level_optimization( const int& thres1, const int& thres2 );
     void run();
-
+    
     private:
     xmg_network xmg;
     std::map<nd_t, std::vector<nd_t>> pmap;
+    
+    unsigned num_inv_origin{0u}, num_inv_opt{0u};
   };
 
   inv_manager::inv_manager( ntk xmg )
@@ -344,21 +346,28 @@ namespace also
 
   void inv_manager::run()
   {
+    num_inv_origin = num_inverters( xmg );
+    
     one_level_optimization( 1, 1 );
     two_level_optimization( 1, 1 );
     
     one_level_optimization( 0, 0 );
     two_level_optimization( 1, 1 );
+    
+    num_inv_opt = num_inverters( xmg );
+
+    std::cout << "[I] Number of invs has been reduced from " << num_inv_origin << " to " << num_inv_opt 
+              << " improvement percentage: %" << ( num_inv_origin - num_inv_opt ) / (double) num_inv_origin * 100 << std::endl;
   }
   
   /* public function */
   void xmg_inv_optimization( xmg_network& xmg )
   {
-    std::cout << "Before optimization: " << num_inverters( xmg ) << std::endl;
+    //std::cout << "Before optimization: " << num_inverters( xmg ) << std::endl;
     inv_manager mgr( xmg );
     mgr.run();
 
-    std::cout << "After  optimization: " << num_inverters( xmg ) << std::endl;
+    //std::cout << "After  optimization: " << num_inverters( xmg ) << std::endl;
   }
 
 }
