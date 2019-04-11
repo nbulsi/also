@@ -307,8 +307,8 @@ private:
       return false;
 
     /* multiple child fanout is allowable */
-    //if ( !ps.allow_area_increase && ntk.fanout_size( ntk.get_node( ocs[2] ) ) != 1 )
-    //  return false;
+    if ( !ps.allow_area_increase && ntk.fanout_size( ntk.get_node( ocs[2] ) ) != 1 )
+      return false;
 
     /* get children of last child */
     auto ocs2 = ordered_children( ntk.get_node( ocs[2] ) );
@@ -411,11 +411,14 @@ private:
     //  return false;
 
     /* child must have single fanout, if no area overhead is allowed */
-    for( const auto& index : xor_index )
+    if( !ps.allow_area_increase )
     {
-      if( ntk.fanout_size( ntk.get_node( ocs[index] ) ) != 1 )
+      for( const auto& index : xor_index )
       {
-        return false;
+        if( ntk.fanout_size( ntk.get_node( ocs[index] ) ) != 1 )
+        {
+          return false;
+        }
       }
     }
 
