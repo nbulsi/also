@@ -47,7 +47,12 @@ struct xmg_depth_rewriting_params
      * Like `aggressive`, but only applies rewriting to nodes on critical paths
      * and without `overhead`.
      */
-    selective
+    selective,
+    /*! \brief Selective rewriting strategy.
+     *
+     * Like `dfs`, rewrite XOR( a, XOR( b, c ) ) as XOR3(a, b, c )
+     */
+    qca
   } strategy = dfs;
 
   /*! \brief Overhead factor in aggressive rewriting strategy.
@@ -86,11 +91,14 @@ public:
     case xmg_depth_rewriting_params::aggressive:
       run_aggressive();
       break;
+    case xmg_depth_rewriting_params::qca:
+      run_qca();
+      break;
     }
   }
 
 private:
-  void run_dfs()
+  void run_qca()
   {
     ntk.foreach_po( [this]( auto po ) {
       const auto driver = ntk.get_node( po );
@@ -99,9 +107,23 @@ private:
       topo_view topo{ntk, po};
       topo.foreach_node( [this]( auto n ) {
         reduce_depth( n );
-        reduce_depth_xor_associativity( n );
+        reduce_depth_xor2_to_xor3( n );
         reduce_depth_xor_complementary_associativity( n );
         reduce_depth_xor_distribute( n );
+        return true;
+      } );
+    } );
+  }
+
+  void run_dfs()
+  {
+    ntk.foreach_po( [this]( auto po ) {
+      const auto driver = ntk.get_node( po );
+      if ( ntk.level( driver ) < ntk.depth() )
+        return;
+      topo_view topo{ntk, po};
+      topo.foreach_node( [this]( auto n ) {
+        reduce_depth_ultimate( n );
         return true;
       } );
     } );
@@ -119,7 +141,7 @@ private:
         if ( ntk.fanout_size( n ) == 0 || ntk.value( n ) == 0 )
           return;
 
-        if ( reduce_depth( n ) )
+        if ( reduce_depth_ultimate( n ) )
         {
           mark_critical_paths();
         }
@@ -144,7 +166,7 @@ private:
         if ( ntk.fanout_size( n ) == 0 )
           return;
 
-        if ( !reduce_depth( n ) )
+        if ( !reduce_depth_ultimate( n ) )
         {
           ++counter;
         }
@@ -158,6 +180,93 @@ private:
   }
 
 private:
+  bool reduce_depth_ultimate( node<Ntk> const& n )
+  {
+    auto b1 = reduce_depth( n );
+    auto b2 = reduce_depth_xor_associativity( n );
+    auto b3 = reduce_depth_xor_complementary_associativity( n );
+    auto b4 = reduce_depth_xor_distribute( n );
+
+    if( !( b1 | b2 | b3 | b4 ) ) { return false; }
+    
+    return true;
+  }
+  
+  bool reduce_depth_xor2_to_xor3( node<Ntk> const& n )
+  {
+    if ( !ntk.is_xor3( n ) )
+      return false;
+
+    if ( ntk.level( n ) == 0 )
+      return false;
+
+    /* get children of top node, ordered by node level (ascending) */
+    const auto ocs = ordered_children( n );
+
+    /* if the first child is not constant, return */
+    if( ocs[0].index != 0 )
+      return false;
+
+    /* if there are no XOR children, return */
+    if ( !ntk.is_xor3( ntk.get_node( ocs[2] ) ) || !ntk.is_xor3( ntk.get_node( ocs[1] ) ) )
+      return false;
+
+    if( ntk.is_xor3( ntk.get_node( ocs[2] ) ) )
+    {
+      /* size optimization, do not allow area increase */
+      if( ntk.fanout_size( ntk.get_node( ocs[2] ) ) == 1 ) 
+      {
+        /* get children of last child */
+        auto ocs2 = ordered_children( ntk.get_node( ocs[2] ) );
+        
+        /* propagate inverter if necessary */
+        if ( ntk.is_complemented( ocs[2] ) )
+        {
+          /* complement the constants */
+          ocs2[0] = !ocs2[0];
+        }
+
+        if( ocs[0] == ocs2[0] ) 
+        {
+          auto opt = ntk.create_xor3( ocs[1], ocs2[1], ocs2[2] );
+          ntk.substitute_node( n, opt );
+          ntk.update_levels();
+        }
+
+        return true;
+      }
+
+    }
+    
+    if( ntk.is_xor3( ntk.get_node( ocs[1] ) ) )
+    {
+      /* size optimization, do not allow area increase */
+      if( ntk.fanout_size( ntk.get_node( ocs[1] ) ) == 1 ) 
+      {
+        /* get children of second child */
+        auto ocs2 = ordered_children( ntk.get_node( ocs[1] ) );
+        
+        /* propagate inverter if necessary */
+        if ( ntk.is_complemented( ocs[1] ) )
+        {
+          /* complement the constants */
+          ocs2[0] = !ocs2[0];
+        }
+
+        if( ocs[0] == ocs2[0] ) 
+        {
+          auto opt = ntk.create_xor3( ocs[2], ocs2[1], ocs2[2] );
+          ntk.substitute_node( n, opt );
+          ntk.update_levels();
+        }
+
+        return true;
+      }
+    }
+
+    return true;
+  }
+
   bool reduce_depth( node<Ntk> const& n )
   {
     if ( !ntk.is_maj( n ) )

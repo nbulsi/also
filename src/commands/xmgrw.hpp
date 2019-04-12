@@ -26,7 +26,7 @@ namespace alice
     public:
       explicit xmgrw_command( const environment::ptr& env ) : command( env, "Performs algebraic MIG rewriting" )
       {
-        add_option( "strategy, -s", strategy, "dfs = 0, aggressive = 1, selective = 2" );
+        add_option( "strategy, -s", strategy, "dfs = 0, aggressive = 1, selective = 2, qca = 3" );
         add_flag( "--area_aware", "do not increase area" );
         add_flag( "--only_maj", "apply mig_algebraic_depth_rewriting method" );
       }
@@ -36,8 +36,8 @@ namespace alice
         return {
           has_store_element<xmg_network>( env ),
             {
-              [this]() { return ( strategy <= 2 && strategy >= 0 ) ; },
-              "strategy must in [0,2] "
+              [this]() { return ( strategy <= 3 && strategy >= 0 ) ; },
+              "strategy must in [0,3] "
             }
           };
       }
@@ -63,9 +63,13 @@ namespace alice
           {
             ps_mig.strategy = mig_algebraic_depth_rewriting_params::aggressive;
           }
-          else
+          else if( strategy == 2 )
           {
             ps_mig.strategy = mig_algebraic_depth_rewriting_params::selective;
+          }
+          else
+          {
+            assert( false );
           }
 
           depth_view depth_xmg( xmg );
@@ -87,9 +91,13 @@ namespace alice
           {
             ps_xmg.strategy = xmg_depth_rewriting_params::aggressive;
           }
-          else
+          else if( strategy == 2 )
           {
             ps_xmg.strategy = xmg_depth_rewriting_params::selective;
+          }
+          else
+          {
+            ps_xmg.strategy = xmg_depth_rewriting_params::qca;
           }
 
           depth_view depth_xmg( xmg );
