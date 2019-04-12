@@ -100,16 +100,23 @@ public:
 private:
   void run_qca()
   {
+    /* reduce depth */
     ntk.foreach_po( [this]( auto po ) {
       const auto driver = ntk.get_node( po );
       if ( ntk.level( driver ) < ntk.depth() )
         return;
       topo_view topo{ntk, po};
       topo.foreach_node( [this]( auto n ) {
+        reduce_depth_ultimate( n );
+        return true;
+      } );
+    } );
+
+    /* rewrite xor2 to xor3 */
+    ntk.foreach_po( [this]( auto po ) {
+      topo_view topo{ntk, po};
+      topo.foreach_node( [this]( auto n ) {
         reduce_depth_xor2_to_xor3( n );
-        reduce_depth( n );
-        reduce_depth_xor_complementary_associativity( n );
-        reduce_depth_xor_distribute( n );
         return true;
       } );
     } );

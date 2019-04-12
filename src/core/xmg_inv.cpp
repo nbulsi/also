@@ -224,7 +224,7 @@ namespace also
        
        auto tmp = num_invs_fanins( n );
        
-       if( tmp == 1 )
+       if( tmp == 1 || tmp == 3 )
        {
           in = 0; 
        }
@@ -334,9 +334,9 @@ namespace also
 
   void inv_manager::xor_jump()
   {
-    xmg.foreach_gate( [&]( auto n ) 
+    xmg.foreach_gate( [&]( const auto& n ) 
         {
-          if( xmg.is_xor( n ) )
+          if( xmg.is_xor3( n ) )
           {
             xmg.xor_inv_jump( n );
           }
@@ -355,6 +355,8 @@ namespace also
     two_level_optimization( 1, 1 );
     
     num_inv_opt = num_inverters( xmg );
+
+    xor_jump();
 
     std::cout << "[I] Number of invs has been reduced from " << num_inv_origin << " to " << num_inv_opt 
               << " improvement percentage: %" << ( num_inv_origin - num_inv_opt ) / (double) num_inv_origin * 100 << std::endl;
