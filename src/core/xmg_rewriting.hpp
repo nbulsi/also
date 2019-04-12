@@ -106,8 +106,8 @@ private:
         return;
       topo_view topo{ntk, po};
       topo.foreach_node( [this]( auto n ) {
-        reduce_depth( n );
         reduce_depth_xor2_to_xor3( n );
+        reduce_depth( n );
         reduce_depth_xor_complementary_associativity( n );
         reduce_depth_xor_distribute( n );
         return true;
@@ -191,12 +191,12 @@ private:
     
     return true;
   }
-  
+
   bool reduce_depth_xor2_to_xor3( node<Ntk> const& n )
   {
     if ( !ntk.is_xor3( n ) )
       return false;
-
+    
     if ( ntk.level( n ) == 0 )
       return false;
 
@@ -208,7 +208,7 @@ private:
       return false;
 
     /* if there are no XOR children, return */
-    if ( !ntk.is_xor3( ntk.get_node( ocs[2] ) ) || !ntk.is_xor3( ntk.get_node( ocs[1] ) ) )
+    if ( !ntk.is_xor3( ntk.get_node( ocs[2] ) ) && !ntk.is_xor3( ntk.get_node( ocs[1] ) ) )
       return false;
 
     if( ntk.is_xor3( ntk.get_node( ocs[2] ) ) )
@@ -226,7 +226,7 @@ private:
           ocs2[0] = !ocs2[0];
         }
 
-        if( ocs[0] == ocs2[0] ) 
+        if( ocs2[0].index == 0 ) 
         {
           auto opt = ntk.create_xor3( ocs[1], ocs2[1], ocs2[2] );
           ntk.substitute_node( n, opt );
@@ -253,7 +253,7 @@ private:
           ocs2[0] = !ocs2[0];
         }
 
-        if( ocs[0] == ocs2[0] ) 
+        if( ocs2[0].index == 0 ) 
         {
           auto opt = ntk.create_xor3( ocs[2], ocs2[1], ocs2[2] );
           ntk.substitute_node( n, opt );
@@ -781,7 +781,14 @@ private:
     std::array<signal<Ntk>, 3> children;
     ntk.foreach_fanin( n, [&children]( auto const& f, auto i ) { children[i] = f; } );
     std::sort( children.begin(), children.end(), [this]( auto const& c1, auto const& c2 ) {
-      return ntk.level( ntk.get_node( c1 ) ) < ntk.level( ntk.get_node( c2 ) );
+        if( ntk.level( ntk.get_node( c1 ) ) == ntk.level( ntk.get_node( c2 ) ) )
+        {
+          return c1.index < c2.index;
+        }
+        else
+        {
+          return ntk.level( ntk.get_node( c1 ) ) < ntk.level( ntk.get_node( c2 ) );
+        }
     } );
     return children;
   }
