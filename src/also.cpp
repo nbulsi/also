@@ -35,6 +35,8 @@
 #include "commands/xmgrs.hpp"
 #include "commands/cutrw.hpp"
 #include "commands/xmgcost.hpp"
+#include "commands/magic.hpp"
+#include "commands/write_dot.hpp"
 
 ALICE_MAIN( also )
 
