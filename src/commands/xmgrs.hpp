@@ -46,8 +46,8 @@ namespace alice
          xmg_resubstitution( resub_view, ps, &st );
          xmg = cleanup_dangling( xmg );
 
-         std::cout << "TODO: an improved XMG resubstitution version " << std::endl;
-         also::print_stats( xmg );
+         store<xmg_network>().extend(); 
+         store<xmg_network>().current() = xmg;
       }
     
     private:

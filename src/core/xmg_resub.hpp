@@ -101,7 +101,7 @@ struct xmg_resub_stats
     std::cout << fmt::format( "[i]            total   {:6d}\n",
                               (num_const_accepts + num_div0_accepts + num_divR_accepts + num_div1_accepts + num_div12_accepts + num_div2_accepts) );
   }
-}; /* mig_resub_stats */
+}; /* xmg_resub_stats */
 
 template<typename Ntk, typename Simulator>
 struct xmg_resub_functor
@@ -161,6 +161,23 @@ public:
 
   std::optional<signal> operator()( node const& root, uint32_t required, uint32_t max_inserts, uint32_t num_mffc, uint32_t& last_gain )
   {
+    /* consider relevance optimization */
+    auto g = call_with_stopwatch( st.time_resubR, [&]() {
+        return resub_divR( root, required );
+      });
+    if ( g )
+    {
+      ++st.num_divR_accepts;
+      last_gain = num_mffc;
+      return g; /* accepted resub */
+    }
+
+    if ( max_inserts == 0 || num_mffc == 1 )
+      return std::nullopt;
+    
+    return std::nullopt;
+
+#if 0
     /* consider constants */
     auto g = call_with_stopwatch( st.time_resubC, [&]() {
         return resub_const( root, required );
@@ -242,6 +259,7 @@ public:
     }
 
     return std::nullopt;
+#endif //we just allow relevance optimization for algebraic rewriting
   }
 
   std::optional<signal> resub_const( node const& root, uint32_t required ) const
@@ -276,10 +294,20 @@ public:
   {
     (void)required;
 
+    if( !ntk.is_maj( root ) )
+      return std::nullopt;
+
     std::vector<signal> fs;
     ntk.foreach_fanin( root, [&]( const auto& f ){
         fs.emplace_back( f );
       });
+
+    for( const auto& f : fs )
+    {
+      /* only for maj operators */
+      if( !ntk.is_maj( ntk.get_node( f ) ) )
+        return std::nullopt;
+    }
 
     for ( auto i = 0u; i < divs.size(); ++i )
     {
