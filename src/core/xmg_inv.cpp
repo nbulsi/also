@@ -348,18 +348,17 @@ namespace also
   {
     num_inv_origin = num_inverters( xmg );
     
-    one_level_optimization( 1, 1 );
-    two_level_optimization( 1, 1 );
+    one_level_optimization( 0, 1 );
+    two_level_optimization( 1, 0 );
     
-    one_level_optimization( 0, 0 );
+    one_level_optimization( 0, 1 );
     two_level_optimization( 1, 1 );
     
     num_inv_opt = num_inverters( xmg );
 
     xor_jump();
 
-    std::cout << "[I] Number of invs has been reduced from " << num_inv_origin << " to " << num_inv_opt 
-              << " improvement percentage: %" << ( num_inv_origin - num_inv_opt ) / (double) num_inv_origin * 100 << std::endl;
+    std::cout << "[xmginv] " << " num_inv_origin: " << num_inv_origin << " num_opt_inv: " << num_inv_opt << std::endl; 
   }
   
   /* public function */

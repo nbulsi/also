@@ -48,8 +48,6 @@ namespace alice
       {
         xmg_network xmg = store<xmg_network>().current();
 
-        also::print_stats( xmg );
-        
         if( is_set( "only_maj" ) )
         {
           /* parameters */
@@ -76,7 +74,6 @@ namespace alice
           mig_algebraic_depth_rewriting( depth_xmg, ps_mig );
           xmg = cleanup_dangling( xmg );
           
-          also::print_stats( xmg );
         }
         else
         {
@@ -104,9 +101,10 @@ namespace alice
           xmg_depth_rewriting( depth_xmg, ps_xmg );
           xmg = cleanup_dangling( xmg );
           
-          also::print_stats( xmg );
         }
 
+        std::cout << "[xmgrw] "; 
+        also::print_stats( xmg );
         store<xmg_network>().extend(); 
         store<xmg_network>().current() = xmg;
       }

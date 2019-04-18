@@ -1,6 +1,6 @@
 import os, sys
 
-bench = ['adder.aig', 'ctrl.aig', 'i2c.aig','mem_ctrl.aig','sin.aig','arbiter.aig','dec.aig','int2float.aig','multiplier.aig','sqrt.aig','bar.aig','div.aig','log2.aig','priority.aig','square.aig','cavlc.aig','max.aig','router.aig','voter.aig']
+bench = ['adder.aig', 'ctrl.aig','i2c.aig','mem_ctrl.aig','sin.aig','arbiter.aig','dec.aig','int2float.aig','multiplier.aig','sqrt.aig','bar.aig','div.aig','log2.aig','priority.aig','square.aig','cavlc.aig','max.aig','router.aig','voter.aig','hyp.aig']
 
 bench_mcnc = ['5xp1.aig',
               'Z9sym.aig',
@@ -37,21 +37,21 @@ bench_mcnc_path = '/Users/chu/benchmarks/aiger/'
 verilog_path = '/Users/chu/also/utils/'
 
 abc_exe_path = '/Users/chu/abc/abc'
-also_cmds = 'lut_mapping; lut_resyn -nx; xmgrw --area_aware; xmginv'
+also_opt_cmds = 'xmgrw --area_aware -s 3; xmginv'
+also_map_cmds = 'lut_mapping; lut_resyn -nx'
 
 def parse_file_name( fname ):
     return fname.split('.')[0]
 
-def run_epfl():
-    for i in range(len(bench)):
-      name = parse_file_name( bench[i] )
-      print name
-      cmd_mig = ''+ also_exe_path + ' -c \" read_aiger ' + bench_epfl_path + bench[i] + '; '+ also_cmds + '; write_verilog -x '+ name +'.v \"'
+def run_epfl(name):
+      cmd_mig = 'time '+ also_exe_path + ' -c \" read_aiger ' + bench_epfl_path + bench[i] + '; '+ also_map_cmds + '; write_verilog -x '+ name +'_origin.v; '+ also_opt_cmds +'; write_verilog -x '+ name +'_opt.v \"'
       cmd_abc = ''+ abc_exe_path + ' -c \" cec -n '+ bench_epfl_path + bench[i] + ' '+ verilog_path + name +'.v \" '
-      cmd_abc_map = ''+ abc_exe_path + ' -c \" read '+ verilog_path + name +'.v; if -K 6; print_stats \" '
+      cmd_abc_opt_map = ''+ abc_exe_path + ' -c \" read '+ verilog_path + name +'_opt.v; if -K 6; print_stats \" '
+      cmd_abc_origin_map = ''+ abc_exe_path + ' -c \" read '+ verilog_path + name +'_origin.v; if -K 6; print_stats \" '
       os.system( cmd_mig )
-      os.system( cmd_abc)
-      os.system( cmd_abc_map)
+      #os.system( cmd_abc)
+      os.system( cmd_abc_origin_map)
+      os.system( cmd_abc_opt_map)
       print '\n\n'
 
 def run_mcnc():
@@ -73,10 +73,13 @@ if __name__ == "__main__":
 
     strategy = sys.argv[1]
 
-    if strategy == "mcnc":
+    if strategy == "epfl":
+        for i in range(len(bench)):
+            name = parse_file_name( bench[i] )
+            print "bench:" + name
+            run_epfl(name)
+    elif strategy == "mcnc":
         run_mcnc()
-    elif strategy == "epfl":
-        run_epfl()
     else: 
        print( "UNKOWN Strategy\n" )
 
