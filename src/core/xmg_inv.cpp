@@ -364,11 +364,8 @@ namespace also
   /* public function */
   void xmg_inv_optimization( xmg_network& xmg )
   {
-    //std::cout << "Before optimization: " << num_inverters( xmg ) << std::endl;
     inv_manager mgr( xmg );
     mgr.run();
-
-    //std::cout << "After  optimization: " << num_inverters( xmg ) << std::endl;
   }
 
 }

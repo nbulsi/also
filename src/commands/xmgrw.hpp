@@ -28,6 +28,7 @@ namespace alice
       {
         add_option( "strategy, -s", strategy, "dfs = 0, aggressive = 1, selective = 2, qca = 3" );
         add_flag( "--area_aware", "do not increase area" );
+        add_flag( "--xor3_flattan", "flattan xor3 to 2 xor2s" );
         add_flag( "--only_maj", "apply mig_algebraic_depth_rewriting method" );
       }
       
@@ -79,6 +80,7 @@ namespace alice
         {
           /* parameters */
           ps_xmg.allow_area_increase = !is_set( "area_aware" );
+          ps_xmg.apply_xor3_to_xor2  =  is_set( "xor3_flattan" );
 
           if( strategy == 0 )
           {
@@ -92,9 +94,13 @@ namespace alice
           {
             ps_xmg.strategy = xmg_depth_rewriting_params::selective;
           }
-          else
+          else if( strategy == 3 )
           {
             ps_xmg.strategy = xmg_depth_rewriting_params::qca;
+          }
+          else
+          {
+            assert( false );
           }
 
           depth_view depth_xmg( xmg );

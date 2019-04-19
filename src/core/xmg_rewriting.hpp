@@ -64,6 +64,9 @@ struct xmg_depth_rewriting_params
 
   /*! \brief Allow area increase while optimizing depth. */
   bool allow_area_increase{true};
+
+  /*! \brief xor3 to two xor2s that compatiable with old cirkit */
+  bool apply_xor3_to_xor2{false};
 };
 
 namespace detail
@@ -94,6 +97,11 @@ public:
     case xmg_depth_rewriting_params::qca:
       run_qca();
       break;
+    }
+
+    if( ps.apply_xor3_to_xor2 )
+    {
+      run_xor3_flatten();
     }
   }
 
@@ -186,6 +194,18 @@ private:
     }
   }
 
+  void run_xor3_flatten()
+  {
+    /* rewrite xor3 to xor2 */
+    ntk.foreach_po( [this]( auto po ) {
+      topo_view topo{ntk, po};
+      topo.foreach_node( [this]( auto n ) {
+        xor3_to_xor2( n );
+        return true;
+      } );
+    } );
+  }
+
 private:
   bool reduce_depth_ultimate( node<Ntk> const& n )
   {
@@ -195,6 +215,28 @@ private:
     auto b4 = reduce_depth_xor_distribute( n );
 
     if( !( b1 | b2 | b3 | b4 ) ) { return false; }
+    
+    return true;
+  }
+
+  bool xor3_to_xor2( node<Ntk> const& n )
+  {
+    if ( !ntk.is_xor3( n ) )
+      return false;
+    
+    if ( ntk.level( n ) == 0 )
+      return false;
+    
+    /* get children of top node, ordered by node level (ascending) */
+    const auto ocs = ordered_children( n );
+
+    /* if the first child is constant, return */
+    if( ocs[0].index == 0 )
+      return false;
+
+    auto opt = ntk.create_xor( ocs[2], ntk.create_xor( ocs[0], ocs[1] ) );
+    ntk.substitute_node( n, opt );
+    ntk.update_levels();
     
     return true;
   }
