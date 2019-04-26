@@ -701,9 +701,9 @@ namespace also
 
       bool dirty = false;
       bool print_clause = false;
-      bool allow_two_const = false;
-      bool allow_two_equal = false;
-      bool write_cnf_file = true;
+      bool allow_two_const = true;
+      bool allow_two_equal = true;
+      bool write_cnf_file = false;
 
       FILE* f = NULL;
       int num_clauses = 0;
@@ -1192,6 +1192,36 @@ namespace also
         return status;
       }
 
+      //block solution
+      bool block_solution(const spec& spec)
+      {
+        int ctr  = 0;
+        int svar = 0;
+          
+        for (int i = 0; i < spec.nr_steps; i++) 
+        {
+          auto num_svar_in_current_step = comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, i, 
+                                                                            allow_two_const, 
+                                                                            allow_two_equal );
+          
+          for( int j = svar; j < svar + num_svar_in_current_step; j++ )
+          {
+            //std::cout << "var: " << j << std::endl;
+            if( solver->var_value( j ) )
+            {
+              pLits[ctr++] = pabc::Abc_Var2Lit(j, 1);
+              break;
+            }
+          }
+          
+          svar += num_svar_in_current_step;
+        }
+        
+        assert(ctr == spec.nr_steps);
+
+        return solver->add_clause(pLits, pLits + ctr);
+      }
+
       bool encode( const spec& spec )
       {
         if( write_cnf_file )
@@ -1389,11 +1419,19 @@ namespace also
    synth_result mig_five_synthesize( spec& spec, mig5& mig5, solver_wrapper& solver, mig_five_encoder& encoder )
    {
       spec.preprocess();
-      spec.verbosity = 1;
-      encoder.set_dirty( true );
-      encoder.set_print_clause( false );
-      encoder.set_allow_two_const( true );
-      encoder.set_allow_two_equal( true );
+      
+      // The special case when the Boolean chain to be synthesized
+      // consists entirely of trivial functions.
+      if (spec.nr_triv == spec.get_nr_out()) 
+      {
+        mig5.reset(spec.get_nr_in(), spec.get_nr_out(), 0);
+        for (int h = 0; h < spec.get_nr_out(); h++) 
+        {
+          mig5.set_output(h, (spec.triv_func(h) << 1) +
+              ((spec.out_inv >> h) & 1));
+        }
+        return success;
+      }
 
       spec.nr_steps = spec.initial_steps; 
 
@@ -1438,11 +1476,19 @@ namespace also
    synth_result mig_five_cegar_synthesize( spec& spec, mig5& mig5, solver_wrapper& solver, mig_five_encoder& encoder )
    {
       spec.preprocess();
-      spec.verbosity = 1;
-      encoder.set_dirty( true );
-      encoder.set_print_clause( false );
-      encoder.set_allow_two_const( true );
-      encoder.set_allow_two_equal( true );
+      
+      // The special case when the Boolean chain to be synthesized
+      // consists entirely of trivial functions.
+      if (spec.nr_triv == spec.get_nr_out()) 
+      {
+        mig5.reset(spec.get_nr_in(), spec.get_nr_out(), 0);
+        for (int h = 0; h < spec.get_nr_out(); h++) 
+        {
+          mig5.set_output(h, (spec.triv_func(h) << 1) +
+              ((spec.out_inv >> h) & 1));
+        }
+        return success;
+      }
 
       spec.nr_steps = spec.initial_steps; 
 
@@ -1496,6 +1542,40 @@ namespace also
 
       return success;
    }
+   
+   synth_result next_solution( spec& spec, mig5& mig5, solver_wrapper& solver, mig_five_encoder& encoder )
+     {
+       //spec.verbosity = 3;
+       if (!encoder.is_dirty()) 
+       {
+            encoder.set_dirty(true);
+            return mig_five_synthesize(spec, mig5, solver, encoder);
+        }
+       
+       // The special case when the Boolean chain to be synthesized
+       // consists entirely of trivial functions.
+       // In this case, only one solution exists.
+       if (spec.nr_triv == spec.get_nr_out()) {
+         return failure;
+       }
+
+       if (encoder.block_solution(spec)) 
+       {
+         const auto status = solver.solve(spec.conflict_limit);
+
+         if (status == success) 
+         {
+           encoder.extract_mig5(spec, mig5);
+           return success;
+         } 
+         else 
+         {
+           return status;
+         }
+       }
+
+       return failure;
+    }
 
 }
 

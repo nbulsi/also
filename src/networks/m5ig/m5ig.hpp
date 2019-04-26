@@ -53,7 +53,7 @@ struct m5ig_storage_data
 };
 /*! \brief m5ig storage container
 
-  m5igs have nodes with fan-in 3.  We split of one bit of the index pointer to
+  m5igs have nodes with fan-in 5.  We split of one bit of the index pointer to
   store a complemented attribute.  Every node has 64-bit of additional data
   used for the following purposes:
 
@@ -213,42 +213,32 @@ public:
 #pragma endregion
 
 #pragma region Create binary / ternary functions
+  bool is_three_signals_equal( signal a, signal b, signal c )
+  {
+    return (( a == b ) && ( a == c ));
+  }
+
   signal create_maj( signal a, signal b, signal c, signal d, signal e )
   {
-#if 0
     /* order inputs */
-    if ( a.index > b.index )
-    {
-      std::swap( a, b );
-      if ( b.index > c.index )
-        std::swap( b, c );
-      if ( a.index > b.index )
-        std::swap( a, b );
-    }
-    else
-    {
-      if ( b.index > c.index )
-        std::swap( b, c );
-      if ( a.index > b.index )
-        std::swap( a, b );
-    }
+    std::array<signal, 5> children = { a, b, c, d, e };
+    std::sort( children.begin(), children.end(), [this]( auto const& c1, auto const& c2 ) {
+      return c1.index < c2.index;
+    } );
 
     /* trivial cases */
-    if ( a.index == b.index )
-    {
-      return ( a.complement == b.complement ) ? a : c;
-    }
-    else if ( b.index == c.index )
-    {
-      return ( b.complement == c.complement ) ? b : a;
-    }
-
-#endif
+    if( is_three_signals_equal( a, b, c ) ) { return a; }
+    if( is_three_signals_equal( a, b, d ) ) { return a; }
+    if( is_three_signals_equal( a, b, e ) ) { return a; }
+    if( is_three_signals_equal( b, c, d ) ) { return b; }
+    if( is_three_signals_equal( b, c, e ) ) { return b; }
+    if( is_three_signals_equal( c, d, e ) ) { return c; }
+    
     /*  complemented edges minimization */
     auto node_complement = false;
     if ( static_cast<unsigned>( a.complement ) + static_cast<unsigned>( b.complement ) +
-             static_cast<unsigned>( c.complement ) + static_cast<unsigned>( d.complement ) + static_cast<unsigned>( e.complement )    >=
-         3u )
+         static_cast<unsigned>( c.complement ) + static_cast<unsigned>( d.complement ) 
+         + static_cast<unsigned>( e.complement )  >= 3u )
     {
       node_complement = true;
       a.complement = !a.complement;
@@ -266,14 +256,12 @@ public:
     node.children[4] = e;
 
     /* structural hashing */
-#if 0
     const auto it = _storage->hash.find( node );
     if ( it != _storage->hash.end() )
     {
       return {it->second, node_complement};
     }
 
-#endif
     const auto index = _storage->nodes.size();
 
     if ( index >= .9 * _storage->nodes.capacity() )
@@ -750,7 +738,6 @@ public:
 namespace std
 {
 
-#if 0
 template<>
 struct hash<mockturtle::m5ig_network::signal>
 {
@@ -765,6 +752,5 @@ struct hash<mockturtle::m5ig_network::signal>
     return k;
   }
 }; /* hash */
-#endif
 
 } // namespace std

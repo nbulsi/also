@@ -30,6 +30,7 @@ namespace alice
       {
         add_flag( "--verbose, -v",  "print the information" );
         add_flag( "--cegar, -c",    "CEGAR encoding" );
+        add_flag( "--enumerate, -e",    "enumerate all the solutions" );
       }
 
       rules validity_rules() const
@@ -62,67 +63,67 @@ namespace alice
             break;
 
           case 0:
-            ss << inputs[0] << inputs[1] << inputs[2] << inputs[3] << inputs[4] << " "; 
+            ss << "<" << inputs[0] << inputs[1] << inputs[2] << inputs[3] << inputs[4] << "> "; 
             break;
           
           case 1:
-            ss << "!" << inputs[0] << inputs[1] << inputs[2] << inputs[3] << inputs[4] << " "; 
+            ss << "<!" << inputs[0] << inputs[1] << inputs[2] << inputs[3] << inputs[4] << "> "; 
             break;
 
           case 2:
-            ss << inputs[0] << "!" << inputs[1] << inputs[2] << inputs[3] << inputs[4] << " "; 
+            ss << "<" << inputs[0] << "!" << inputs[1] << inputs[2] << inputs[3] << inputs[4] << "> "; 
             break;
 
           case 3:
-            ss << inputs[0] << inputs[1] << "!" << inputs[2] << inputs[3] << inputs[4] << " "; 
+            ss << "<" << inputs[0] << inputs[1] << "!" << inputs[2] << inputs[3] << inputs[4] << "> "; 
             break;
 
           case 4:
-            ss << inputs[0] << inputs[1] << inputs[2] << "!" << inputs[3] << inputs[4] << " "; 
+            ss << "<" << inputs[0] << inputs[1] << inputs[2] << "!" << inputs[3] << inputs[4] << "> "; 
             break;
 
           case 5:
-            ss << inputs[0] << inputs[1] << inputs[2] << inputs[3] << "!" << inputs[4] << " "; 
+            ss << "<" << inputs[0] << inputs[1] << inputs[2] << inputs[3] << "!" << inputs[4] << "> "; 
             break;
 
           case 6:
-            ss << "!" << inputs[0] << "!" << inputs[1] << inputs[2] << inputs[3] << inputs[4] << " "; 
+            ss << "<!" << inputs[0] << "!" << inputs[1] << inputs[2] << inputs[3] << inputs[4] << "> "; 
             break;
 
           case 7:
-            ss << "!" << inputs[0] << inputs[1] << "!" << inputs[2] << inputs[3] << inputs[4] << " "; 
+            ss << "<!" << inputs[0] << inputs[1] << "!" << inputs[2] << inputs[3] << inputs[4] << "> "; 
             break;
 
           case 8:
-            ss << "!" << inputs[0] << inputs[1] << inputs[2] << "!" << inputs[3] << inputs[4] << " "; 
+            ss << "<!" << inputs[0] << inputs[1] << inputs[2] << "!" << inputs[3] << inputs[4] << "> "; 
             break;
 
           case 9:
-            ss << "!" << inputs[0] << inputs[1] << inputs[2] << inputs[3] << "!" << inputs[4] << " "; 
+            ss << "<!" << inputs[0] << inputs[1] << inputs[2] << inputs[3] << "!" << inputs[4] << "> "; 
             break;
 
           case 10:
-            ss << inputs[0] << "!" << inputs[1] << "!" << inputs[2] << inputs[3] << inputs[4] << " "; 
+            ss << "<" << inputs[0] << "!" << inputs[1] << "!" << inputs[2] << inputs[3] << inputs[4] << "> "; 
             break;
 
           case 11:
-            ss << inputs[0] << "!" << inputs[1] << inputs[2] << "!" << inputs[3] << inputs[4] << " "; 
+            ss << "<" << inputs[0] << "!" << inputs[1] << inputs[2] << "!" << inputs[3] << inputs[4] << "> "; 
             break;
 
           case 12:
-            ss << inputs[0] << "!" << inputs[1] << inputs[2] << inputs[3] << "!" << inputs[4] << " "; 
+            ss << "<" << inputs[0] << "!" << inputs[1] << inputs[2] << inputs[3] << "!" << inputs[4] << "> "; 
             break;
 
           case 13:
-            ss << inputs[0] << inputs[1] << "!" << inputs[2] << "!" << inputs[3] << inputs[4] << " "; 
+            ss << "<" << inputs[0] << inputs[1] << "!" << inputs[2] << "!" << inputs[3] << inputs[4] << "> "; 
             break;
 
           case 14:
-            ss << inputs[0] << inputs[1] << "!" << inputs[2] << inputs[3] << "!" << inputs[4] << " "; 
+            ss << "<" << inputs[0] << inputs[1] << "!" << inputs[2] << inputs[3] << "!" << inputs[4] << "> "; 
             break;
 
           case 15:
-            ss << inputs[0] << inputs[1] << inputs[2] << "!" << inputs[3] << "!" << inputs[4] << " "; 
+            ss << "<" << inputs[0] << inputs[1] << inputs[2] << "!" << inputs[3] << "!" << inputs[4] << "> "; 
             break;
 
         }
@@ -212,6 +213,36 @@ namespace alice
         }
       }
 
+      void enumerate_m5ig( const kitty::dynamic_truth_table& tt )
+      {
+        bsat_wrapper solver;
+        spec spec;
+        also::mig5 mig5;
+
+        auto copy = tt;
+        if( copy.num_vars()  < 5 )
+        {
+          spec[0] = kitty::extend_to( copy, 5 );
+        }
+        else
+        {
+          spec[0] = tt;
+        }
+
+        also::mig_five_encoder encoder( solver );
+        
+        int nr_solutions = 0;
+
+        while( also::next_solution( spec, mig5, solver, encoder ) == success )
+        {
+          print_all_expr( spec, mig5 );
+          nr_solutions++;
+        }
+
+        std::cout << "There are " << nr_solutions << " solutions found." << std::endl;
+
+      }
+
     protected:
       void execute()
       {
@@ -223,6 +254,10 @@ namespace alice
         if( is_set( "cegar" ) )
         {
           nbu_mig_five_encoder_cegar_test( opt.function );
+        }
+        else if( is_set( "enumerate" ) )
+        {
+          enumerate_m5ig( opt.function );
         }
         else
         {
