@@ -30,6 +30,7 @@
 #include "commands/lut_resyn.hpp"
 #include "commands/xmginv.hpp"
 #include "commands/exact_m5ig.hpp"
+#include "commands/exact_maj.hpp"
 #include "commands/exprsim.hpp"
 #include "commands/xmgrw.hpp"
 #include "commands/xmgrs.hpp"

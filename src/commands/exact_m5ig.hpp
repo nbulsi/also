@@ -26,7 +26,7 @@ namespace alice
   class exact_m5ig_command: public command
   {
     public:
-      explicit exact_m5ig_command( const environment::ptr& env ) : command( env, "using exact synthesis to find optimal m5igs" )
+      explicit exact_m5ig_command( const environment::ptr& env ) : command( env, "using exact synthesis to find optimal M5IGs" )
       {
         add_flag( "--verbose, -v",  "print the information" );
         add_flag( "--cegar, -c",    "CEGAR encoding" );

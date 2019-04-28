@@ -226,6 +226,13 @@ public:
       return c1.index < c2.index;
     } );
 
+    /* reassignment */
+    a = children[0];
+    b = children[1];
+    c = children[2];
+    d = children[3];
+    e = children[4];
+
     /* trivial cases */
     if( is_three_signals_equal( a, b, c ) ) { return a; }
     if( is_three_signals_equal( a, b, d ) ) { return a; }
@@ -233,6 +240,13 @@ public:
     if( is_three_signals_equal( b, c, d ) ) { return b; }
     if( is_three_signals_equal( b, c, e ) ) { return b; }
     if( is_three_signals_equal( c, d, e ) ) { return c; }
+
+    /* <01abc> = <abcd!d> = <abce!e> */
+    if(  a == !b && a.index != 0 ) { a = get_constant( false ); b = get_constant( true ); }
+    else if(  b == !c && b.index != 0 ) { b = get_constant( false ); c = get_constant( true ); }
+    else if(  c == !d && c.index != 0 ) { c = get_constant( false ); d = get_constant( true ); }
+    else if(  d == !e && d.index != 0 ) { d = get_constant( false ); e = get_constant( true ); }
+    else { ; } //do nothing
     
     /*  complemented edges minimization */
     auto node_complement = false;
