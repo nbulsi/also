@@ -60,6 +60,7 @@ namespace alice
         switch( mig3.operators[ step_idx ] )
         {
           default:
+            assert( false && "illegal operator id" );
             break;
 
           case 0:

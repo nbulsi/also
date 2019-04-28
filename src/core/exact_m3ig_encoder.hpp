@@ -500,8 +500,9 @@ namespace also
       pabc::lit pLits[2048];
       solver_wrapper* solver;
 
-
       int maj_input = 3;
+
+      bool dev = false;
 
       std::map<int, std::vector<unsigned>> sel_map;
 
@@ -1034,12 +1035,15 @@ namespace also
 
         //printf("[i] %d nodes are required\n", spec.nr_steps );
 
-        if( spec.out_inv )
-        {
-         // printf( "[i] output is inverted\n" );
-        }
 
-        //assert( chain.satisfies_spec( spec ) );
+        if( dev) 
+        {
+          if( spec.out_inv )
+          {
+            printf( "[i] output is inverted\n" ); 
+          }
+          assert( chain.satisfies_spec( spec ) );
+        }
       }
 
       bool is_dirty() 
@@ -1164,12 +1168,12 @@ namespace also
 
           if( status == success )
           {
-            encoder.extract_mig3( spec, mig3 );
             auto sim_tt = mig3.simulate()[0];
             auto xot_tt = sim_tt ^ ( spec[0] );
             auto first_one = kitty::find_first_one_bit( xot_tt );
             if( first_one == -1 )
             {
+              encoder.extract_mig3( spec, mig3 );
               return success;
             }
 
