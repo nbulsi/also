@@ -1042,7 +1042,7 @@ namespace also
           {
             printf( "[i] output is inverted\n" ); 
           }
-          assert( chain.satisfies_spec( spec ) );
+          //assert( chain.satisfies_spec( spec ) );
         }
       }
 
@@ -1168,12 +1168,12 @@ namespace also
 
           if( status == success )
           {
+            encoder.extract_mig3( spec, mig3 );
             auto sim_tt = mig3.simulate()[0];
             auto xot_tt = sim_tt ^ ( spec[0] );
             auto first_one = kitty::find_first_one_bit( xot_tt );
             if( first_one == -1 )
             {
-              encoder.extract_mig3( spec, mig3 );
               return success;
             }
 

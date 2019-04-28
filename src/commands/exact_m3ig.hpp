@@ -158,24 +158,36 @@ namespace alice
 
         also::mig_three_encoder encoder( solver );
 
+        stopwatch<>::duration time{0};
         if( is_set( "cegar" ) )
         {
-          if ( also::mig_three_cegar_synthesize( spec, mig3, solver, encoder ) == success )
-          {
-            print_all_expr( spec, mig3 );
-          }
+          call_with_stopwatch( time, [&]() 
+              { 
+                if ( also::mig_three_cegar_synthesize( spec, mig3, solver, encoder ) == success )
+                {
+                  print_all_expr( spec, mig3 );
+                }
+              } );
         }
         else if( is_set( "enumerate" ) )
         {
-          enumerate_m3ig( copy );
+          call_with_stopwatch( time, [&]() 
+              { 
+                  enumerate_m3ig( copy );
+              });
         }
         else
         {
-          if ( also::mig_three_synthesize( spec, mig3, solver, encoder ) == success )
-          {
-            print_all_expr( spec, mig3 );
-          }
+          call_with_stopwatch( time, [&]() 
+              { 
+                if ( also::mig_three_synthesize( spec, mig3, solver, encoder ) == success )
+                {
+                  print_all_expr( spec, mig3 );
+                }
+              } );
         }
+        
+        std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
       }
 
   };

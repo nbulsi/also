@@ -248,21 +248,33 @@ namespace alice
       {
 
         auto& opt = store<optimum_network>().current();
-        const auto config = kitty::exact_npn_canonization( opt.function );
-        std::cout << kitty::to_hex( opt.function ) << " npn : " << kitty::to_hex( std::get<0>( config ) ) << std::endl;
+        //const auto config = kitty::exact_npn_canonization( opt.function );
+        //std::cout << kitty::to_hex( opt.function ) << " npn : " << kitty::to_hex( std::get<0>( config ) ) << std::endl;
 
+        stopwatch<>::duration time{0};
         if( is_set( "cegar" ) )
         {
-          nbu_mig_five_encoder_cegar_test( opt.function );
+          call_with_stopwatch( time, [&]() 
+              { 
+                nbu_mig_five_encoder_cegar_test( opt.function );
+              } );
         }
         else if( is_set( "enumerate" ) )
         {
-          enumerate_m5ig( opt.function );
+          call_with_stopwatch( time, [&]() 
+              { 
+               enumerate_m5ig( opt.function ); 
+              });
         }
         else
         {
-          nbu_mig_five_encoder_test( opt.function );
+          call_with_stopwatch( time, [&]() 
+              { 
+               nbu_mig_five_encoder_test( opt.function );
+              });
         }
+        
+        std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
       }
 
   };
