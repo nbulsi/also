@@ -506,6 +506,9 @@ namespace also
 
       std::map<int, std::vector<unsigned>> sel_map;
 
+      int level_dist[32]; // How many steps are below a certain level
+      int nr_levels; // The number of levels in the Boolean fence
+
       // There are 4 possible operators for each MIG node:
       // <abc>        (0)
       // <!abc>       (1)
@@ -527,6 +530,19 @@ namespace also
       int get_op_var( const spec& spec, int step_idx, int var_idx) const 
       {
         return op_offset + step_idx * MIG_OP_VARS_PER_STEP + var_idx;
+      }
+      
+      int get_sel_var(const spec& spec, int step_idx, int var_idx) const
+      {
+        assert(step_idx < spec.nr_steps);
+        const auto nr_svars_for_idx = nr_svars_for_step(spec, step_idx);
+        assert(var_idx < nr_svars_for_idx);
+        auto offset = 0;
+        for (int i = 0; i < step_idx; i++) 
+        {
+          offset += nr_svars_for_step(spec, i);
+        }
+        return sel_offset + offset + var_idx;
       }
 
     public:
@@ -574,6 +590,93 @@ namespace also
         /* declare in the solver */
         solver->set_nr_vars(total_nr_vars);
       }
+      
+      void fence_create_variables( const spec& spec )
+      {
+        /* number of simulation variables, s_out_in1_in2_in3 */
+        nr_sel_vars = 0;
+        for (int i = 0; i < spec.nr_steps; i++) 
+        {
+          nr_sel_vars += nr_svars_for_step(spec, i);
+        }
+        
+        /* number of operators per step */ 
+        nr_op_vars = spec.nr_steps * MIG_OP_VARS_PER_STEP;
+
+        /* number of truth table simulation variables */
+        nr_sim_vars = spec.nr_steps * spec.tt_size;
+        
+        /* offsets, this is used to find varibles correspondence */
+        sel_offset = 0;
+        op_offset  = nr_sel_vars;
+        sim_offset = nr_sel_vars + nr_op_vars;
+
+        /* total variables used in SAT formulation */
+        total_nr_vars = nr_op_vars + nr_sel_vars + nr_sim_vars;
+
+        if( spec.verbosity > 1 )
+        {
+          printf( "Creating variables (mig)\n");
+          printf( "nr steps    = %d\n", spec.nr_steps );
+          printf( "nr_in       = %d\n", spec.nr_in );
+          printf( "nr_sel_vars = %d\n", nr_sel_vars );
+          printf( "nr_op_vars  = %d\n", nr_op_vars );
+          printf( "nr_sim_vars = %d\n", nr_sim_vars );
+          printf( "tt_size     = %d\n", spec.tt_size );
+          printf( "creating %d total variables\n", total_nr_vars);
+        }
+        
+        /* declare in the solver */
+        solver->set_nr_vars(total_nr_vars);
+      }
+
+      int first_step_on_level(int level) const
+      {
+        if (level == 0) { return 0; }
+        return level_dist[level-1];
+      }
+
+      int nr_svars_for_step(const spec& spec, int i) const
+      {
+        // Determine the level of this step.
+        const auto level = get_level(spec, i + spec.nr_in + 1);
+        auto nr_svars_for_i = 0;
+        assert(level > 0);
+        for (auto l = first_step_on_level(level - 1); l < first_step_on_level(level); l++) 
+        {
+          // We select l as fanin 3, so have (l choose 2) options 
+          // (j,k in {0,...,(l-1)}) left for fanin 1 and 2.
+          nr_svars_for_i += (l * (l - 1)) / 2;
+        }
+
+        return nr_svars_for_i;
+      }
+      
+      void update_level_map(const spec& spec, const fence& f)
+      {
+        nr_levels = f.nr_levels();
+        level_dist[0] = spec.nr_in + 1;
+        for (int i = 1; i <= nr_levels; i++) {
+          level_dist[i] = level_dist[i-1] + f.at(i-1);
+        }
+      }
+
+      int get_level(const spec& spec, int step_idx) const
+      {
+        // PIs are considered to be on level zero.
+        if (step_idx <= spec.nr_in) {
+          return 0;
+        } else if (step_idx == spec.nr_in + 1) { 
+          // First step is always on level one
+          return 1;
+        }
+        for (int i = 0; i <= nr_levels; i++) {
+          if (level_dist[i] > step_idx) {
+            return i;
+          }
+        }
+        return -1;
+      }
         
       /// Ensures that each gate has the proper number of fanins.
       bool create_fanin_clauses(const spec& spec)
@@ -612,6 +715,23 @@ namespace also
         }
 
         return status;
+      }
+      
+      void fence_create_fanin_clauses(const spec& spec)
+      {
+        for (int i = 0; i < spec.nr_steps; i++) 
+        {
+          const auto nr_svars_for_i = nr_svars_for_step(spec, i);
+          
+          for (int j = 0; j < nr_svars_for_i; j++) 
+          {
+            const auto sel_var = get_sel_var(spec, i, j);
+            pLits[j] = pabc::Abc_Var2Lit(sel_var, 0);
+          }
+
+          const auto res = solver->add_clause(pLits, pLits + nr_svars_for_i);
+          assert(res);
+        }
       }
 
       void show_variable_correspondence( const spec& spec )
@@ -808,7 +928,7 @@ namespace also
 
         return ret;
       }
-
+      
       bool is_element_duplicate( const std::vector<unsigned>& array )
       {
         auto copy = array;
@@ -858,7 +978,7 @@ namespace also
 
         return ret;
       }
-
+      
       bool create_tt_clauses(const spec& spec, const int t)
       {
         bool ret = true;
@@ -872,6 +992,44 @@ namespace also
 
         return ret;
       }
+      
+      bool fence_create_tt_clauses(const spec& spec, const int t)
+      {
+        bool ret = true;
+        
+        for (int i = 0; i < spec.nr_steps; i++) 
+        {
+          const auto level = get_level(spec, i + spec.nr_in + 1);
+          int ctr = 0;
+          
+          for (int l = first_step_on_level(level - 1); l < first_step_on_level(level); l++) 
+          {
+            for (int k = 1; k < l; k++) 
+            {
+              for (int j = 0; j < k; j++) 
+              {
+                const auto sel_var = get_sel_var(spec, i, ctr++);
+                std::pair<int, std::vector<unsigned>> v;
+
+                v.first = sel_var;
+
+                v.second.push_back(i);
+                v.second.push_back(j);
+                v.second.push_back(k);
+                v.second.push_back(l);
+                
+                ret &= add_consistency_clause_init( spec, t, v );
+              }
+            }
+          }
+          
+          assert(ret);
+        }
+        
+        ret &= fix_output_sim_vars(spec, t);
+
+        return ret;
+      }
 
       void create_main_clauses( const spec& spec )
       {
@@ -879,6 +1037,16 @@ namespace also
         {
           (void) create_tt_clauses( spec, t );
         }
+      }
+      
+      bool fence_create_main_clauses(const spec& spec)
+      {
+        bool ret = true;
+        for (int t = 0; t < spec.tt_size; t++) 
+        {
+          ret &= fence_create_tt_clauses(spec, t);
+        }
+        return ret;
       }
         
       //block solution
@@ -943,6 +1111,24 @@ namespace also
           fclose( f );
         }
         
+        return true;
+      }
+      
+      bool encode(const spec& spec, const fence& f)
+      {
+          assert(spec.nr_in >= 3);
+          assert(spec.nr_steps == f.nr_nodes());
+
+          update_level_map(spec, f);
+          fence_create_variables(spec);
+          
+          if (!fence_create_main_clauses(spec)) 
+          {
+            return false;
+          }
+
+          fence_create_fanin_clauses(spec);
+
         return true;
       }
       
@@ -1045,6 +1231,51 @@ namespace also
           //assert( chain.satisfies_spec( spec ) );
         }
       }
+      
+      void fence_extract_mig3(const spec& spec, mig3& chain)
+      {
+        int op_inputs[3] = { 0, 0, 0 };
+
+        chain.reset(spec.nr_in, 1, spec.nr_steps);
+
+        for (int i = 0; i < spec.nr_steps; i++) 
+        {
+          int op = 0;
+          for (int j = 0; j < MIG_OP_VARS_PER_STEP; j++) 
+          {
+            if (solver->var_value(get_op_var(spec, i, j))) 
+            {
+              op = j;
+              break;
+            }
+          }
+
+          int ctr = 0;
+          const auto level = get_level(spec, spec.nr_in + i + 1);
+          for (int l = first_step_on_level(level - 1); l < first_step_on_level(level); l++) 
+          {
+            for (int k = 1; k < l; k++) 
+            {
+              for (int j = 0; j < k; j++) 
+              {
+                const auto sel_var = get_sel_var(spec, i, ctr++);
+                if (solver->var_value(sel_var)) 
+                {
+                  op_inputs[0] = j;
+                  op_inputs[1] = k;
+                  op_inputs[2] = l;
+                  break;
+                }
+              }
+            }
+          }
+          chain.set_step(i, op_inputs[0], op_inputs[1], op_inputs[2], op);
+        }
+
+        chain.set_output(0,
+            ((spec.nr_steps + spec.nr_in) << 1) +
+            ((spec.out_inv) & 1));
+      }
 
       bool is_dirty() 
       {
@@ -1116,7 +1347,7 @@ namespace also
         else if( status == failure )
         {
           spec.nr_steps++;
-          if( spec.nr_steps == 10 )
+          if( spec.nr_steps == 20 )
           {
             break;
           }
@@ -1235,6 +1466,71 @@ namespace also
        }
 
        return failure;
+    } 
+   
+   synth_result mig_three_fence_synthesize(spec& spec, mig3& mig3, solver_wrapper& solver, mig_three_encoder& encoder)
+    {
+        spec.preprocess();
+
+        // The special case when the Boolean chain to be synthesized
+        // consists entirely of trivial functions.
+        if (spec.nr_triv == spec.get_nr_out()) 
+        {
+            mig3.reset(spec.get_nr_in(), spec.get_nr_out(), 0);
+            for (int h = 0; h < spec.get_nr_out(); h++) 
+            {
+                mig3.set_output(h, (spec.triv_func(h) << 1) +
+                    ((spec.out_inv >> h) & 1));
+            }
+            return success;
+        }
+
+        // As the topological synthesizer decomposes the synthesis
+        // problem, to fairly count the total number of conflicts we
+        // should keep track of all conflicts in existence checks.
+        fence f;
+        po_filter<unbounded_generator> g( unbounded_generator(spec.initial_steps), spec.get_nr_out(), 3);
+        auto fence_ctr = 0;
+        while (true) 
+        {
+            ++fence_ctr;
+            g.next_fence(f);
+            spec.nr_steps = f.nr_nodes();
+            solver.restart();
+            if (!encoder.encode(spec, f)) 
+            {
+                continue;
+            }
+
+            if (spec.verbosity) 
+            {
+                printf("next fence (%d):\n", fence_ctr);
+                print_fence(f);
+                printf("\n");
+                printf("nr_nodes=%d, nr_levels=%d\n", f.nr_nodes(),
+                    f.nr_levels());
+                for (int i = 0; i < f.nr_levels(); i++) {
+                    printf("f[%d] = %d\n", i, f[i]);
+                }
+            }
+            auto status = solver.solve(spec.conflict_limit);
+            if (status == success) 
+            {
+              std::cout << " success " << std::endl;
+              encoder.fence_extract_mig3(spec, mig3);
+              //encoder.show_variable_correspondence( spec );
+              //encoder.show_verbose_result();
+                return success;
+            } 
+            else if (status == failure) 
+            {
+                continue;
+            } 
+            else 
+            {
+                return timeout;
+            }
+        }
     }
 
 }

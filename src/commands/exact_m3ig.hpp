@@ -32,6 +32,7 @@ namespace alice
         add_flag( "--verbose, -v",   "print the information" );
         add_flag( "--cegar, -c",     "CEGAR encoding" );
         add_flag( "--enumerate, -e", "enumerate all the solutions" );
+        add_flag( "--fence, -f",     "fence-based synthesize" );
       }
 
       rules validity_rules() const
@@ -175,6 +176,16 @@ namespace alice
               { 
                   enumerate_m3ig( copy );
               });
+        }
+        else if( is_set( "fence" ) )
+        {
+          call_with_stopwatch( time, [&]() 
+              { 
+                if ( also::mig_three_fence_synthesize( spec, mig3, solver, encoder ) == success )
+                {
+                  print_all_expr( spec, mig3 );
+                }
+              } );
         }
         else
         {
