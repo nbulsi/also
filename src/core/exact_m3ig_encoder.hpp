@@ -482,10 +482,12 @@ namespace also
       int nr_sel_vars;
       int nr_sim_vars;
       int nr_op_vars;
+      int nr_res_vars;
 
       int sel_offset;
       int sim_offset;
       int op_offset;
+      int res_offset;
 
       int total_nr_vars;
 
@@ -519,6 +521,9 @@ namespace also
       // them symmetries and do not encode them.
       const int MIG_OP_VARS_PER_STEP = 4;
 
+      //const int NR_SIM_TTS = 32;
+      std::vector<kitty::dynamic_truth_table> sim_tts { 32 };
+      
       /*
        * private functions
        * */
@@ -543,6 +548,16 @@ namespace also
           offset += nr_svars_for_step(spec, i);
         }
         return sel_offset + offset + var_idx;
+      }
+      
+      int get_res_var(const spec& spec, int step_idx, int res_var_idx) const
+      {
+        auto offset = 0;
+        for (int i = 0; i < step_idx; i++) {
+          offset += (nr_svars_for_step(spec, i) + 1) * (1 + 2);
+        }
+
+        return res_offset + offset + res_var_idx;
       }
 
     public:
@@ -629,6 +644,39 @@ namespace also
         /* declare in the solver */
         solver->set_nr_vars(total_nr_vars);
       }
+      
+      void cegar_fence_create_variables(const spec& spec)
+      {
+        nr_op_vars = spec.nr_steps * MIG_OP_VARS_PER_STEP;
+        nr_sim_vars = spec.nr_steps * spec.tt_size;
+
+        nr_sel_vars = 0;
+        nr_res_vars = 0;
+        for (int i = 0; i < spec.nr_steps; i++) 
+        {
+          const auto nr_svars_for_i = nr_svars_for_step(spec, i);
+          nr_sel_vars += nr_svars_for_i;
+          nr_res_vars += (nr_svars_for_i + 1) * (1 + 2);
+        }
+
+        sel_offset = 0;
+        res_offset = nr_sel_vars;
+        op_offset = nr_sel_vars + nr_res_vars;
+        sim_offset = nr_sel_vars + nr_res_vars + nr_op_vars;
+        total_nr_vars = nr_sel_vars + nr_res_vars + nr_op_vars + nr_sim_vars;
+
+        if (spec.verbosity) {
+          printf("Creating variables (MIG)\n");
+          printf("nr steps = %d\n", spec.nr_steps);
+          printf("nr_sel_vars=%d\n", nr_sel_vars);
+          printf("nr_res_vars=%d\n", nr_res_vars);
+          printf("nr_op_vars = %d\n", nr_op_vars);
+          printf("nr_sim_vars = %d\n", nr_sim_vars);
+          printf("creating %d total variables\n", total_nr_vars);
+        }
+
+        solver->set_nr_vars(total_nr_vars);
+      }
 
       int first_step_on_level(int level) const
       {
@@ -664,14 +712,19 @@ namespace also
       int get_level(const spec& spec, int step_idx) const
       {
         // PIs are considered to be on level zero.
-        if (step_idx <= spec.nr_in) {
+        if (step_idx <= spec.nr_in) 
+        {
           return 0;
-        } else if (step_idx == spec.nr_in + 1) { 
+        } 
+        else if (step_idx == spec.nr_in + 1) 
+        { 
           // First step is always on level one
           return 1;
         }
-        for (int i = 0; i <= nr_levels; i++) {
-          if (level_dist[i] > step_idx) {
+        for (int i = 0; i <= nr_levels; i++) 
+        {
+          if (level_dist[i] > step_idx) 
+          {
             return i;
           }
         }
@@ -1166,6 +1219,57 @@ namespace also
         
         return true;
       }
+      
+      void create_cardinality_constraints(const spec& spec)
+      {
+        std::vector<int> svars;
+        std::vector<int> rvars;
+
+        for (int i = 0; i < spec.nr_steps; i++) 
+        {
+          svars.clear();
+          rvars.clear();
+          const auto level = get_level(spec, spec.nr_in + i + 1);
+          auto svar_ctr = 0;
+          for (int l = first_step_on_level(level - 1); l < first_step_on_level(level); l++) 
+          {
+            for (int k = 1; k < l; k++) 
+            {
+              for (int j = 0; j < k; j++) 
+              {
+                const auto sel_var = get_sel_var(spec, i, svar_ctr++);
+                svars.push_back(sel_var);
+              }
+            }
+          }
+          assert(svars.size() == nr_svars_for_step(spec, i));
+          const auto nr_res_vars = (1 + 2) * (svars.size() + 1);
+          
+          for (int j = 0; j < nr_res_vars; j++) 
+          {
+            rvars.push_back(get_res_var(spec, i, j));
+          }
+          create_cardinality_circuit(solver, svars, rvars, 1);
+
+          // Ensure that the fanin cardinality for each step i 
+          // is exactly FI.
+          const auto fi_var =
+            get_res_var(spec, i, svars.size() * (1 + 2) + 1);
+          auto fi_lit = pabc::Abc_Var2Lit(fi_var, 0);
+          (void)solver->add_clause(&fi_lit, &fi_lit + 1);
+        }
+      }
+
+      bool cegar_encode(const spec& spec, const fence& f)
+      {
+          update_level_map(spec, f);
+          cegar_fence_create_variables(spec);
+
+          fence_create_fanin_clauses(spec);
+          create_cardinality_constraints(spec);
+
+          return true;
+      }
 
       void construct_mig( const spec& spec, mig_network& mig )
       {
@@ -1276,6 +1380,7 @@ namespace also
             ((spec.nr_steps + spec.nr_in) << 1) +
             ((spec.out_inv) & 1));
       }
+      
 
       bool is_dirty() 
       {
@@ -1532,13 +1637,92 @@ namespace also
             }
         }
     }
+   
+   synth_result mig_three_cegar_fence_synthesize( spec& spec, mig3& mig3, solver_wrapper& solver, mig_three_encoder& encoder)
+   {
+     assert(spec.get_nr_in() >= spec.fanin);
+
+     spec.preprocess();
+
+     // The special case when the Boolean chain to be synthesized
+     // consists entirely of trivial functions.
+     if (spec.nr_triv == spec.get_nr_out()) {
+       mig3.reset(spec.get_nr_in(), spec.get_nr_out(), 0);
+       for (int h = 0; h < spec.get_nr_out(); h++) {
+         mig3.set_output(h, (spec.triv_func(h) << 1) +
+             ((spec.out_inv >> h) & 1));
+       }
+       return success;
+     }
+
+
+     fence f;
+     po_filter<unbounded_generator> g( unbounded_generator(spec.initial_steps), spec.get_nr_out(), 3);
+     int fence_ctr = 0;
+     while (true) 
+     {
+       ++fence_ctr;
+       g.next_fence(f);
+       spec.nr_steps = f.nr_nodes();
+
+       if (spec.verbosity) 
+       {
+         printf("  next fence (%d):\n", fence_ctr);
+         print_fence(f);
+         printf("\n");
+         printf("nr_nodes=%d, nr_levels=%d\n", f.nr_nodes(),
+             f.nr_levels());
+         for (int i = 0; i < f.nr_levels(); i++) {
+           printf("f[%d] = %d\n", i, f[i]);
+         }
+       }
+
+       solver.restart();
+       if (!encoder.cegar_encode(spec, f)) 
+       {
+         continue;
+       }
+       while (true) 
+       {
+         auto status = solver.solve(spec.conflict_limit);
+         if (status == success) 
+         {
+           encoder.fence_extract_mig3(spec, mig3);
+           auto sim_tt = mig3.simulate()[0];
+           //auto sim_tt = encoder.simulate(spec);
+           //if (spec.out_inv) {
+           //    sim_tt = ~sim_tt;
+           //}
+           auto xor_tt = sim_tt ^ (spec[0]);
+           auto first_one = kitty::find_first_one_bit(xor_tt);
+           if (first_one == -1) 
+           {
+             return success;
+           }
+           
+           if (!encoder.fence_create_tt_clauses(spec, first_one - 1)) 
+           {
+             break;
+           }
+         } 
+         else if (status == failure) 
+         {
+           break;
+         } 
+         else 
+         {
+           return timeout;
+         }
+       }
+     }
+    }
 
    /* parallel fence-based synthesis */
    /// Performs fence-based parallel synthesis.
    /// One thread generates fences and places them on a concurrent
    /// queue. The remaining threads dequeue fences and try to
    /// synthesize chains with them.
-   inline synth_result parallel_nocegar_mig_three_fence_synthesize( spec& spec, mig3& mig3, 
+   synth_result parallel_nocegar_mig_three_fence_synthesize( spec& spec, mig3& mig3, 
                                                               int num_threads = std::thread::hardware_concurrency() )
     {
         spec.preprocess();
@@ -1642,6 +1826,120 @@ namespace also
             }
             if (found) 
             {
+                break;
+            }
+            finished_generating = false;
+            spec.nr_steps++;
+        }
+
+        return success;
+    }
+   
+   synth_result parallel_mig_three_fence_synthesize( spec& spec, mig3& mig3,
+                                                     int num_threads = std::thread::hardware_concurrency())
+     { 
+        spec.preprocess();
+
+        // The special case when the Boolean chain to be synthesized
+        // consists entirely of trivial functions.
+        if (spec.nr_triv == spec.get_nr_out()) 
+        {
+            mig3.reset(spec.get_nr_in(), spec.get_nr_out(), 0);
+            for (int h = 0; h < spec.get_nr_out(); h++) 
+            {
+                mig3.set_output(h, (spec.triv_func(h) << 1) +
+                    ((spec.out_inv >> h) & 1));
+            }
+            return success;
+        }
+
+        std::vector<std::thread> threads(num_threads);
+        moodycamel::ConcurrentQueue<fence> q(num_threads * 3);
+
+        bool finished_generating = false;
+        bool* pfinished = &finished_generating;
+        bool found = false;
+        bool* pfound = &found;
+        std::mutex found_mutex;
+
+        spec.nr_rand_tt_assigns = 0;// 2 * spec.get_nr_in();
+        spec.fanin = 3;
+        spec.nr_steps = spec.initial_steps;
+        while (true) {
+            for (int i = 0; i < num_threads; i++) 
+            {
+                threads[i] = std::thread([&spec, pfinished, pfound, &found_mutex, &mig3, &q] {
+                    also::mig3 local_mig;
+                    bmcg_wrapper solver;
+                    mig_three_encoder encoder(solver);
+                    fence local_fence;
+
+                    while (!(*pfound)) {
+                        if (!q.try_dequeue(local_fence)) {
+                            if (*pfinished) {
+                                std::this_thread::yield();
+                                if (!q.try_dequeue(local_fence)) {
+                                    break;
+                                }
+                            } else {
+                                std::this_thread::yield();
+                                continue;
+                            }
+                        }
+
+                        if (spec.verbosity)
+                        {
+                            std::lock_guard<std::mutex> vlock(found_mutex);
+                            printf("  next fence:\n");
+                            print_fence(local_fence);
+                            printf("\n");
+                            printf("nr_nodes=%d, nr_levels=%d\n",
+                                local_fence.nr_nodes(),
+                                local_fence.nr_levels());
+                        }
+
+                        synth_result status;
+                        solver.restart();
+                        if (!encoder.cegar_encode(spec, local_fence)) {
+                            continue;
+                        }
+                        do {
+                            status = solver.solve(10);
+                            if (*pfound) {
+                                break;
+                            } else if (status == success) {
+                                encoder.fence_extract_mig3(spec, local_mig);
+                                auto sim_tt = local_mig.simulate()[0];
+                                //auto sim_tt = encoder.simulate(spec);
+                                //if (spec.out_inv) {
+                                //    sim_tt = ~sim_tt;
+                                //}
+                                auto xor_tt = sim_tt ^ (spec[0]);
+                                auto first_one = kitty::find_first_one_bit(xor_tt);
+                                if (first_one != -1) {
+                                    if (!encoder.fence_create_tt_clauses(spec, first_one - 1)) {
+                                        break;
+                                    }
+                                    status = timeout;
+                                    continue;
+                                }
+                                std::lock_guard<std::mutex> vlock(found_mutex);
+                                if (!(*pfound)) {
+                                    encoder.fence_extract_mig3(spec, mig3);
+                                    *pfound = true;
+                                }
+                            }
+                        } while (status == timeout);
+                    }
+                });
+            }
+            generate_fences(spec, q);
+            finished_generating = true;
+
+            for (auto& thread : threads) {
+                thread.join();
+            }
+            if (found) {
                 break;
             }
             finished_generating = false;

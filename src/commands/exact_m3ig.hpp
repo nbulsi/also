@@ -29,11 +29,13 @@ namespace alice
       explicit exact_m3ig_command( const environment::ptr& env ) : 
                       command( env, "using exact synthesis to find optimal M3IGs" )
       {
-        add_flag( "--verbose, -v",   "print the information" );
-        add_flag( "--cegar, -c",     "CEGAR encoding" );
-        add_flag( "--enumerate, -e", "enumerate all the solutions" );
-        add_flag( "--fence, -f",     "fence-based synthesize" );
-        add_flag( "--parallel, -p",  "parallel fence-based synthesize" );
+        add_flag( "--verbose, -v",           "print the information" );
+        add_flag( "--cegar, -c",             "cegar encoding" );
+        add_flag( "--enumerate, -e",         "enumerate all the solutions" );
+        add_flag( "--fence, -f",             "fence-based synthesize" );
+        add_flag( "--cegar_fence, -a",       "cegar fence-based synthesize" );
+        add_flag( "--parallel, -p",          "parallel nocegar fence-based synthesize" );
+        add_flag( "--para_cegar_fence, -b",  "parallel cegar fence-based synthesize" );
       }
 
       rules validity_rules() const
@@ -144,7 +146,6 @@ namespace alice
       {
         auto& opt = store<optimum_network>().current();
 
-        bsat_wrapper solver;
         spec spec;
         also::mig3 mig3;
 
@@ -160,11 +161,12 @@ namespace alice
           spec[0] = copy;
         }
 
-        also::mig_three_encoder encoder( solver );
 
         stopwatch<>::duration time{0};
         if( is_set( "cegar" ) )
         {
+          bsat_wrapper solver;
+          also::mig_three_encoder encoder( solver );
           call_with_stopwatch( time, [&]() 
               { 
                 if ( also::mig_three_cegar_synthesize( spec, mig3, solver, encoder ) == success )
@@ -175,6 +177,8 @@ namespace alice
         }
         else if( is_set( "enumerate" ) )
         {
+          bsat_wrapper solver;
+          also::mig_three_encoder encoder( solver );
           call_with_stopwatch( time, [&]() 
               { 
                   enumerate_m3ig( copy );
@@ -182,6 +186,8 @@ namespace alice
         }
         else if( is_set( "fence" ) )
         {
+          bsat_wrapper solver;
+          also::mig_three_encoder encoder( solver );
           call_with_stopwatch( time, [&]() 
               { 
                 if ( also::mig_three_fence_synthesize( spec, mig3, solver, encoder ) == success )
@@ -192,6 +198,8 @@ namespace alice
         }
         else if( is_set( "parallel" ) )
         {
+          bmcg_wrapper solver;
+          also::mig_three_encoder encoder( solver );
           call_with_stopwatch( time, [&]() 
               { 
                 if ( also::parallel_nocegar_mig_three_fence_synthesize( spec, mig3 ) == success )
@@ -200,8 +208,34 @@ namespace alice
                 }
               } );
         }
+        else if( is_set( "para_cegar_fence" ) )
+        {
+          bmcg_wrapper solver;
+          also::mig_three_encoder encoder( solver );
+          call_with_stopwatch( time, [&]() 
+              { 
+                if ( also::parallel_mig_three_fence_synthesize( spec, mig3 ) == success )
+                {
+                  print_all_expr( spec, mig3 );
+                }
+              } );
+        }
+        else if( is_set( "cegar_fence" ) )
+        {
+          bsat_wrapper solver;
+          also::mig_three_encoder encoder( solver );
+          call_with_stopwatch( time, [&]() 
+              { 
+                if ( also::mig_three_cegar_fence_synthesize( spec, mig3, solver, encoder ) == success )
+                {
+                  print_all_expr( spec, mig3 );
+                }
+              } );
+        }
         else
         {
+          bsat_wrapper solver;
+          also::mig_three_encoder encoder( solver );
           call_with_stopwatch( time, [&]() 
               { 
                 if ( also::mig_three_synthesize( spec, mig3, solver, encoder ) == success )
