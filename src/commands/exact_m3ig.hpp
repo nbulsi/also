@@ -33,6 +33,7 @@ namespace alice
         add_flag( "--cegar, -c",     "CEGAR encoding" );
         add_flag( "--enumerate, -e", "enumerate all the solutions" );
         add_flag( "--fence, -f",     "fence-based synthesize" );
+        add_flag( "--parallel, -p",  "parallel fence-based synthesize" );
       }
 
       rules validity_rules() const
@@ -147,6 +148,8 @@ namespace alice
         spec spec;
         also::mig3 mig3;
 
+        //spec.verbosity = 3;
+
         auto copy = opt.function;
         if( copy.num_vars()  < 3 )
         {
@@ -182,6 +185,16 @@ namespace alice
           call_with_stopwatch( time, [&]() 
               { 
                 if ( also::mig_three_fence_synthesize( spec, mig3, solver, encoder ) == success )
+                {
+                  print_all_expr( spec, mig3 );
+                }
+              } );
+        }
+        else if( is_set( "parallel" ) )
+        {
+          call_with_stopwatch( time, [&]() 
+              { 
+                if ( also::parallel_nocegar_mig_three_fence_synthesize( spec, mig3 ) == success )
                 {
                   print_all_expr( spec, mig3 );
                 }
