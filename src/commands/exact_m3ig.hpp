@@ -36,6 +36,7 @@ namespace alice
         add_flag( "--cegar_fence, -a",       "cegar fence-based synthesize" );
         add_flag( "--parallel, -p",          "parallel nocegar fence-based synthesize" );
         add_flag( "--para_cegar_fence, -b",  "parallel cegar fence-based synthesize" );
+        add_option( "--init_steps, -s", num_steps, "reset the initial steps for synthesize" );
       }
 
       rules validity_rules() const
@@ -44,6 +45,8 @@ namespace alice
       }
 
       private:
+      int num_steps = 1;
+
       std::string print_expr( const also::mig3& mig3, const int& step_idx )
       {
         std::stringstream ss;
@@ -154,6 +157,8 @@ namespace alice
         spec.add_colex_clauses     = true;
         spec.add_lex_func_clauses  = true;
         spec.add_symvar_clauses    = true;
+
+        spec.initial_steps = num_steps;
 
         auto copy = opt.function;
         if( copy.num_vars()  < 3 )
