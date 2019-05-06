@@ -150,6 +150,10 @@ namespace alice
         also::mig3 mig3;
 
         //spec.verbosity = 3;
+        spec.add_alonce_clauses    = true;
+        spec.add_colex_clauses     = true;
+        spec.add_lex_func_clauses  = true;
+        spec.add_symvar_clauses    = true;
 
         auto copy = opt.function;
         if( copy.num_vars()  < 3 )

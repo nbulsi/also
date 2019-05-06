@@ -549,6 +549,29 @@ namespace also
         }
         return sel_offset + offset + var_idx;
       }
+
+      int get_sel_var( const int i, const int j, const int k, const int l ) const
+      {
+        for( const auto& e : sel_map )
+        {
+          auto sel_var = e.first;
+
+          auto array   = e.second;
+          
+          auto ip = array[0];
+          auto jp = array[1];
+          auto kp = array[2];
+          auto lp = array[3];
+          
+          if( i == ip && j == jp && k == kp && l == lp )
+          {
+            return sel_var;
+          }
+        }
+
+        assert( false && "sel var is not existed" );
+        return -1;
+      }
       
       int get_res_var(const spec& spec, int step_idx, int res_var_idx) const
       {
@@ -1153,6 +1176,26 @@ namespace also
           return false;
         }
         
+        if (spec.add_alonce_clauses) 
+        {
+          create_alonce_clauses(spec);
+        }
+        
+        if (spec.add_colex_clauses) 
+        {
+          create_colex_clauses(spec);
+        }
+        
+        if (spec.add_lex_func_clauses) 
+        {
+          create_lex_func_clauses(spec);
+        }
+        
+        if (spec.add_symvar_clauses && !create_symvar_clauses(spec)) 
+        {
+          return false;
+        }
+        
         if( print_clause )
         {
           show_variable_correspondence( spec );
@@ -1179,6 +1222,26 @@ namespace also
           {
             return false;
           }
+          
+          if (spec.add_alonce_clauses) 
+          {
+            fence_create_alonce_clauses(spec);
+          }
+          
+          if (spec.add_colex_clauses) 
+          {
+            fence_create_colex_clauses(spec);
+          }
+          
+          if (spec.add_lex_func_clauses) 
+          {
+            fence_create_lex_func_clauses(spec);
+          }
+          
+          if (spec.add_symvar_clauses) 
+          {
+            fence_create_symvar_clauses(spec);
+          }
 
           fence_create_fanin_clauses(spec);
 
@@ -1202,6 +1265,26 @@ namespace also
         create_variables( spec );
         
         if( !create_fanin_clauses( spec ) )
+        {
+          return false;
+        }
+        
+        if (spec.add_alonce_clauses) 
+        {
+          create_alonce_clauses(spec);
+        }
+        
+        if (spec.add_colex_clauses) 
+        {
+          create_colex_clauses(spec);
+        }
+        
+        if (spec.add_lex_func_clauses) 
+        {
+          create_lex_func_clauses(spec);
+        }
+        
+        if (spec.add_symvar_clauses && !create_symvar_clauses(spec)) 
         {
           return false;
         }
@@ -1267,6 +1350,26 @@ namespace also
 
           fence_create_fanin_clauses(spec);
           create_cardinality_constraints(spec);
+          
+          if (spec.add_alonce_clauses) 
+          {
+            fence_create_alonce_clauses(spec);
+          }
+          
+          if (spec.add_colex_clauses) 
+          {
+            fence_create_colex_clauses(spec);
+          }
+          
+          if (spec.add_lex_func_clauses) 
+          {
+            fence_create_lex_func_clauses(spec);
+          }
+          
+          if (spec.add_symvar_clauses) 
+          {
+            fence_create_symvar_clauses(spec);
+          }
 
           return true;
       }
@@ -1381,6 +1484,374 @@ namespace also
             ((spec.out_inv) & 1));
       }
       
+      /* additional constraints for symmetry breaking 
+       * 
+       *
+       *
+       * */
+      void create_alonce_clauses(const spec& spec)
+      {
+        for (int i = 0; i < spec.nr_steps - 1; i++) 
+        {
+          int ctr = 0;
+          const auto idx = spec.nr_in + i + 1;
+          
+          for (int ip = i + 1; ip < spec.nr_steps; ip++) 
+          {
+            for (int l = spec.nr_in + i; l <= spec.nr_in + ip; l++) 
+            {
+              for (int k = 1; k < l; k++) 
+              {
+                for (int j = 0; j < k; j++) 
+                {
+                  if (j == idx || k == idx || l == idx) 
+                  {
+                    const auto sel_var = get_sel_var( ip, j, k, l);
+                    pLits[ctr++] = pabc::Abc_Var2Lit(sel_var, 0);
+                  }
+                }
+              }
+            }
+          }
+          const auto res = solver->add_clause(pLits, pLits + ctr);
+          assert(res);
+        }
+      }
+
+      void fence_create_alonce_clauses(const spec& spec)
+      {
+        for (int i = 0; i < spec.nr_steps - 1; i++) {
+          auto ctr = 0;
+          const auto idx = spec.nr_in + i + 1;
+          const auto level = get_level(spec, idx);
+          for (int ip = i + 1; ip < spec.nr_steps; ip++) {
+            auto levelp = get_level(spec, ip + spec.nr_in + 1);
+            assert(levelp >= level);
+            if (levelp == level) {
+              continue;
+            }
+            auto svctr = 0;
+            for (int l = first_step_on_level(levelp - 1);
+                l < first_step_on_level(levelp); l++) {
+              for (int k = 1; k < l; k++) {
+                for (int j = 0; j < k; j++) {
+                  if (j == idx || k == idx || l == idx) {
+                    const auto sel_var = get_sel_var(spec, ip, svctr);
+                    pLits[ctr++] = pabc::Abc_Var2Lit(sel_var, 0);
+                  }
+                  svctr++;
+                }
+              }
+            }
+            assert(svctr == nr_svars_for_step(spec, ip));
+          }
+          solver->add_clause(pLits, pLits + ctr);
+        }
+      }
+
+      void create_colex_clauses(const spec& spec)
+      {
+        for (int i = 0; i < spec.nr_steps - 1; i++) 
+        {
+          for (int l = 2; l <= spec.nr_in + i; l++) 
+          {
+            for (int k = 1; k < l; k++) 
+            {
+              for (int j = 0; j < k; j++) 
+              {
+                pLits[0] = pabc::Abc_Var2Lit(get_sel_var( i, j, k, l), 1);
+
+                // Cannot have lp < l
+                for (int lp = 2; lp < l; lp++) 
+                {
+                  for (int kp = 1; kp < lp; kp++) 
+                  {
+                    for (int jp = 0; jp < kp; jp++) 
+                    {
+                      pLits[1] = pabc::Abc_Var2Lit(get_sel_var( i + 1, jp, kp, lp), 1);
+                      const auto res = solver->add_clause(pLits, pLits + 2);
+                      assert(res);
+                    }
+                  }
+                }
+
+                // May have lp == l and kp > k
+                for (int kp = 1; kp < k; kp++) 
+                {
+                  for (int jp = 0; jp < kp; jp++) 
+                  {
+                    pLits[1] = pabc::Abc_Var2Lit(get_sel_var( i + 1, jp, kp, l), 1);
+                    const auto res = solver->add_clause(pLits, pLits + 2);
+                    assert(res);
+                  }
+                }
+                // OR lp == l and kp == k
+                for (int jp = 0; jp < j; jp++) 
+                {
+                  pLits[1] = pabc::Abc_Var2Lit(get_sel_var( i + 1, jp, k, l), 1);
+                  const auto res = solver->add_clause(pLits, pLits + 2);
+                  assert(res);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      void fence_create_colex_clauses(const spec& spec)
+      {
+        for (int i = 0; i < spec.nr_steps - 1; i++) 
+        {
+          const auto level = get_level(spec, i + spec.nr_in + 1);
+          const auto levelp = get_level(spec, i + 1 + spec.nr_in + 1);
+          int svar_ctr = 0;
+          for (int l = first_step_on_level(level-1); 
+              l < first_step_on_level(level); l++) 
+          {
+            for (int k = 1; k < l; k++) 
+            {
+              for (int j = 0; j < k; j++) 
+              {
+                if (l < 3) 
+                {
+                  svar_ctr++;
+                  continue;
+                }
+                const auto sel_var = get_sel_var(spec, i, svar_ctr);
+                pLits[0] = pabc::Abc_Var2Lit(sel_var, 1);
+                int svar_ctrp = 0;
+                for (int lp = first_step_on_level(levelp - 1);
+                    lp < first_step_on_level(levelp); lp++) 
+                {
+                  for (int kp = 1; kp < lp; kp++) 
+                  {
+                    for (int jp = 0; jp < kp; jp++) 
+                    {
+                      if ((lp == l && kp == k && jp < j) || (lp == l && kp < k) || (lp < l)) 
+                      {
+                        const auto sel_varp = get_sel_var(spec, i + 1, svar_ctrp);
+                        pLits[1] = pabc::Abc_Var2Lit(sel_varp, 1);
+                        (void)solver->add_clause(pLits, pLits + 2);
+                      }
+                      svar_ctrp++;
+                    }
+                  }
+                }
+                svar_ctr++;
+              }
+            }
+          }
+        }
+      }
+      
+      void create_lex_func_clauses(const spec& spec)
+      {
+        for (int i = 0; i < spec.nr_steps - 1; i++) 
+        {
+          for (int l = 2; l <= spec.nr_in + i; l++) 
+          {
+            for (int k = 1; k < l; k++) 
+            {
+              for (int j = 0; j < k; j++) 
+              {
+                pLits[0] = pabc::Abc_Var2Lit(get_sel_var(i, j, k, l), 1);
+                pLits[1] = pabc::Abc_Var2Lit(get_sel_var(i + 1, j, k, l), 1);
+                pLits[2] = pabc::Abc_Var2Lit(get_op_var(spec, i, 3), 1);
+                pLits[3] = pabc::Abc_Var2Lit(get_op_var(spec, i + 1, 3), 1);
+                auto status = solver->add_clause(pLits, pLits + 4);
+                assert(status);
+                pLits[2] = pabc::Abc_Var2Lit(get_op_var(spec, i, 2), 1);
+                pLits[3] = pabc::Abc_Var2Lit(get_op_var(spec, i + 1, 0), 0);
+                pLits[4] = pabc::Abc_Var2Lit(get_op_var(spec, i + 1, 1), 0);
+                status = solver->add_clause(pLits, pLits + 5);
+                assert(status);
+                pLits[2] = pabc::Abc_Var2Lit(get_op_var(spec, i, 1), 1);
+                pLits[3] = pabc::Abc_Var2Lit(get_op_var(spec, i + 1, 0), 0);
+                status = solver->add_clause(pLits, pLits + 4);
+                assert(status);
+                pLits[2] = pabc::Abc_Var2Lit(get_op_var(spec, i, 0), 1);
+                status = solver->add_clause(pLits, pLits + 3);
+                assert(status);
+              }
+            }
+          }
+        }
+      }
+
+      void fence_create_lex_func_clauses(const spec& spec)
+      {
+        for (int i = 0; i < spec.nr_steps - 1; i++) 
+        {
+          const auto level = get_level(spec, spec.nr_in + i + 1);
+          const auto levelp = get_level(spec, spec.nr_in + i + 2);
+          int svar_ctr = 0;
+          for (int l = first_step_on_level(level - 1); 
+              l < first_step_on_level(level); l++) 
+          {
+            for (int k = 1; k < l; k++) 
+            {
+              for (int j = 0; j < k; j++) 
+              {
+                const auto sel_var = get_sel_var(spec, i, svar_ctr++);
+                pLits[0] = pabc::Abc_Var2Lit(sel_var, 1);
+
+                int svar_ctrp = 0;
+                for (int lp = first_step_on_level(levelp - 1);
+                    lp < first_step_on_level(levelp); lp++) 
+                {
+                  for (int kp = 1; kp < lp; kp++) 
+                  {
+                    for (int jp = 0; jp < kp; jp++) 
+                    {
+                      const auto sel_varp = get_sel_var(spec, i + 1, svar_ctrp++);
+                      if (j != jp || k != kp || l != lp) 
+                      {
+                        continue;
+                      }
+                      pLits[1] = pabc::Abc_Var2Lit(sel_varp, 1);
+                      pLits[2] = pabc::Abc_Var2Lit(get_op_var(spec, i, 3), 1);
+                      pLits[3] = pabc::Abc_Var2Lit(get_op_var(spec, i + 1, 3), 1);
+                      auto status = solver->add_clause(pLits, pLits + 4);
+                      assert(status);
+                      pLits[2] = pabc::Abc_Var2Lit(get_op_var(spec, i, 2), 1);
+                      pLits[3] = pabc::Abc_Var2Lit(get_op_var(spec, i + 1, 0), 0);
+                      pLits[4] = pabc::Abc_Var2Lit(get_op_var(spec, i + 1, 1), 0);
+                      status = solver->add_clause(pLits, pLits + 5);
+                      assert(status);
+                      pLits[2] = pabc::Abc_Var2Lit(get_op_var(spec, i, 1), 1);
+                      pLits[3] = pabc::Abc_Var2Lit(get_op_var(spec, i + 1, 0), 0);
+                      status = solver->add_clause(pLits, pLits + 4);
+                      assert(status);
+                      pLits[2] = pabc::Abc_Var2Lit(get_op_var(spec, i, 0), 1);
+                      status = solver->add_clause(pLits, pLits + 3);
+                      assert(status);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      bool create_symvar_clauses(const spec& spec)
+      {
+        for (int q = 2; q <= spec.nr_in; q++) 
+        {
+          for (int p = 1; p < q; p++) 
+          {
+            auto symm = true;
+            for (int i = 0; i < spec.nr_nontriv; i++) 
+            {
+              auto f = spec[spec.synth_func(i)];
+              if (!(swap(f, p - 1, q - 1) == f)) 
+              {
+                symm = false;
+                break;
+              }
+            }
+            if (!symm) 
+            {
+              continue;
+            }
+
+            for (int i = 1; i < spec.nr_steps; i++) 
+            {
+              for (int l = 2; l <= spec.nr_in + i; l++) 
+              {
+                for (int k = 1; k < l; k++) 
+                {
+                  for (int j = 0; j < k; j++) 
+                  {
+                    if (!(j == q || k == q || l == q) || (j == p || k == p)) 
+                    {
+                      continue;
+                    }
+                    pLits[0] = pabc::Abc_Var2Lit(get_sel_var(i, j, k, l), 1);
+                    auto ctr = 1;
+                    for (int ip = 0; ip < i; ip++) 
+                    {
+                      for (int lp = 2; lp <= spec.nr_in + ip; lp++) 
+                      {
+                        for (int kp = 1; kp < lp; kp++) 
+                        {
+                          for (int jp = 0; jp < kp; jp++) 
+                          {
+                            if (jp == p || kp == p || lp == p) 
+                            {
+                              pLits[ctr++] = pabc::Abc_Var2Lit(get_sel_var(ip, jp, kp, lp), 0);
+                            }
+                          }
+                        }
+                      }
+                    }
+                    if (!solver->add_clause(pLits, pLits + ctr)) {
+                      return false;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        return true;
+      }
+
+      void fence_create_symvar_clauses(const spec& spec)
+      {
+        for (int q = 2; q <= spec.nr_in; q++) {
+          for (int p = 1; p < q; p++) {
+            auto symm = true;
+            for (int i = 0; i < spec.nr_nontriv; i++) {
+              auto& f = spec[spec.synth_func(i)];
+              if (!(swap(f, p - 1, q - 1) == f)) {
+                symm = false;
+                break;
+              }
+            }
+            if (!symm) {
+              continue;
+            }
+            for (int i = 1; i < spec.nr_steps; i++) {
+              const auto level = get_level(spec, i + spec.nr_in + 1);
+              int svar_ctr = 0;
+              for (int l = first_step_on_level(level - 1);
+                  l < first_step_on_level(level); l++) {
+                for (int k = 1; k < l; k++) {
+                  for (int j = 0; j < k; j++) {
+                    if (!(j == q || k == q || l == q) || (j == p || k == p)) {
+                      svar_ctr++;
+                      continue;
+                    }
+                    const auto sel_var = get_sel_var(spec, i, svar_ctr);
+                    pLits[0] = pabc::Abc_Var2Lit(sel_var, 1);
+                    auto ctr = 1;
+                    for (int ip = 0; ip < i; ip++) {
+                      const auto levelp = get_level(spec, spec.nr_in + ip + 1);
+                      auto svar_ctrp = 0;
+                      for (int lp = first_step_on_level(levelp - 1);
+                          lp < first_step_on_level(levelp); lp++) {
+                        for (int kp = 1; kp < lp; kp++) {
+                          for (int jp = 0; jp < kp; jp++) {
+                            if (jp == p || kp == p || lp == p) {
+                              const auto sel_varp = get_sel_var(spec, ip, svar_ctrp);
+                              pLits[ctr++] = pabc::Abc_Var2Lit(sel_varp, 0);
+                            }
+                            svar_ctrp++;
+                          }
+                        }
+                      }
+                    }
+                    (void)solver->add_clause(pLits, pLits + ctr);
+                    svar_ctr++;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      /* end of symmetry breaking clauses */
 
       bool is_dirty() 
       {
