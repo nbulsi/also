@@ -29,9 +29,10 @@ namespace alice
     public:
       explicit exact_m5ig_command( const environment::ptr& env ) : command( env, "using exact synthesis to find optimal M5IGs" )
       {
-        add_flag( "--verbose, -v",  "print the information" );
-        add_flag( "--cegar, -c",    "CEGAR encoding" );
-        add_flag( "--enumerate, -e",    "enumerate all the solutions" );
+        add_flag( "--verbose, -v",   "print the information" );
+        add_flag( "--cegar, -c",     "CEGAR encoding" );
+        add_flag( "--enumerate, -e", "enumerate all the solutions" );
+        add_flag( "--fence, -f",     "fence-based synthesize" );
       }
 
       rules validity_rules() const
@@ -163,6 +164,8 @@ namespace alice
         spec spec;
         also::mig5 mig5;
 
+        spec.verbosity = 3;
+
         auto copy = tt;
         if( copy.num_vars()  < 5 )
         {
@@ -247,10 +250,11 @@ namespace alice
     protected:
       void execute()
       {
-
         auto& opt = store<optimum_network>().current();
-        //const auto config = kitty::exact_npn_canonization( opt.function );
-        //std::cout << kitty::to_hex( opt.function ) << " npn : " << kitty::to_hex( std::get<0>( config ) ) << std::endl;
+        
+        spec spec;
+        also::mig5 mig5;
+        spec.verbosity = 3;
 
         stopwatch<>::duration time{0};
         if( is_set( "cegar" ) )
@@ -258,6 +262,29 @@ namespace alice
           call_with_stopwatch( time, [&]() 
               { 
                 nbu_mig_five_encoder_cegar_test( opt.function );
+              } );
+        }
+        else if( is_set( "fence" ) )
+        {
+          bsat_wrapper solver;
+          also::mig_five_encoder encoder( solver );
+          
+          auto copy = opt.function;
+          if( copy.num_vars()  < 5 )
+          {
+            spec[0] = kitty::extend_to( copy, 5 );
+          }
+          else
+          {
+            spec[0] = copy;
+          }
+          
+          call_with_stopwatch( time, [&]() 
+              { 
+                if ( also::mig_five_fence_synthesize( spec, mig5, solver, encoder ) == success )
+                {
+                  print_all_expr( spec, mig5 );
+                }
               } );
         }
         else if( is_set( "enumerate" ) )

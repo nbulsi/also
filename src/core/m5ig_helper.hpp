@@ -15,6 +15,7 @@
 #define M5IG_HELPER_HPP
 
 #include <mockturtle/mockturtle.hpp>
+#include <percy/percy.hpp>
 #include "misc.hpp"
 
 namespace also
@@ -588,7 +589,7 @@ namespace also
           for( const auto c : get_all_combination_index( idx_array, idx_array.size(), 5u ) )
           {
             auto tmp = c;
-            tmp.insert( tmp.begin(), i );
+            tmp.insert( tmp.begin(), i);
             map.insert( std::pair<int, std::vector<unsigned>>( count++, tmp ) );
           }
 
@@ -604,7 +605,7 @@ namespace also
               tmp.push_back( c[0] );
               tmp.push_back( c[1] );
               tmp.push_back( c[2] );
-              tmp.insert( tmp.begin(), i );
+              tmp.insert( tmp.begin(), i);
               map.insert( std::pair<int, std::vector<unsigned>>( count++, tmp ) );
             }
           }
@@ -635,12 +636,11 @@ namespace also
                 auto copy = c;
                 auto val = copy[k];
                 copy.insert( copy.begin() + k, val );
-                copy.insert( copy.begin(), i );
+                copy.insert( copy.begin(), i);
                 map.insert( std::pair<int, std::vector<unsigned>>( count++, copy ) );
               }
             }
           }
-
         }
 
         return map;
@@ -648,6 +648,210 @@ namespace also
 
   };
 
+  /******************************************************************************
+   * class select generate fence selection variables                                  *
+   ******************************************************************************/
+  class fence_select
+  {
+    private:
+      int   nr_steps;
+      int   nr_in;
+      fence f;
+      bool  allow_two_const;
+      bool  allow_two_equal;
+      
+      int level_dist[32]; // How many steps are below a certain level
+      int nr_levels; // The number of levels in the Boolean fence
+
+      private:
+      void update_level_map()
+      {
+        nr_levels = f.nr_levels();
+        level_dist[0] = nr_in + 1;
+        for (int i = 1; i <= nr_levels; i++) 
+        {
+          level_dist[i] = level_dist[i-1] + f.at(i-1);
+        }
+      }
+
+      int get_level(int step_idx) const
+      {
+        // PIs are considered to be on level zero.
+        if (step_idx <= nr_in) 
+        {
+          return 0;
+        } 
+        else if (step_idx == nr_in + 1) 
+        { 
+          // First step is always on level one
+          return 1;
+        }
+        for (int i = 0; i <= nr_levels; i++) 
+        {
+          if (level_dist[i] > step_idx) 
+          {
+            return i;
+          }
+        }
+        return -1;
+      }
+      
+      int first_step_on_level(int level) const
+      {
+        if (level == 0) 
+        { 
+          return 0; 
+        }
+
+        return level_dist[level-1];
+      }
+
+    public:
+      fence_select( int nr_steps, int nr_in, fence f, bool allow_two_const, bool allow_two_equal )
+        : nr_steps( nr_steps ), nr_in( nr_in ), f( f ), 
+          allow_two_const( allow_two_const ), allow_two_equal( allow_two_equal )
+      {
+        update_level_map();
+      }
+
+      ~fence_select()
+      {
+      }
+
+      //current step starts from 0, 1, ...
+      int get_num_of_sel_vars_for_each_step( int current_step )
+      {
+        const auto level      = get_level( current_step + nr_in + 1 );
+        const auto first_step = first_step_on_level( level ) - nr_in - 1;
+        
+        int count = 0;
+        int total = nr_in + 1 + first_step;
+        std::vector<unsigned> idx_array;
+
+        std::cout << " current step: " << current_step << " level: " << level << " first_step: " << first_step << std::endl;
+
+        for( auto i = 0; i < total; i++ )
+        {
+          idx_array.push_back( i );
+        }
+
+        //no const & 'a' const 
+        count += get_all_combination_index( idx_array, total, 5u ).size();
+
+        //ab_const
+        if( allow_two_const )
+        {
+          idx_array.erase( idx_array.begin() );
+          count += get_all_combination_index( idx_array, idx_array.size(), 3u ).size();
+        }
+
+        if( allow_two_const && allow_two_equal )
+        {
+          //ab_const_cd_equal
+          count += get_all_combination_index( idx_array, idx_array.size(), 2u ).size();
+        }
+
+        if( allow_two_equal )
+        {
+          //ab_equal
+          count += get_all_combination_index( idx_array, idx_array.size(), 4u ).size() * 4;
+        }
+        return count;
+      }
+
+      int get_num_sels()
+      {
+        int count = 0;
+        for( auto i = 0; i < nr_steps; i++ )
+        {
+          count += get_num_of_sel_vars_for_each_step( i );
+        }
+
+        return count;
+      }
+
+      /* map: 0,     0         _01234 
+       *      index, nr_steps, inputs ids
+       **/
+      std::map<int, std::vector<unsigned>> get_sel_var_map()
+      {
+        std::map<int, std::vector<unsigned>> map;
+        std::vector<unsigned> idx_array;
+        int count = 0;
+        
+        for( auto i = 0; i < nr_steps; i++ )
+        {
+          const auto level      = get_level( i + nr_in + 1 );
+          const auto first_step = first_step_on_level( level ) - nr_in - 1;
+
+          int total = nr_in + 1 + first_step;
+
+          idx_array.clear();
+          idx_array.resize( total );
+          std::iota( idx_array.begin(), idx_array.end(), 0 );
+
+          //no const & 'a' const 
+          for( const auto c : get_all_combination_index( idx_array, idx_array.size(), 5u ) )
+          {
+            auto tmp = c;
+            tmp.insert( tmp.begin(), i);
+            map.insert( std::pair<int, std::vector<unsigned>>( count++, tmp ) );
+          }
+
+          //erase 0
+          idx_array.erase( idx_array.begin() );
+
+          if( allow_two_const )
+          {
+            //ab_const
+            for( const auto c : get_all_combination_index( idx_array, idx_array.size(), 3u ) )
+            {
+              std::vector<unsigned> tmp {0, 0};
+              tmp.push_back( c[0] );
+              tmp.push_back( c[1] );
+              tmp.push_back( c[2] );
+              tmp.insert( tmp.begin(), i);
+              map.insert( std::pair<int, std::vector<unsigned>>( count++, tmp ) );
+            }
+          }
+
+          if( allow_two_const && allow_two_equal )
+          {
+            //ab_const_cd_equal
+            for( const auto c : get_all_combination_index( idx_array, idx_array.size(), 2u ) )
+            {
+              std::vector<unsigned> tmp {0, 0};
+              assert( c.size() == 2 );
+
+              tmp.push_back( c[0] );
+              tmp.push_back( c[0] ); //cd equal
+              tmp.push_back( c[1] );
+              tmp.insert( tmp.begin(), i );
+              map.insert( std::pair<int, std::vector<unsigned>>( count++, tmp ) );
+            }
+          }
+
+          //ab_equal
+          if( allow_two_equal )
+          {
+            for( const auto c : get_all_combination_index( idx_array, idx_array.size(), 4u ) )
+            {
+              for( auto k = 0; k < 4; k++ )
+              {
+                auto copy = c;
+                auto val = copy[k];
+                copy.insert( copy.begin() + k, val );
+                copy.insert( copy.begin(), i);
+                map.insert( std::pair<int, std::vector<unsigned>>( count++, copy ) );
+              }
+            }
+          }
+        }
+
+        return map;
+      }
+
+  };
 
   /******************************************************************************
    * Public functions by class comb and select                                  *
@@ -666,6 +870,16 @@ namespace also
     select s( nr_steps, nr_in, allow_two_const, allow_two_equal );
     return s.get_sel_var_map();
   }
+  
+  std::map<int, std::vector<unsigned>> fence_comput_select_vars_map(  int nr_steps, 
+                                                                      int nr_in, 
+                                                                      fence f,
+                                                                      bool allow_two_const = false, 
+                                                                      bool allow_two_equal = false )
+  { 
+    fence_select s( nr_steps, nr_in, f, allow_two_const, allow_two_equal );
+    return s.get_sel_var_map();
+  }
 
   int comput_select_vars_for_each_step( int nr_steps, 
       int nr_in, 
@@ -675,6 +889,18 @@ namespace also
   {
     assert( step_idx >= 0 && step_idx < nr_steps );
     select s( nr_steps, nr_in, allow_two_const, allow_two_equal );
+    return s.get_num_of_sel_vars_for_each_step( step_idx );
+  }
+  
+  int fence_comput_select_vars_for_each_step( int nr_steps, 
+                                              int nr_in, 
+                                              fence f,
+                                              int step_idx, 
+                                              bool allow_two_const = false, 
+                                              bool allow_two_equal = false )
+  {
+    assert( step_idx >= 0 && step_idx < nr_steps );
+    fence_select s( nr_steps, nr_in, f, allow_two_const, allow_two_equal );
     return s.get_num_of_sel_vars_for_each_step( step_idx );
   }
 

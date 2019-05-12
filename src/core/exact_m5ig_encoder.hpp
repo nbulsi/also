@@ -58,7 +58,8 @@ namespace also
       int maj_input = 5;
 
       std::map<int, std::vector<unsigned>> sel_map;
-
+      std::map<int, std::vector<unsigned>> fence_sel_map;
+      
       // There are 16 possible operators for each MIG node:
       // <abcde>        (0)
       // <!abcde>       (1)
@@ -106,7 +107,7 @@ namespace also
 
       void create_variables( const spec& spec )
       {
-        /* number of simulation variables, s_out_in1_in2_in3 */
+        /* number of simulation variables, s_out_in1_in2_in3_in4_in5 */
         sel_map = comput_select_vars_map( spec.nr_steps, spec.nr_in, allow_two_const, allow_two_equal );
         nr_sel_vars = sel_map.size();
         
@@ -139,6 +140,44 @@ namespace also
         /* declare in the solver */
         solver->set_nr_vars(total_nr_vars);
       }
+      
+      void fence_create_variables( const spec& spec, const fence& f )
+      {
+        /* number of simulation variables, s_out_in1_in2_in3_in4_in5 */
+        fence_sel_map = fence_comput_select_vars_map( spec.nr_steps, spec.nr_in, f, allow_two_const, allow_two_equal );
+        nr_sel_vars   = fence_sel_map.size();
+        
+        /* number of operators per step */ 
+        nr_op_vars = spec.nr_steps * MIG_OP_VARS_PER_STEP;
+
+        /* number of truth table simulation variables */
+        nr_sim_vars = spec.nr_steps * spec.tt_size;
+        
+        /* offsets, this is used to find varibles correspondence */
+        sel_offset = 0;
+        op_offset  = nr_sel_vars;
+        sim_offset = nr_sel_vars + nr_op_vars;
+
+        /* total variables used in SAT formulation */
+        total_nr_vars = nr_op_vars + nr_sel_vars + nr_sim_vars;
+
+        if( spec.verbosity > 1 )
+        {
+          printf( "Creating variables (mig)\n");
+          printf( "nr steps    = %d\n", spec.nr_steps );
+          printf( "nr_in       = %d\n", spec.nr_in );
+          printf( "nr_sel_vars = %d\n", nr_sel_vars );
+          printf( "nr_op_vars  = %d\n", nr_op_vars );
+          printf( "nr_sim_vars = %d\n", nr_sim_vars );
+          printf( "tt_size     = %d\n", spec.tt_size );
+          printf( "creating %d total variables\n", total_nr_vars);
+        }
+        
+        /* declare in the solver */
+        solver->set_nr_vars(total_nr_vars);
+      }
+      
+      
         
       /// Ensures that each gate has the proper number of fanins.
       bool create_fanin_clauses(const spec& spec)
@@ -178,6 +217,31 @@ namespace also
           printf("Nr. clauses = %d (POST)\n", solver->nr_clauses());
         }
 
+        return status;
+      }
+      
+      bool fence_create_fanin_clauses(const spec& spec, const fence& f)
+      {
+        auto status = true;
+        int svar = 0;
+        for(int i = 0; i < spec.nr_steps; i++ )
+        {
+          auto ctr = 0;
+
+          auto num_svar_in_current_step = fence_comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, f, i, 
+                                                                            allow_two_const, 
+                                                                            allow_two_equal );
+          
+          for( int j = svar; j < svar + num_svar_in_current_step; j++ )
+          {
+            pLits[ctr++] = pabc::Abc_Var2Lit(j, 0);
+          }
+          
+          svar += num_svar_in_current_step;
+
+          status &= solver->add_clause(pLits, pLits + ctr);
+        }
+        
         return status;
       }
 
@@ -499,6 +563,21 @@ namespace also
 
         return ret;
       }
+      
+      bool fence_create_tt_clauses(const spec& spec, const int t)
+      {
+        bool ret = true;
+        
+        for( const auto svar : fence_sel_map )
+        {
+          ret &= add_consistency_clause_init( spec, t, svar );
+        }
+        
+        ret &= fix_output_sim_vars(spec, t);
+
+        return ret;
+        
+      }
 
       void create_main_clauses( const spec& spec )
       {
@@ -506,6 +585,16 @@ namespace also
         {
           (void) create_tt_clauses( spec, t );
         }
+      }
+      
+      bool fence_create_main_clauses(const spec& spec)
+      {
+        bool ret = true;
+        for (int t = 0; t < spec.tt_size; t++) 
+        {
+          ret &= fence_create_tt_clauses(spec, t);
+        }
+        return ret;
       }
         
       //block the usage of some primary input
@@ -604,6 +693,23 @@ namespace also
           fclose( f );
         }
         
+        return true;
+      }
+      
+      bool encode(const spec& spec, const fence& f)
+      {
+          assert(spec.nr_in >= 5);
+          assert(spec.nr_steps == f.nr_nodes());
+
+          fence_create_variables(spec, f);
+          
+          if (!fence_create_main_clauses(spec)) 
+          {
+            return false;
+          }
+          
+          fence_create_fanin_clauses(spec, f);
+
         return true;
       }
       
@@ -709,7 +815,73 @@ namespace also
          // printf( "[i] output is inverted\n" );
         }
 
-        //assert( chain.satisfies_spec( spec ) );
+        assert( chain.satisfies_spec( spec ) );
+      }
+      
+      void fence_extract_mig5(const spec& spec, mig5& chain, fence& f )
+      {
+        int op_inputs[5] = { 0, 0, 0, 0, 0 };
+        chain.reset( spec.nr_in, 1, spec.nr_steps );
+
+        int svar = 0;
+        for (int i = 0; i < spec.nr_steps; i++) 
+        {
+          int op = 0;
+          for (int j = 0; j < MIG_OP_VARS_PER_STEP; j++) 
+          {
+            if ( solver->var_value( get_op_var( spec, i, j ) ) ) 
+            {
+              op = j;
+              break;
+            }
+          }
+
+          auto num_svar_in_current_step = fence_comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, f, i, 
+                                                                            allow_two_const, 
+                                                                            allow_two_equal );
+
+          std::cout << "num_svar in step " << i << " is " << num_svar_in_current_step << std::endl;
+          
+          for( int j = svar; j < svar + num_svar_in_current_step; j++ )
+          {
+            if( solver->var_value( j ) )
+            {
+              auto array = fence_sel_map[j];
+              op_inputs[0] = array[1];
+              op_inputs[1] = array[2];
+              op_inputs[2] = array[3];
+              op_inputs[3] = array[4];
+              op_inputs[4] = array[5];
+              break;
+            }
+          }
+          
+          svar += num_svar_in_current_step;
+
+          chain.set_step(i, op_inputs[0], op_inputs[1], op_inputs[2], op_inputs[3], op_inputs[4], op);
+
+          if( spec.verbosity > 2 )
+          {
+            printf("[i] Step %d performs op %d, inputs are:%d%d%d%d%d\n", i, op, op_inputs[0], op_inputs[1], 
+                                                                                              op_inputs[2],
+                                                                                              op_inputs[3],
+                                                                                              op_inputs[4] );
+          }
+
+        }
+        
+        const auto pol = spec.out_inv ? 1 : 0;
+        const auto tmp = ( ( spec.nr_steps + spec.nr_in ) << 1 ) + pol;
+        chain.set_output(0, tmp);
+
+        //printf("[i] %d nodes are required\n", spec.nr_steps );
+
+        if( spec.out_inv )
+        {
+         // printf( "[i] output is inverted\n" );
+        }
+
+        assert( chain.satisfies_spec( spec ) );
       }
 
       
@@ -912,6 +1084,72 @@ namespace also
        }
 
        return failure;
+    }
+   
+   synth_result mig_five_fence_synthesize(spec& spec, mig5& mig5, solver_wrapper& solver, mig_five_encoder& encoder)
+    {
+        spec.preprocess();
+
+        // The special case when the Boolean chain to be synthesized
+        // consists entirely of trivial functions.
+        if (spec.nr_triv == spec.get_nr_out()) 
+        {
+            mig5.reset(spec.get_nr_in(), spec.get_nr_out(), 0);
+            for (int h = 0; h < spec.get_nr_out(); h++) 
+            {
+                mig5.set_output(h, (spec.triv_func(h) << 1) +
+                    ((spec.out_inv >> h) & 1));
+            }
+            return success;
+        }
+
+        std::cout << "begin to fence synthesize" << std::endl;
+        // As the topological synthesizer decomposes the synthesis
+        // problem, to fairly count the total number of conflicts we
+        // should keep track of all conflicts in existence checks.
+        fence f;
+        po_filter<unbounded_generator> g( unbounded_generator(spec.initial_steps), spec.get_nr_out(), 5);
+        auto fence_ctr = 0;
+        while (true) 
+        {
+            ++fence_ctr;
+            g.next_fence(f);
+            spec.nr_steps = f.nr_nodes();
+            solver.restart();
+            if (!encoder.encode(spec, f)) 
+            {
+                continue;
+            }
+
+            if (spec.verbosity) 
+            {
+                printf("next fence (%d):\n", fence_ctr);
+                print_fence(f);
+                printf("\n");
+                printf("nr_nodes=%d, nr_levels=%d\n", f.nr_nodes(),
+                    f.nr_levels());
+                for (int i = 0; i < f.nr_levels(); i++) {
+                    printf("f[%d] = %d\n", i, f[i]);
+                }
+            }
+            auto status = solver.solve(spec.conflict_limit);
+            if (status == success) 
+            {
+              std::cout << " success " << std::endl;
+              encoder.fence_extract_mig5(spec, mig5, f);
+              //encoder.show_variable_correspondence( spec );
+              //encoder.show_verbose_result();
+                return success;
+            } 
+            else if (status == failure) 
+            {
+                continue;
+            } 
+            else 
+            {
+                return timeout;
+            }
+        }
     }
 
 }
