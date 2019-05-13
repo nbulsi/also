@@ -754,7 +754,7 @@ namespace also
         return true;
       }
 
-      void extract_mig5(const spec& spec, mig5& chain )
+      void extract_mig5(const spec& spec, mig5& chain, bool is_cagar )
       {
         int op_inputs[5] = { 0, 0, 0, 0, 0 };
         chain.reset( spec.nr_in, 1, spec.nr_steps );
@@ -815,7 +815,10 @@ namespace also
          // printf( "[i] output is inverted\n" );
         }
 
-        assert( chain.satisfies_spec( spec ) );
+        if( !is_cagar )
+        {
+          assert( chain.satisfies_spec( spec ) );
+        }
       }
       
       void fence_extract_mig5(const spec& spec, mig5& chain, fence& f )
@@ -959,7 +962,7 @@ namespace also
         if( status == success )
         {
           //encoder.show_verbose_result();
-          encoder.extract_mig5( spec, mig5 );
+          encoder.extract_mig5( spec, mig5, false );
           return success;
         }
         else if( status == failure )
@@ -1017,12 +1020,13 @@ namespace also
 
           if( status == success )
           {
-            encoder.extract_mig5( spec, mig5 );
+            encoder.extract_mig5( spec, mig5, true );
             auto sim_tt = mig5.simulate()[0];
             auto xot_tt = sim_tt ^ ( spec[0] );
             auto first_one = kitty::find_first_one_bit( xot_tt );
             if( first_one == -1 )
             {
+              encoder.extract_mig5( spec, mig5, false );
               return success;
             }
 
@@ -1074,7 +1078,7 @@ namespace also
 
          if (status == success) 
          {
-           encoder.extract_mig5(spec, mig5);
+           encoder.extract_mig5(spec, mig5, false);
            return success;
          } 
          else 
