@@ -34,6 +34,7 @@ namespace alice
         add_flag( "--enumerate, -e",    "enumerate all the solutions" );
         add_flag( "--fence, -f",        "fence-based synthesize" );
         add_flag( "--parallel, -p",     "parallel fence-based synthesize" );
+        add_flag( "--para_cegar_fence, -b",  "parallel cegar fence-based synthesize" );
       }
 
       rules validity_rules() const
@@ -300,6 +301,16 @@ namespace alice
           call_with_stopwatch( time, [&]() 
               { 
                 if ( also::parallel_nocegar_mig_five_fence_synthesize( spec, mig5 ) == success )
+                {
+                  print_all_expr( spec, mig5 );
+                }
+              } );
+        }
+        else if( is_set( "para_cegar_fence" ) )
+        {
+          call_with_stopwatch( time, [&]() 
+              { 
+                if ( also::parallel_mig_five_fence_synthesize( spec, mig5 ) == success )
                 {
                   print_all_expr( spec, mig5 );
                 }

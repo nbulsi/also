@@ -508,8 +508,8 @@ namespace also
     private:
       int nr_steps;
       int nr_in;
-      bool allow_two_const;
-      bool allow_two_equal;
+      bool allow_two_const ;
+      bool allow_two_equal ;
 
     public:
       select( int nr_steps, int nr_in, bool allow_two_const, bool allow_two_equal )
@@ -649,21 +649,16 @@ namespace also
   };
 
   /******************************************************************************
-   * class select generate fence selection variables                                  *
+   * class to get fence level information                                       *
    ******************************************************************************/
-  class fence_select
+  class fence_level
   {
     private:
-      int   nr_steps;
-      int   nr_in;
       fence f;
-      bool  allow_two_const;
-      bool  allow_two_equal;
-      
+      int nr_in;
       int level_dist[32]; // How many steps are below a certain level
       int nr_levels; // The number of levels in the Boolean fence
 
-      private:
       void update_level_map()
       {
         nr_levels = f.nr_levels();
@@ -672,6 +667,13 @@ namespace also
         {
           level_dist[i] = level_dist[i-1] + f.at(i-1);
         }
+      }
+
+      public:
+      fence_level( const fence& f, const int nr_in )
+        : f( f ), nr_in( nr_in )
+      {
+        update_level_map();
       }
 
       int get_level(int step_idx) const
@@ -705,13 +707,25 @@ namespace also
 
         return level_dist[level-1];
       }
-
+  };
+  
+  /******************************************************************************
+   * class select generate fence selection variables                                  *
+   ******************************************************************************/
+  class fence_select
+  {
+    private:
+      int   nr_steps;
+      int   nr_in;
+      fence f;
+      bool  allow_two_const;
+      bool  allow_two_equal;
+    
     public:
       fence_select( int nr_steps, int nr_in, fence f, bool allow_two_const, bool allow_two_equal )
         : nr_steps( nr_steps ), nr_in( nr_in ), f( f ), 
           allow_two_const( allow_two_const ), allow_two_equal( allow_two_equal )
       {
-        update_level_map();
       }
 
       ~fence_select()
@@ -721,14 +735,14 @@ namespace also
       //current step starts from 0, 1, ...
       int get_num_of_sel_vars_for_each_step( int current_step )
       {
-        const auto level      = get_level( current_step + nr_in + 1 );
-        const auto first_step = first_step_on_level( level ) - nr_in - 1;
+        fence_level flevel( f, nr_in );
+
+        const auto level      = flevel.get_level( current_step + nr_in + 1 );
+        const auto first_step = flevel.first_step_on_level( level ) - nr_in - 1;
         
         int count = 0;
         int total = nr_in + 1 + first_step;
         std::vector<unsigned> idx_array;
-
-        std::cout << " current step: " << current_step << " level: " << level << " first_step: " << first_step << std::endl;
 
         for( auto i = 0; i < total; i++ )
         {
@@ -779,10 +793,12 @@ namespace also
         std::vector<unsigned> idx_array;
         int count = 0;
         
+        fence_level flevel( f, nr_in );
+        
         for( auto i = 0; i < nr_steps; i++ )
         {
-          const auto level      = get_level( i + nr_in + 1 );
-          const auto first_step = first_step_on_level( level ) - nr_in - 1;
+          const auto level      = flevel.get_level( i + nr_in + 1 );
+          const auto first_step = flevel.first_step_on_level( level ) - nr_in - 1;
 
           int total = nr_in + 1 + first_step;
 
@@ -864,8 +880,8 @@ namespace also
 
   std::map<int, std::vector<unsigned>> comput_select_vars_map( int nr_steps, 
       int nr_in, 
-      bool allow_two_const = false, 
-      bool allow_two_equal = false )
+      bool allow_two_const = true, 
+      bool allow_two_equal = true )
   { 
     select s( nr_steps, nr_in, allow_two_const, allow_two_equal );
     return s.get_sel_var_map();
@@ -874,18 +890,18 @@ namespace also
   std::map<int, std::vector<unsigned>> fence_comput_select_vars_map(  int nr_steps, 
                                                                       int nr_in, 
                                                                       fence f,
-                                                                      bool allow_two_const = false, 
-                                                                      bool allow_two_equal = false )
+                                                                      bool allow_two_const = true, 
+                                                                      bool allow_two_equal = true )
   { 
     fence_select s( nr_steps, nr_in, f, allow_two_const, allow_two_equal );
     return s.get_sel_var_map();
   }
-
+  
   int comput_select_vars_for_each_step( int nr_steps, 
       int nr_in, 
       int step_idx, 
-      bool allow_two_const = false, 
-      bool allow_two_equal = false )
+      bool allow_two_const = true, 
+      bool allow_two_equal = true )
   {
     assert( step_idx >= 0 && step_idx < nr_steps );
     select s( nr_steps, nr_in, allow_two_const, allow_two_equal );
@@ -896,8 +912,8 @@ namespace also
                                               int nr_in, 
                                               fence f,
                                               int step_idx, 
-                                              bool allow_two_const = false, 
-                                              bool allow_two_equal = false )
+                                              bool allow_two_const = true, 
+                                              bool allow_two_equal = true )
   {
     assert( step_idx >= 0 && step_idx < nr_steps );
     fence_select s( nr_steps, nr_in, f, allow_two_const, allow_two_equal );
