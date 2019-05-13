@@ -29,10 +29,11 @@ namespace alice
     public:
       explicit exact_m5ig_command( const environment::ptr& env ) : command( env, "using exact synthesis to find optimal M5IGs" )
       {
-        add_flag( "--verbose, -v",   "print the information" );
-        add_flag( "--cegar, -c",     "CEGAR encoding" );
-        add_flag( "--enumerate, -e", "enumerate all the solutions" );
-        add_flag( "--fence, -f",     "fence-based synthesize" );
+        add_flag( "--verbose, -v",      "print the information" );
+        add_flag( "--cegar, -c",        "CEGAR encoding" );
+        add_flag( "--enumerate, -e",    "enumerate all the solutions" );
+        add_flag( "--fence, -f",        "fence-based synthesize" );
+        add_flag( "--parallel, -p",     "parallel fence-based synthesize" );
       }
 
       rules validity_rules() const
@@ -256,28 +257,28 @@ namespace alice
         also::mig5 mig5;
         spec.verbosity = 3;
 
+        auto copy = opt.function;
+        if( copy.num_vars()  < 5 )
+        {
+          spec[0] = kitty::extend_to( copy, 5 );
+        }
+        else
+        {
+          spec[0] = copy;
+        }
+
         stopwatch<>::duration time{0};
         if( is_set( "cegar" ) )
         {
           call_with_stopwatch( time, [&]() 
               { 
-                nbu_mig_five_encoder_cegar_test( opt.function );
+                nbu_mig_five_encoder_cegar_test( copy );
               } );
         }
         else if( is_set( "fence" ) )
         {
           bsat_wrapper solver;
           also::mig_five_encoder encoder( solver );
-          
-          auto copy = opt.function;
-          if( copy.num_vars()  < 5 )
-          {
-            spec[0] = kitty::extend_to( copy, 5 );
-          }
-          else
-          {
-            spec[0] = copy;
-          }
           
           call_with_stopwatch( time, [&]() 
               { 
@@ -291,14 +292,24 @@ namespace alice
         {
           call_with_stopwatch( time, [&]() 
               { 
-               enumerate_m5ig( opt.function ); 
+               enumerate_m5ig( copy ); 
               });
+        }
+        else if( is_set( "parallel" ) )
+        {
+          call_with_stopwatch( time, [&]() 
+              { 
+                if ( also::parallel_nocegar_mig_five_fence_synthesize( spec, mig5 ) == success )
+                {
+                  print_all_expr( spec, mig5 );
+                }
+              } );
         }
         else
         {
           call_with_stopwatch( time, [&]() 
               { 
-               nbu_mig_five_encoder_test( opt.function );
+               nbu_mig_five_encoder_test( copy );
               });
         }
         

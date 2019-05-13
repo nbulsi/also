@@ -1155,6 +1155,119 @@ namespace also
             }
         }
     }
+   
+   synth_result parallel_nocegar_mig_five_fence_synthesize( spec& spec, mig5& mig5, 
+                                                              int num_threads = std::thread::hardware_concurrency() )
+    {
+        spec.preprocess();
+
+        // The special case when the Boolean chain to be synthesized
+        // consists entirely of trivial functions.
+        if (spec.nr_triv == spec.get_nr_out()) {
+            mig5.reset(spec.get_nr_in(), spec.get_nr_out(), 0);
+            for (int h = 0; h < spec.get_nr_out(); h++) {
+                mig5.set_output(h, (spec.triv_func(h) << 1) +
+                    ((spec.out_inv >> h) & 1));
+            }
+            return success;
+        }
+
+        std::vector<std::thread> threads(num_threads);
+        moodycamel::ConcurrentQueue<fence> q(num_threads * 3);
+
+        bool finished_generating = false;
+        bool* pfinished = &finished_generating;
+        bool found = false;
+        bool* pfound = &found;
+        std::mutex found_mutex;
+
+        spec.fanin = 5;
+        spec.nr_steps = spec.initial_steps;
+        while (true) 
+        {
+            for (int i = 0; i < num_threads; i++) 
+            {
+              //std::cout << "thread: " << i << std::endl;
+                threads[i] = std::thread([&spec, pfinished, pfound, &found_mutex, &mig5, &q] 
+                    {
+                    bmcg_wrapper solver;
+                    mig_five_encoder encoder(solver);
+                    fence local_fence;
+
+                    while (!(*pfound)) 
+                    {
+                        if (!q.try_dequeue(local_fence)) 
+                        {
+                            if (*pfinished) 
+                            {
+                                std::this_thread::yield();
+                                if (!q.try_dequeue(local_fence)) 
+                                {
+                                    break;
+                                }
+                            } 
+                            else 
+                            {
+                                std::this_thread::yield();
+                                continue;
+                            }
+                        }
+
+                        if (spec.verbosity)
+                        {
+                            std::lock_guard<std::mutex> vlock(found_mutex);
+                            printf("  next fence:\n");
+                            print_fence(local_fence);
+                            printf("\n");
+                            printf("nr_nodes=%d, nr_levels=%d\n",
+                                local_fence.nr_nodes(),
+                                local_fence.nr_levels());
+                        }
+
+                        synth_result status;
+                        solver.restart();
+                        if (!encoder.encode(spec, local_fence)) 
+                        {
+                            continue;
+                        }
+                        do 
+                        {
+                            status = solver.solve(10);
+                            if (*pfound) 
+                            {
+                                break;
+                            } 
+                            else if (status == success) 
+                            {
+                                std::lock_guard<std::mutex> vlock(found_mutex);
+                                if (!(*pfound)) 
+                                {
+                                    encoder.fence_extract_mig5(spec, mig5, local_fence );
+                                    *pfound = true;
+                                }
+                            }
+                        } while (status == timeout);
+                    }
+                });
+            }
+            
+            generate_fences(spec, q);
+            finished_generating = true;
+
+            for (auto& thread : threads) 
+            {
+                thread.join();
+            }
+            if (found) 
+            {
+                break;
+            }
+            finished_generating = false;
+            spec.nr_steps++;
+        }
+
+        return success;
+    }
 
 }
 
