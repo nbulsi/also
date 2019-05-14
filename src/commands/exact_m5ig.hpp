@@ -29,18 +29,22 @@ namespace alice
     public:
       explicit exact_m5ig_command( const environment::ptr& env ) : command( env, "using exact synthesis to find optimal M5IGs" )
       {
-        add_flag( "--verbose, -v",      "print the information" );
-        add_flag( "--cegar, -c",        "CEGAR encoding" );
-        add_flag( "--enumerate, -e",    "enumerate all the solutions" );
-        add_flag( "--fence, -f",        "fence-based synthesize" );
-        add_flag( "--parallel, -p",     "parallel fence-based synthesize" );
-        add_flag( "--para_cegar_fence, -b",  "parallel cegar fence-based synthesize" );
+        add_option( "--verbose, -v",  verbosity,  "print the information" );
+        add_flag( "--cegar, -c",                  "CEGAR encoding" );
+        add_flag( "--enumerate, -e",              "enumerate all the solutions" );
+        add_flag( "--fence, -f",                  "fence-based synthesize" );
+        add_flag( "--parallel, -p",               "parallel fence-based synthesize" );
+        add_flag( "--para_cegar_fence, -b",       "parallel cegar fence-based synthesize" );
+        add_flag( "--cegar_fence, -a",            "cegar fence-based synthesize" );
       }
 
       rules validity_rules() const
       {
         return { has_store_element<optimum_network>( env ) };
       }
+
+      private:
+      int verbosity = 0;
 
     private:
 
@@ -256,7 +260,8 @@ namespace alice
         
         spec spec;
         also::mig5 mig5;
-        spec.verbosity = 3;
+
+        spec.verbosity = verbosity;
 
         auto copy = opt.function;
         if( copy.num_vars()  < 5 )
@@ -311,6 +316,19 @@ namespace alice
           call_with_stopwatch( time, [&]() 
               { 
                 if ( also::parallel_mig_five_fence_synthesize( spec, mig5 ) == success )
+                {
+                  print_all_expr( spec, mig5 );
+                }
+              } );
+        }
+        else if( is_set( "cegar_fence" ) )
+        {
+          bsat_wrapper solver;
+          also::mig_five_encoder encoder( solver );
+          
+          call_with_stopwatch( time, [&]() 
+              { 
+                if ( also::mig_five_cegar_fence_synthesize( spec, mig5, solver, encoder ) == success )
                 {
                   print_all_expr( spec, mig5 );
                 }

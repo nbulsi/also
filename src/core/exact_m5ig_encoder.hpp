@@ -114,7 +114,7 @@ namespace also
 
         std::vector<int> res;
 
-        for( const auto e : fence_sel_map )
+        for( const auto& e : fence_sel_map )
         {
           auto svar = e.first;
           auto idx  = e.second[0];
@@ -841,20 +841,22 @@ namespace also
           
           svars = get_all_svars_for_i( i );
           
-          const auto level      = flevel.get_level( i + spec.nr_in + 1 );
-          const auto first_step = flevel.first_step_on_level( level ) - spec.nr_in - 1;
+          if( spec.verbosity > 2 )
+          {
+            const auto level      = flevel.get_level( i + spec.nr_in + 1 );
+            const auto first_step = flevel.first_step_on_level( level ) - spec.nr_in - 1;
+
+            auto nr_svars_for_i = fence_comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, f, first_step );
+
+            assert(svars.size() == nr_svars_for_i );
+            std::cout << " i : " << i
+                      << " level: " << level
+                      << " first step: " << first_step
+                      << " nr_svars_for_i: " << nr_svars_for_i 
+                      << " svar size: " << svars.size() << std::endl;
+          }
           
-          auto nr_svars_for_i = fence_comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, f, first_step );
-
-          assert(svars.size() == nr_svars_for_i );
-
           const auto nr_res_vars = (1 + 2) * (svars.size() + 1);
-
-          std::cout << " i : " << i
-                    << " level: " << level
-                    << " first step: " << first_step
-                    << " nr_svars_for_i " << nr_svars_for_i 
-                    << " svar size: " << svars.size() << std::endl;
           
           for (int j = 0; j < nr_res_vars; j++) 
           {
@@ -876,7 +878,9 @@ namespace also
           cegar_fence_create_variables(spec, f);
 
           fence_create_fanin_clauses(spec, f);
-          create_cardinality_constraints(spec,f);
+
+          /* problematic to add cardinality constraints */
+          //create_cardinality_constraints(spec,f);
           
           return true;
       }
@@ -970,7 +974,6 @@ namespace also
                                                                             allow_two_const, 
                                                                             allow_two_equal );
 
-          std::cout << "num_svar in step " << i << " is " << num_svar_in_current_step << std::endl;
           
           for( int j = svar; j < svar + num_svar_in_current_step; j++ )
           {
@@ -1269,7 +1272,6 @@ namespace also
             auto status = solver.solve(spec.conflict_limit);
             if (status == success) 
             {
-              std::cout << " success " << std::endl;
               encoder.fence_extract_mig5(spec, mig5, f, false);
               //encoder.show_variable_correspondence( spec );
               //encoder.show_verbose_result();
@@ -1373,7 +1375,7 @@ namespace also
                                 if (!(*pfound)) 
                                 {
                                     encoder.fence_extract_mig5(spec, mig5, local_fence, false );
-                                    std::cout << "simulation tt: " << kitty::to_hex( mig5.simulate()[0] ) << std::endl;
+                                    std::cout << "[i] simulation tt: " << kitty::to_hex( mig5.simulate()[0] ) << std::endl;
                                     *pfound = true;
                                 }
                             }
@@ -1524,6 +1526,86 @@ namespace also
         }
 
         return success;
+    }
+   
+   synth_result mig_five_cegar_fence_synthesize( spec& spec, mig5& mig5, solver_wrapper& solver, mig_five_encoder& encoder)
+   {
+     assert(spec.get_nr_in() >= spec.fanin);
+
+     spec.preprocess();
+
+     // The special case when the Boolean chain to be synthesized
+     // consists entirely of trivial functions.
+     if (spec.nr_triv == spec.get_nr_out()) {
+       mig5.reset(spec.get_nr_in(), spec.get_nr_out(), 0);
+       for (int h = 0; h < spec.get_nr_out(); h++) {
+         mig5.set_output(h, (spec.triv_func(h) << 1) +
+             ((spec.out_inv >> h) & 1));
+       }
+       return success;
+     }
+
+
+     fence f;
+     po_filter<unbounded_generator> g( unbounded_generator(spec.initial_steps), spec.get_nr_out(), 5);
+     int fence_ctr = 0;
+     while (true) 
+     {
+       ++fence_ctr;
+       g.next_fence(f);
+       spec.nr_steps = f.nr_nodes();
+
+       if (spec.verbosity) 
+       {
+         printf("  next fence (%d):\n", fence_ctr);
+         print_fence(f);
+         printf("\n");
+         printf("nr_nodes=%d, nr_levels=%d\n", f.nr_nodes(),
+             f.nr_levels());
+         for (int i = 0; i < f.nr_levels(); i++) {
+           printf("f[%d] = %d\n", i, f[i]);
+         }
+       }
+
+       solver.restart();
+       if (!encoder.cegar_encode(spec, f)) 
+       {
+         continue;
+       }
+       while (true) 
+       {
+         auto status = solver.solve(spec.conflict_limit);
+         if (status == success) 
+         {
+           encoder.fence_extract_mig5(spec, mig5, f, true);
+           auto sim_tt = mig5.simulate()[0];
+           //auto sim_tt = encoder.simulate(spec);
+           //if (spec.out_inv) {
+           //    sim_tt = ~sim_tt;
+           //}
+           auto xor_tt = sim_tt ^ (spec[0]);
+           auto first_one = kitty::find_first_one_bit(xor_tt);
+           if (first_one == -1) 
+           {
+             encoder.fence_extract_mig5(spec, mig5, f, false);
+             return success;
+           }
+           
+           if (!encoder.fence_create_tt_clauses(spec, first_one - 1)) 
+           {
+             break;
+           }
+         } 
+         else if (status == failure) 
+         {
+           break;
+         } 
+         else 
+         {
+           return timeout;
+         }
+       }
+     }
     }
 
 }

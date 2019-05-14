@@ -96,8 +96,6 @@ namespace also
             {
                 const auto& step = steps[i];
 
-                std::cout << "steps: " << step[0] << step[1] << step[2] << step[3] << step[4] << std::endl;
-
                 if (step[0] <= nr_in) 
                 {
                     if( step[0] == 0)
