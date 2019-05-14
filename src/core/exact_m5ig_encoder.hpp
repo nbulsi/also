@@ -849,19 +849,25 @@ namespace also
           assert(svars.size() == nr_svars_for_i );
 
           const auto nr_res_vars = (1 + 2) * (svars.size() + 1);
+
+          std::cout << " i : " << i
+                    << " level: " << level
+                    << " first step: " << first_step
+                    << " nr_svars_for_i " << nr_svars_for_i 
+                    << " svar size: " << svars.size() << std::endl;
           
           for (int j = 0; j < nr_res_vars; j++) 
           {
-            rvars.push_back(get_res_var(spec, f, i, j));
+            rvars.push_back( get_res_var( spec, f, i, j ) );
           }
-          create_cardinality_circuit(solver, svars, rvars, 1);
+          
+          create_cardinality_circuit( solver, svars, rvars, 1 );
 
           // Ensure that the fanin cardinality for each step i 
           // is exactly FI.
-          const auto fi_var =
-            get_res_var(spec, f, i, svars.size() * (1 + 2) + 1);
-          auto fi_lit = pabc::Abc_Var2Lit(fi_var, 0);
-          (void)solver->add_clause(&fi_lit, &fi_lit + 1);
+          const auto fi_var = get_res_var( spec, f, i, svars.size() * (1 + 2) + 1 );
+          auto fi_lit = pabc::Abc_Var2Lit( fi_var, 0 );
+          (void)solver->add_clause( &fi_lit, &fi_lit + 1 );
         }
       }
 
@@ -870,7 +876,7 @@ namespace also
           cegar_fence_create_variables(spec, f);
 
           fence_create_fanin_clauses(spec, f);
-          //create_cardinality_constraints(spec,f);
+          create_cardinality_constraints(spec,f);
           
           return true;
       }
@@ -1367,6 +1373,7 @@ namespace also
                                 if (!(*pfound)) 
                                 {
                                     encoder.fence_extract_mig5(spec, mig5, local_fence, false );
+                                    std::cout << "simulation tt: " << kitty::to_hex( mig5.simulate()[0] ) << std::endl;
                                     *pfound = true;
                                 }
                             }
@@ -1423,7 +1430,8 @@ namespace also
         spec.nr_rand_tt_assigns = 0;// 2 * spec.get_nr_in();
         spec.fanin = 5;
         spec.nr_steps = spec.initial_steps;
-        while (true) {
+        while (true) 
+        {
             for (int i = 0; i < num_threads; i++) 
             {
                 threads[i] = std::thread([&spec, pfinished, pfound, &found_mutex, &mig5, &q] {
@@ -1463,9 +1471,12 @@ namespace also
                         }
                         do {
                             status = solver.solve(10);
-                            if (*pfound) {
+                            if (*pfound) 
+                            {
                                 break;
-                            } else if (status == success) {
+                            } 
+                            else if (status == success) 
+                            {
                                 encoder.fence_extract_mig5(spec, local_mig, local_fence, true);
                                 auto sim_tt = local_mig.simulate()[0];
                                 //auto sim_tt = encoder.simulate(spec);
@@ -1474,32 +1485,40 @@ namespace also
                                 //}
                                 auto xor_tt = sim_tt ^ (spec[0]);
                                 auto first_one = kitty::find_first_one_bit(xor_tt);
-                                if (first_one != -1) {
-                                    if (!encoder.fence_create_tt_clauses(spec, first_one - 1)) {
+                                if (first_one != -1) 
+                                {
+                                    if (!encoder.fence_create_tt_clauses(spec, first_one - 1)) 
+                                    {
                                         break;
                                     }
                                     status = timeout;
                                     continue;
                                 }
+                                
                                 std::lock_guard<std::mutex> vlock(found_mutex);
-                                if (!(*pfound)) {
+                                if (!(*pfound)) 
+                                {
                                     encoder.fence_extract_mig5(spec, mig5, local_fence, false);
                                     *pfound = true;
+                                    std::cout << "simulation tt: " << kitty::to_hex( mig5.simulate()[0] ) << std::endl;
                                 }
                             }
-                        } while (status == timeout);
+                          } while (status == timeout);
                     }
                 });
             }
             generate_fences(spec, q);
             finished_generating = true;
 
-            for (auto& thread : threads) {
+            for (auto& thread : threads) 
+            {
                 thread.join();
             }
-            if (found) {
+            if (found) 
+            {
                 break;
             }
+            
             finished_generating = false;
             spec.nr_steps++;
         }

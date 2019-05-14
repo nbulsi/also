@@ -82,11 +82,14 @@ namespace also
 
                 if (step[0] <= nr_in) 
                 {
-                    create_nth_var(tt_in1, step[0] - 1);
-
                     if( step[0] == 0)
                     {
+                      create_nth_var( tt_in1, 0 );
                       kitty::clear( tt_in1 );
+                    }
+                    else
+                    {
+                      create_nth_var(tt_in1, step[0] - 1);
                     }
                 } 
                 else 
@@ -96,11 +99,14 @@ namespace also
 
                 if (step[1] <= nr_in) 
                 {
-                    create_nth_var(tt_in2, step[1] - 1);
-                    
                     if( step[1] == 0)
                     {
+                      create_nth_var( tt_in2, 0 );
                       kitty::clear( tt_in2 );
+                    }
+                    else
+                    {
+                      create_nth_var(tt_in2, step[1] - 1);
                     }
                 } 
                 else 
