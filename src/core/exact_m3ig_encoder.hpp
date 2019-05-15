@@ -1036,10 +1036,8 @@ namespace also
             ((spec.out_inv) & 1));
       }
       
-      /* additional constraints for symmetry breaking 
-       * 
-       *
-       *
+      /* 
+       * additional constraints for symmetry breaking 
        * */
       void create_alonce_clauses(const spec& spec)
       {

@@ -14,6 +14,7 @@
 #define MIG_FIVE_ENCODER_HPP
 
 #include <vector>
+#include <algorithm>
 #include <mockturtle/mockturtle.hpp>
 
 #include "misc.hpp"
@@ -127,6 +128,52 @@ namespace also
           if( idx > step_idx )
           {
             break;
+          }
+        }
+
+        return res;
+      }
+
+      std::vector<std::pair<int, std::vector<unsigned>>> get_all_svars_map_for_i( 
+                                                         const std::map<int, std::vector<unsigned>>& map,
+                                                         int step_idx )
+      {
+        std::vector<std::pair<int, std::vector<unsigned>>> res;
+
+        for( const auto& e : map )
+        {
+          if( e.second[0] == step_idx )
+          {
+            res.push_back( e );
+          }
+
+          if( e.second[0] > step_idx )
+          {
+            break;
+          }
+        }
+
+        return res;
+      }
+
+      /*we assume the selection variable s_step_ghjkl */
+      std::vector<int> get_all_svars_colex_less_than( const std::map<int, std::vector<unsigned>>& map,
+                                                      const int& step_idx, const std::vector<unsigned>& base )
+      {
+        std::vector<int> res;
+
+        const auto& smap = get_all_svars_map_for_i( map, step_idx ); 
+
+        for( const auto& e : smap )
+        {
+          auto svar = e.first;
+
+          auto lex_cmp = std::lexicographical_compare( e.second.begin(), e.second.end(),
+                                                 base.begin(), base.end() );
+
+          if( lex_cmp )
+          {
+            res.push_back( svar );
           }
         }
 
@@ -749,6 +796,16 @@ namespace also
           return false;
         }
         
+        if (spec.add_alonce_clauses) 
+        {
+          create_alonce_clauses(spec);
+        }
+        
+        if (spec.add_colex_clauses) 
+        {
+          create_colex_clauses(spec);
+        }
+        
         //block input 5 for 4-input function
         //if( !create_block_input_clause( 5 ) )
         //{
@@ -781,6 +838,16 @@ namespace also
             return false;
           }
           
+          if (spec.add_alonce_clauses) 
+          {
+            fence_create_alonce_clauses( spec, f );
+          }
+          
+          if (spec.add_colex_clauses) 
+          {
+            fence_create_colex_clauses(spec, f );
+          }
+          
           fence_create_fanin_clauses(spec, f);
 
         return true;
@@ -805,6 +872,16 @@ namespace also
         if( !create_fanin_clauses( spec ) )
         {
           return false;
+        }
+        
+        if (spec.add_alonce_clauses) 
+        {
+          create_alonce_clauses(spec);
+        }
+        
+        if (spec.add_colex_clauses) 
+        {
+          create_colex_clauses(spec);
         }
         
         //block input 5 for 4-input function
@@ -881,6 +958,16 @@ namespace also
 
           /* problematic to add cardinality constraints */
           //create_cardinality_constraints(spec,f);
+          
+          if (spec.add_alonce_clauses) 
+          {
+            fence_create_alonce_clauses( spec, f );
+          }
+          
+          if (spec.add_colex_clauses) 
+          {
+            fence_create_colex_clauses( spec, f );
+          }
           
           return true;
       }
@@ -1020,6 +1107,139 @@ namespace also
         }
       }
 
+      /* 
+       * additional constraints for symmetry breaking 
+       * */
+      void create_alonce_clauses(const spec& spec)
+      {
+        for ( int i = 0; i < spec.nr_steps - 1; i++ ) 
+        {
+          int ctr = 0;
+          const auto idx = spec.nr_in + i + 1;
+          
+          for( const auto& e : sel_map )
+          {
+            auto sel_var = e.first;
+            auto array   = e.second;
+
+            auto ip = array[0];
+
+            if( ip > i )
+            {
+              auto g = array[1];
+              auto h = array[2];
+              auto j = array[3];
+              auto k = array[4];
+              auto l = array[5];
+
+              if( g == idx || h == idx || j == idx || k == idx || l == idx )
+              {
+                pLits[ctr++] = pabc::Abc_Var2Lit(sel_var, 0);
+              }
+            }
+
+          }
+          
+          const auto res = solver->add_clause(pLits, pLits + ctr);
+          assert(res);
+        }
+      }
+      
+      void fence_create_alonce_clauses(const spec& spec, const fence& f)
+      {
+        fence_level flevel( f, spec.nr_in );
+
+        for ( int i = 0; i < spec.nr_steps - 1; i++ ) 
+        {
+          int ctr = 0;
+          const auto idx = spec.nr_in + i + 1;
+
+          auto level = flevel.get_level( idx );
+          
+          for( const auto& e : fence_sel_map )
+          {
+            auto sel_var = e.first;
+            auto array   = e.second;
+
+            auto ip = array[0];
+            auto levelp = flevel.get_level( ip + spec.nr_in + 1 );
+            
+            if( ip > i && levelp >= level )
+            {
+              auto g = array[1];
+              auto h = array[2];
+              auto j = array[3];
+              auto k = array[4];
+              auto l = array[5];
+
+              if( g == idx || h == idx || j == idx || k == idx || l == idx )
+              {
+                pLits[ctr++] = pabc::Abc_Var2Lit(sel_var, 0);
+              }
+            }
+
+          }
+          
+          const auto res = solver->add_clause(pLits, pLits + ctr);
+          assert(res);
+        }
+      }
+      
+      void create_colex_clauses(const spec& spec)
+      {
+        for ( int i = 0; i < spec.nr_steps - 1; i++ ) 
+        {
+          const auto& smap = get_all_svars_map_for_i( sel_map, i );
+          
+          for( const auto& e : smap )
+          {
+            auto sel_var = e.first;
+            auto array   = e.second;
+            
+            pLits[0] = pabc::Abc_Var2Lit(sel_var, 1);
+
+            const auto svars = get_all_svars_colex_less_than( sel_map, i + 1, e.second );
+            for( const auto& s : svars )
+            {
+              pLits[1] = pabc::Abc_Var2Lit(s, 1);
+              const auto res = solver->add_clause(pLits, pLits + 2);
+              assert(res);
+            }
+          }
+        }
+      }
+      
+      void fence_create_colex_clauses(const spec& spec, const fence& f )
+      {
+        fence_level flevel( f, spec.nr_in );
+      
+        for ( int i = 0; i < spec.nr_steps - 1; i++ ) 
+        {
+          const auto& smap = get_all_svars_map_for_i( fence_sel_map, i );
+          
+          const auto level  = flevel.get_level( i + spec.nr_in + 1 );
+          const auto levelp = flevel.get_level( i + 1 + spec.nr_in + 1 );
+         
+          if( level == levelp )
+          {
+            for( const auto& e : smap )
+            {
+              auto sel_var = e.first;
+              auto array   = e.second;
+
+              pLits[0] = pabc::Abc_Var2Lit(sel_var, 1);
+
+              const auto svars = get_all_svars_colex_less_than( fence_sel_map, i + 1, e.second );
+              for( const auto& s : svars )
+              {
+                pLits[1] = pabc::Abc_Var2Lit(s, 1);
+                const auto res = solver->add_clause(pLits, pLits + 2);
+                assert(res);
+              }
+            }
+          }
+        }
+      }
       
       bool is_dirty() 
       {

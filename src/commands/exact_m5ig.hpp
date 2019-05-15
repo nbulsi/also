@@ -170,8 +170,6 @@ namespace alice
         spec spec;
         also::mig5 mig5;
 
-        spec.verbosity = 3;
-
         auto copy = tt;
         if( copy.num_vars()  < 5 )
         {
@@ -262,6 +260,11 @@ namespace alice
         also::mig5 mig5;
 
         spec.verbosity = verbosity;
+        
+        spec.add_alonce_clauses    = true;
+        spec.add_colex_clauses     = true;
+        //spec.add_lex_func_clauses  = true;
+        //spec.add_symvar_clauses    = true;
 
         auto copy = opt.function;
         if( copy.num_vars()  < 5 )
