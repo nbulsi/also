@@ -19,6 +19,7 @@
 
 #include "../store.hpp"
 #include "../core/exact_m3ig_encoder.hpp"
+#include "../core/m3ig_helper.hpp"
 
 namespace alice
 {

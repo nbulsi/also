@@ -14,674 +14,17 @@
 #define MIG_FIVE_ENCODER_HPP
 
 #include <vector>
+#include <algorithm>
 #include <mockturtle/mockturtle.hpp>
 
 #include "misc.hpp"
-#include "../networks/m5ig/m5ig.hpp"
+#include "m5ig_helper.hpp"
 
 using namespace percy;
 using namespace mockturtle;
 
 namespace also
 {
-  enum input_type
-  {
-    no_const,
-    a_const,
-    ab_const,
-    ab_const_cd_equal,
-    ab_equal,
-    bc_equal,
-    cd_equal,
-    de_equal
-  };
-
-  /******************************************************************************
-   * class mig5 for chain manipulation                                          *
-   ******************************************************************************/
-    class mig5
-    {
-    private:
-        int nr_in;
-        std::vector<int> outputs;
-        using step = std::array<int, 5>;
-
-    public:
-        std::vector<std::array<int, 5>> steps;
-        std::vector<int> operators;
-
-        mig5()
-        {
-            reset(0, 0, 0);
-        }
-
-        void reset(int _nr_in, int _nr_out, int _nr_steps)
-        {
-            assert(_nr_steps >= 0 && _nr_out >= 0);
-            nr_in = _nr_in;
-            steps.resize(_nr_steps);
-            operators.resize(_nr_steps);
-            outputs.resize(_nr_out);
-        }
-
-        int get_nr_steps() const { return steps.size(); }
-
-        kitty::dynamic_truth_table maj5( kitty::dynamic_truth_table a,
-                                         kitty::dynamic_truth_table b,
-                                         kitty::dynamic_truth_table c,
-                                         kitty::dynamic_truth_table d,
-                                         kitty::dynamic_truth_table e
-                                         ) const 
-        {
-          auto m1 = kitty::ternary_majority( a, b, c );
-          auto m2 = kitty::ternary_majority( a, b, d );
-          auto m3 = kitty::ternary_majority( m2, c, d );
-          
-          return kitty::ternary_majority( m1, m3, e );
-        }
-
-        std::vector<kitty::dynamic_truth_table> simulate() const
-        {
-            std::vector<kitty::dynamic_truth_table> fs(outputs.size());
-            std::vector<kitty::dynamic_truth_table> tmps(steps.size());
-
-            kitty::dynamic_truth_table tt_in1(nr_in);
-            kitty::dynamic_truth_table tt_in2(nr_in);
-            kitty::dynamic_truth_table tt_in3(nr_in);
-            kitty::dynamic_truth_table tt_in4(nr_in);
-            kitty::dynamic_truth_table tt_in5(nr_in);
-
-
-            auto tt_step = kitty::create<kitty::dynamic_truth_table>(nr_in);
-            auto tt_inute = kitty::create<kitty::dynamic_truth_table>(nr_in);
-
-
-            for (auto i = 0u; i < steps.size(); i++) 
-            {
-                const auto& step = steps[i];
-
-                if (step[0] <= nr_in) 
-                {
-                    create_nth_var(tt_in1, step[0] - 1);
-
-                    if( step[0] == 0)
-                    {
-                      kitty::clear( tt_in1 );
-                    }
-                } 
-                else 
-                {
-                    tt_in1 = tmps[step[0] - nr_in - 1];
-                }
-
-                if (step[1] <= nr_in) 
-                {
-                    create_nth_var(tt_in2, step[1] - 1);
-                    
-                    if( step[1] == 0)
-                    {
-                      kitty::clear( tt_in2 );
-                    }
-                } 
-                else 
-                {
-                    tt_in2 = tmps[step[1] - nr_in - 1];
-                }
-
-                if (step[2] <= nr_in) 
-                {
-                    create_nth_var(tt_in3, step[2] - 1);
-                } 
-                else 
-                {
-                    tt_in3 = tmps[step[2] - nr_in - 1];
-                }
-                
-                if (step[3] <= nr_in) 
-                {
-                    create_nth_var(tt_in4, step[3] - 1);
-                } 
-                else 
-                {
-                    tt_in4 = tmps[step[3] - nr_in - 1];
-                }
-                
-                if (step[4] <= nr_in) 
-                {
-                    create_nth_var(tt_in5, step[4] - 1);
-                } 
-                else 
-                {
-                    tt_in5 = tmps[step[4] - nr_in - 1];
-                }
-
-                kitty::clear(tt_step);
-                switch (operators[i]) 
-                {
-                case 0:
-                    tt_step = maj5( tt_in1, tt_in2, tt_in3, tt_in4, tt_in5 );
-                    break;
-                case 1:
-                    tt_step = maj5( ~tt_in1, tt_in2, tt_in3, tt_in4, tt_in5 );
-                    break;
-                case 2:
-                    tt_step = maj5( tt_in1, ~tt_in2, tt_in3, tt_in4, tt_in5 );
-                    break;
-                case 3:
-                    tt_step = maj5( tt_in1, tt_in2, ~tt_in3, tt_in4, tt_in5 );
-                    break;
-                case 4:
-                    tt_step = maj5( tt_in1, tt_in2, tt_in3, ~tt_in4, tt_in5 );
-                    break;
-                case 5:
-                    tt_step = maj5( tt_in1, tt_in2, tt_in3, tt_in4, ~tt_in5 );
-                    break;
-                case 6:
-                    tt_step = maj5( ~tt_in1, ~tt_in2, tt_in3, tt_in4, tt_in5 );
-                    break;
-                case 7:
-                    tt_step = maj5( ~tt_in1, tt_in2, ~tt_in3, tt_in4, tt_in5 );
-                    break;
-                case 8:
-                    tt_step = maj5( ~tt_in1, tt_in2, tt_in3, ~tt_in4, tt_in5 );
-                    break;
-                case 9:
-                    tt_step = maj5( ~tt_in1, tt_in2, tt_in3, tt_in4, ~tt_in5 );
-                    break;
-                case 10:
-                    tt_step = maj5( tt_in1, ~tt_in2, ~tt_in3, tt_in4, tt_in5 );
-                    break;
-                case 11:
-                    tt_step = maj5( tt_in1, ~tt_in2, tt_in3, ~tt_in4, tt_in5 );
-                    break;
-                case 12:
-                    tt_step = maj5( tt_in1, ~tt_in2, tt_in3, tt_in4, ~tt_in5 );
-                    break;
-                case 13:
-                    tt_step = maj5( tt_in1, tt_in2, ~tt_in3, ~tt_in4, tt_in5 );
-                    break;
-                case 14:
-                    tt_step = maj5( tt_in1, tt_in2, ~tt_in3, tt_in4, ~tt_in5 );
-                    break;
-                case 15:
-                    tt_step = maj5( tt_in1, tt_in2, tt_in3, ~tt_in4, ~tt_in5 );
-                    break;
-                }
-                tmps[i] = tt_step;
-
-                for (auto h = 0u; h < outputs.size(); h++) 
-                {
-                  //fs[h] = tt_step;
-                    const auto out = outputs[h];
-                    const auto var = out >> 1;
-                    const auto inv = out & 1;
-                    if (var - nr_in - 1 == static_cast<int>(i)) 
-                    {
-                        fs[h] = inv ? ~tt_step : tt_step;
-                    }
-                }
-            }
-
-            return fs;
-        }
-
-        void set_step(
-            int i,
-            int fanin1,
-            int fanin2,
-            int fanin3,
-            int fanin4,
-            int fanin5,
-            int op)
-        {
-            steps[i][0] = fanin1;
-            steps[i][1] = fanin2;
-            steps[i][2] = fanin3;
-            steps[i][3] = fanin4;
-            steps[i][4] = fanin5;
-            operators[i] = op;
-        }
-
-
-        void set_output(int out_idx, int lit) 
-        {
-            outputs[out_idx] = lit;
-        }
-
-        bool satisfies_spec(const percy::spec& spec)
-        {
-            if (spec.nr_triv == spec.get_nr_out()) 
-            {
-                return true;
-            }
-            auto tts = simulate();
-
-            auto nr_nontriv = 0;
-            for (int i = 0; i < spec.nr_nontriv; i++) 
-            {
-                if ((spec.triv_flag >> i) & 1) 
-                {
-                    continue;
-                }
-                
-                if( tts[nr_nontriv++] != spec[i] )
-                {
-                  assert(false);
-                  return false;
-                }
-            }
-
-
-            return true;
-        }
-
-        void to_expression(std::ostream& o, const int i)
-        {
-            if (i < nr_in) 
-            {
-                o << static_cast<char>('a' + i);
-            } 
-            else 
-            {
-                const auto& step = steps[i - nr_in];
-                o << "<";
-                to_expression(o, step[0]);
-                to_expression(o, step[1]);
-                to_expression(o, step[2]);
-                to_expression(o, step[3]);
-                to_expression(o, step[4]);
-                o << ">";
-            }
-        }
-
-        void to_expression(std::ostream& o)
-        {
-            to_expression(o, nr_in + steps.size() - 1);
-        }
-    };
-
-  /******************************************************************************
-   * class comb generate various combinations                                   *
-   ******************************************************************************/
-  class comb
-  {
-    private:
-      std::vector<std::vector<int>> polarity {  {0, 0, 0, 0, 0},
-        {1, 0, 0, 0, 0},  
-        {0, 1, 0, 0, 0},  
-        {0, 0, 1, 0, 0},  
-        {0, 0, 0, 1, 0},  
-        {0, 0, 0, 0, 1},  
-        {1, 1, 0, 0, 0},  
-        {1, 0, 1, 0, 0},  
-        {1, 0, 0, 1, 0},  
-        {1, 0, 0, 0, 1},  
-        {0, 1, 1, 0, 0},  
-        {0, 1, 0, 1, 0},  
-        {0, 1, 0, 0, 1},  
-        {0, 0, 1, 1, 0},  
-        {0, 0, 1, 0, 1},  
-        {0, 0, 0, 1, 1}  
-      };
-
-      kitty::static_truth_table<5> a, b, c, d, e;
-      input_type type; 
-
-      std::vector<kitty::static_truth_table<5>> all_tt; 
-
-    public:
-      comb( input_type type )
-        : type( type ) 
-      {
-        kitty::create_nth_var( a, 0 );
-        kitty::create_nth_var( b, 1 );
-        kitty::create_nth_var( c, 2 );
-        kitty::create_nth_var( d, 3 );
-        kitty::create_nth_var( e, 4 );
-
-        switch( type )
-        {
-          case no_const:
-            {
-            }
-            break;
-
-          case a_const:
-            {
-              kitty::create_from_hex_string( a, "00000000");
-            }
-            break;
-
-          case ab_const:
-            {
-              kitty::create_from_hex_string( a, "00000000");
-              kitty::create_from_hex_string( b, "00000000");
-            }
-            break;
-
-          case ab_const_cd_equal:
-            {
-              kitty::create_from_hex_string( a, "00000000");
-              kitty::create_from_hex_string( b, "00000000");
-              kitty::create_nth_var( d, 2 );
-            }
-            break;
-
-          case ab_equal:
-            {
-              kitty::create_nth_var( b, 0 );
-            }
-            break;
-
-          case bc_equal:
-            {
-              kitty::create_nth_var( c, 1 );
-            }
-            break;
-
-          case cd_equal:
-            {
-              kitty::create_nth_var( d, 2 );
-            }
-            break;
-
-          case de_equal:
-            {
-              kitty::create_nth_var( e, 3 );
-            }
-            break;
-
-          default:
-            break;
-        }
-
-        all_tt = get_all_tt();
-      }
-
-      ~comb()
-      {
-      }
-
-      kitty::static_truth_table<5> comput_maj5( int polar_idx )
-      {
-        kitty::static_truth_table<5> m1, m2, m3;
-
-        int pa, pb, pc, pd, pe;
-
-        pa = polarity[polar_idx][0];
-        pb = polarity[polar_idx][1];
-        pc = polarity[polar_idx][2];
-        pd = polarity[polar_idx][3];
-        pe = polarity[polar_idx][4];
-
-
-        auto ia = pa ? ~a : a;
-        auto ib = pb ? ~b : b;
-        auto ic = pc ? ~c : c;
-        auto id = pd ? ~d : d;
-        auto ie = pe ? ~e : e;
-
-        m1 = kitty::ternary_majority( ia, ib, ic );
-        m2 = kitty::ternary_majority( ia, ib, id );
-        m3 = kitty::ternary_majority( m2, ic, id );
-        return kitty::ternary_majority( m1, m3, ie );
-      }
-
-      std::vector<kitty::static_truth_table<5>> get_all_tt()
-      {
-        std::vector<kitty::static_truth_table<5>> r;
-        for( int i = 0; i < 16; i++ )
-        {
-          //std::cout << " i : " << i << " tt: " << kitty::to_binary( comput_maj5( i ) ) << std::endl;
-          r.push_back( comput_maj5( i ) );
-        }
-
-        return r;
-      }
-
-      std::vector<std::vector<int>> get_on_set()
-      {
-        //return the onset index array for the number of idx input
-        //we start idx 0 : 0000, 31 : 11111
-        std::vector<std::vector<int>> r;
-        std::vector<int> v;
-
-        for( auto i = 0; i < 32; i++ )
-        {
-          v.clear();
-          for( auto j = 0; j < 16; j++)
-          {
-            if( kitty::get_bit( all_tt[j], i ) )
-            {
-              v.push_back( j );
-            }
-
-          }
-
-          r.push_back( v );
-        }
-
-        return r;
-      }
-
-      std::vector<std::vector<int>> get_all_inputs()
-      {
-        std::vector<std::vector<int>> combinations;
-        std::vector<int> entry;
-
-        for( auto i = 0; i < 32; i++ )
-        {
-          entry.clear();
-
-          entry.push_back( kitty::get_bit( e, i ) );
-          entry.push_back( kitty::get_bit( d, i ) );
-          entry.push_back( kitty::get_bit( c, i ) );
-          entry.push_back( kitty::get_bit( b, i ) );
-          entry.push_back( kitty::get_bit( a, i ) );
-
-          combinations.push_back( entry );
-        }
-
-        return combinations;
-      }
-
-      std::map<std::vector<int>, std::vector<int>> get_on_set_map()
-      {
-        std::map<std::vector<int>, std::vector<int>> map;
-
-        const auto inputs   = get_all_inputs();
-
-        const auto set = get_on_set();
-
-        for( auto i = 0; i < 32; i++ )
-        {
-          map.insert( std::pair<std::vector<int>, std::vector<int>>( inputs[i], set[i] ) );
-        }
-
-        return map;
-      }
-
-
-  };
-
-  /******************************************************************************
-   * class select generate selection variables                                  *
-   ******************************************************************************/
-  class select
-  {
-    private:
-      int nr_steps;
-      int nr_in;
-      bool allow_two_const;
-      bool allow_two_equal;
-
-    public:
-      select( int nr_steps, int nr_in, bool allow_two_const, bool allow_two_equal )
-        : nr_steps( nr_steps ), nr_in( nr_in ), allow_two_const( allow_two_const ), allow_two_equal( allow_two_equal )
-      {
-      }
-
-      ~select()
-      {
-      }
-
-      //current step starts from 0, 1, ...
-      int get_num_of_sel_vars_for_each_step( int current_step )
-      {
-        int count = 0;
-        int total = nr_in + 1 + current_step;
-        std::vector<unsigned> idx_array;
-
-        for( auto i = 0; i < total; i++ )
-        {
-          idx_array.push_back( i );
-        }
-
-        //no const & 'a' const 
-        count += get_all_combination_index( idx_array, total, 5u ).size();
-
-        //ab_const
-        if( allow_two_const )
-        {
-          idx_array.erase( idx_array.begin() );
-          count += get_all_combination_index( idx_array, idx_array.size(), 3u ).size();
-        }
-
-        if( allow_two_const && allow_two_equal )
-        {
-          //ab_const_cd_equal
-          count += get_all_combination_index( idx_array, idx_array.size(), 2u ).size();
-        }
-
-        if( allow_two_equal )
-        {
-          //ab_equal
-          count += get_all_combination_index( idx_array, idx_array.size(), 4u ).size() * 4;
-        }
-        return count;
-      }
-
-      int get_num_sels()
-      {
-        int count = 0;
-        for( auto i = 0; i < nr_steps; i++ )
-        {
-          count += get_num_of_sel_vars_for_each_step( i );
-        }
-
-        return count;
-      }
-
-      /* map: 0,     0         _01234 
-       *      index, nr_steps, inputs ids
-       **/
-      std::map<int, std::vector<unsigned>> get_sel_var_map()
-      {
-        std::map<int, std::vector<unsigned>> map;
-        std::vector<unsigned> idx_array;
-        int count = 0;
-
-        for( auto i = 0; i < nr_steps; i++ )
-        {
-          int total = nr_in + 1 + i;
-
-          idx_array.clear();
-          idx_array.resize( total );
-          std::iota( idx_array.begin(), idx_array.end(), 0 );
-
-          //no const & 'a' const 
-          for( const auto c : get_all_combination_index( idx_array, idx_array.size(), 5u ) )
-          {
-            auto tmp = c;
-            tmp.insert( tmp.begin(), i );
-            map.insert( std::pair<int, std::vector<unsigned>>( count++, tmp ) );
-          }
-
-          //erase 0
-          idx_array.erase( idx_array.begin() );
-
-          if( allow_two_const )
-          {
-            //ab_const
-            for( const auto c : get_all_combination_index( idx_array, idx_array.size(), 3u ) )
-            {
-              std::vector<unsigned> tmp {0, 0};
-              tmp.push_back( c[0] );
-              tmp.push_back( c[1] );
-              tmp.push_back( c[2] );
-              tmp.insert( tmp.begin(), i );
-              map.insert( std::pair<int, std::vector<unsigned>>( count++, tmp ) );
-            }
-          }
-
-          if( allow_two_const && allow_two_equal )
-          {
-            //ab_const_cd_equal
-            for( const auto c : get_all_combination_index( idx_array, idx_array.size(), 2u ) )
-            {
-              std::vector<unsigned> tmp {0, 0};
-              assert( c.size() == 2 );
-
-              tmp.push_back( c[0] );
-              tmp.push_back( c[0] ); //cd equal
-              tmp.push_back( c[1] );
-              tmp.insert( tmp.begin(), i );
-              map.insert( std::pair<int, std::vector<unsigned>>( count++, tmp ) );
-            }
-          }
-
-          //ab_equal
-          if( allow_two_equal )
-          {
-            for( const auto c : get_all_combination_index( idx_array, idx_array.size(), 4u ) )
-            {
-              for( auto k = 0; k < 4; k++ )
-              {
-                auto copy = c;
-                auto val = copy[k];
-                copy.insert( copy.begin() + k, val );
-                copy.insert( copy.begin(), i );
-                map.insert( std::pair<int, std::vector<unsigned>>( count++, copy ) );
-              }
-            }
-          }
-
-        }
-
-        return map;
-      }
-
-  };
-
-
-  /******************************************************************************
-   * Public functions by class comb and select                                  *
-   ******************************************************************************/
-  std::map<std::vector<int>, std::vector<int>> comput_input_and_set_map( input_type type )
-  {
-    comb c( type );
-    return c.get_on_set_map();
-  }
-
-  std::map<int, std::vector<unsigned>> comput_select_vars_map( int nr_steps, 
-      int nr_in, 
-      bool allow_two_const = false, 
-      bool allow_two_equal = false )
-  { 
-    select s( nr_steps, nr_in, allow_two_const, allow_two_equal );
-    return s.get_sel_var_map();
-  }
-
-  int comput_select_vars_for_each_step( int nr_steps, 
-      int nr_in, 
-      int step_idx, 
-      bool allow_two_const = false, 
-      bool allow_two_equal = false )
-  {
-    assert( step_idx >= 0 && step_idx < nr_steps );
-    select s( nr_steps, nr_in, allow_two_const, allow_two_equal );
-    return s.get_num_of_sel_vars_for_each_step( step_idx );
-  }
 
   /******************************************************************************
    * The main encoder                                                           *
@@ -692,10 +35,12 @@ namespace also
       int nr_sel_vars;
       int nr_sim_vars;
       int nr_op_vars;
+      int nr_res_vars;
 
       int sel_offset;
       int sim_offset;
       int op_offset;
+      int res_offset;
 
       int total_nr_vars;
 
@@ -716,7 +61,8 @@ namespace also
       int maj_input = 5;
 
       std::map<int, std::vector<unsigned>> sel_map;
-
+      std::map<int, std::vector<unsigned>> fence_sel_map;
+      
       // There are 16 possible operators for each MIG node:
       // <abcde>        (0)
       // <!abcde>       (1)
@@ -751,6 +97,88 @@ namespace also
       {
         return op_offset + step_idx * MIG_OP_VARS_PER_STEP + var_idx;
       }
+      
+      int get_res_var(const spec& spec, const fence& f, int step_idx, int res_var_idx) const
+      {
+        auto offset = 0;
+        auto nr_svars_for_i = fence_comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, f, step_idx );
+        for (int i = 0; i < step_idx; i++) {
+          offset += (nr_svars_for_i + 1) * (1 + 2);
+        }
+
+        return res_offset + offset + res_var_idx;
+      }
+
+      std::vector<int> get_all_svars_for_i( int step_idx )
+      {
+        assert( fence_sel_map.size() != 0 );
+
+        std::vector<int> res;
+
+        for( const auto& e : fence_sel_map )
+        {
+          auto svar = e.first;
+          auto idx  = e.second[0];
+
+          if( idx == step_idx )
+          {
+            res.push_back( svar );
+          }
+
+          if( idx > step_idx )
+          {
+            break;
+          }
+        }
+
+        return res;
+      }
+
+      std::vector<std::pair<int, std::vector<unsigned>>> get_all_svars_map_for_i( 
+                                                         const std::map<int, std::vector<unsigned>>& map,
+                                                         int step_idx )
+      {
+        std::vector<std::pair<int, std::vector<unsigned>>> res;
+
+        for( const auto& e : map )
+        {
+          if( e.second[0] == step_idx )
+          {
+            res.push_back( e );
+          }
+
+          if( e.second[0] > step_idx )
+          {
+            break;
+          }
+        }
+
+        return res;
+      }
+
+      /*we assume the selection variable s_step_ghjkl */
+      std::vector<int> get_all_svars_colex_less_than( const std::map<int, std::vector<unsigned>>& map,
+                                                      const int& step_idx, const std::vector<unsigned>& base )
+      {
+        std::vector<int> res;
+
+        const auto& smap = get_all_svars_map_for_i( map, step_idx ); 
+
+        for( const auto& e : smap )
+        {
+          auto svar = e.first;
+
+          auto lex_cmp = std::lexicographical_compare( e.second.begin(), e.second.end(),
+                                                 base.begin(), base.end() );
+
+          if( lex_cmp )
+          {
+            res.push_back( svar );
+          }
+        }
+
+        return res;
+      }
 
     public:
       mig_five_encoder( solver_wrapper& solver )
@@ -764,7 +192,7 @@ namespace also
 
       void create_variables( const spec& spec )
       {
-        /* number of simulation variables, s_out_in1_in2_in3 */
+        /* number of simulation variables, s_out_in1_in2_in3_in4_in5 */
         sel_map = comput_select_vars_map( spec.nr_steps, spec.nr_in, allow_two_const, allow_two_equal );
         nr_sel_vars = sel_map.size();
         
@@ -795,6 +223,79 @@ namespace also
         }
         
         /* declare in the solver */
+        solver->set_nr_vars(total_nr_vars);
+      }
+      
+      void fence_create_variables( const spec& spec, const fence& f )
+      {
+        /* number of simulation variables, s_out_in1_in2_in3_in4_in5 */
+        fence_sel_map = fence_comput_select_vars_map( spec.nr_steps, spec.nr_in, f, allow_two_const, allow_two_equal );
+        nr_sel_vars   = fence_sel_map.size();
+        
+        /* number of operators per step */ 
+        nr_op_vars = spec.nr_steps * MIG_OP_VARS_PER_STEP;
+
+        /* number of truth table simulation variables */
+        nr_sim_vars = spec.nr_steps * spec.tt_size;
+        
+        /* offsets, this is used to find varibles correspondence */
+        sel_offset = 0;
+        op_offset  = nr_sel_vars;
+        sim_offset = nr_sel_vars + nr_op_vars;
+
+        /* total variables used in SAT formulation */
+        total_nr_vars = nr_op_vars + nr_sel_vars + nr_sim_vars;
+
+        if( spec.verbosity > 1 )
+        {
+          printf( "Creating variables (mig)\n");
+          printf( "nr steps    = %d\n", spec.nr_steps );
+          printf( "nr_in       = %d\n", spec.nr_in );
+          printf( "nr_sel_vars = %d\n", nr_sel_vars );
+          printf( "nr_op_vars  = %d\n", nr_op_vars );
+          printf( "nr_sim_vars = %d\n", nr_sim_vars );
+          printf( "tt_size     = %d\n", spec.tt_size );
+          printf( "creating %d total variables\n", total_nr_vars);
+        }
+        
+        /* declare in the solver */
+        solver->set_nr_vars(total_nr_vars);
+      }
+      
+      void cegar_fence_create_variables(const spec& spec, const fence& f)
+      {
+        nr_op_vars  = spec.nr_steps * MIG_OP_VARS_PER_STEP;
+        nr_sim_vars = spec.nr_steps * spec.tt_size;
+        
+        /* number of simulation variables, s_out_in1_in2_in3_in4_in5 */
+        fence_sel_map = fence_comput_select_vars_map( spec.nr_steps, spec.nr_in, f, allow_two_const, allow_two_equal );
+        nr_sel_vars   = fence_sel_map.size();
+
+        nr_res_vars = 0;
+        for (int i = 0; i < spec.nr_steps; i++) 
+        {
+          const auto nr_svars_for_i = fence_comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, f, i,
+                                                                              allow_two_const, allow_two_equal );
+          nr_res_vars += (nr_svars_for_i + 1) * (1 + 2);
+        }
+
+        sel_offset = 0;
+        res_offset = nr_sel_vars;
+        op_offset = nr_sel_vars + nr_res_vars;
+        sim_offset = nr_sel_vars + nr_res_vars + nr_op_vars;
+        
+        total_nr_vars = nr_sel_vars + nr_res_vars + nr_op_vars + nr_sim_vars;
+
+        if (spec.verbosity) {
+          printf("Creating variables (MIG)\n");
+          printf("nr steps = %d\n", spec.nr_steps);
+          printf("nr_sel_vars=%d\n", nr_sel_vars);
+          printf("nr_res_vars=%d\n", nr_res_vars);
+          printf("nr_op_vars = %d\n", nr_op_vars);
+          printf("nr_sim_vars = %d\n", nr_sim_vars);
+          printf("creating %d total variables\n", total_nr_vars);
+        }
+
         solver->set_nr_vars(total_nr_vars);
       }
         
@@ -836,6 +337,31 @@ namespace also
           printf("Nr. clauses = %d (POST)\n", solver->nr_clauses());
         }
 
+        return status;
+      }
+      
+      bool fence_create_fanin_clauses(const spec& spec, const fence& f)
+      {
+        auto status = true;
+        int svar = 0;
+        for(int i = 0; i < spec.nr_steps; i++ )
+        {
+          auto ctr = 0;
+
+          auto num_svar_in_current_step = fence_comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, f, i, 
+                                                                            allow_two_const, 
+                                                                            allow_two_equal );
+          
+          for( int j = svar; j < svar + num_svar_in_current_step; j++ )
+          {
+            pLits[ctr++] = pabc::Abc_Var2Lit(j, 0);
+          }
+          
+          svar += num_svar_in_current_step;
+
+          status &= solver->add_clause(pLits, pLits + ctr);
+        }
+        
         return status;
       }
 
@@ -1157,6 +683,21 @@ namespace also
 
         return ret;
       }
+      
+      bool fence_create_tt_clauses(const spec& spec, const int t)
+      {
+        bool ret = true;
+        
+        for( const auto svar : fence_sel_map )
+        {
+          ret &= add_consistency_clause_init( spec, t, svar );
+        }
+        
+        ret &= fix_output_sim_vars(spec, t);
+
+        return ret;
+        
+      }
 
       void create_main_clauses( const spec& spec )
       {
@@ -1164,6 +705,16 @@ namespace also
         {
           (void) create_tt_clauses( spec, t );
         }
+      }
+      
+      bool fence_create_main_clauses(const spec& spec)
+      {
+        bool ret = true;
+        for (int t = 0; t < spec.tt_size; t++) 
+        {
+          ret &= fence_create_tt_clauses(spec, t);
+        }
+        return ret;
       }
         
       //block the usage of some primary input
@@ -1245,6 +796,16 @@ namespace also
           return false;
         }
         
+        if (spec.add_alonce_clauses) 
+        {
+          create_alonce_clauses(spec);
+        }
+        
+        if (spec.add_colex_clauses) 
+        {
+          create_colex_clauses(spec);
+        }
+        
         //block input 5 for 4-input function
         //if( !create_block_input_clause( 5 ) )
         //{
@@ -1262,6 +823,33 @@ namespace also
           fclose( f );
         }
         
+        return true;
+      }
+      
+      bool encode(const spec& spec, const fence& f)
+      {
+          assert(spec.nr_in >= 5);
+          assert(spec.nr_steps == f.nr_nodes());
+
+          fence_create_variables(spec, f);
+          
+          if (!fence_create_main_clauses(spec)) 
+          {
+            return false;
+          }
+          
+          if (spec.add_alonce_clauses) 
+          {
+            fence_create_alonce_clauses( spec, f );
+          }
+          
+          if (spec.add_colex_clauses) 
+          {
+            fence_create_colex_clauses(spec, f );
+          }
+          
+          fence_create_fanin_clauses(spec, f);
+
         return true;
       }
       
@@ -1286,6 +874,16 @@ namespace also
           return false;
         }
         
+        if (spec.add_alonce_clauses) 
+        {
+          create_alonce_clauses(spec);
+        }
+        
+        if (spec.add_colex_clauses) 
+        {
+          create_colex_clauses(spec);
+        }
+        
         //block input 5 for 4-input function
         //if( !create_block_input_clause( 5 ) )
         //{
@@ -1305,13 +903,76 @@ namespace also
         
         return true;
       }
-
-      void construct_m5ig( const spec& spec, m5ig_network& m5ig )
+      
+      void create_cardinality_constraints(const spec& spec, const fence& f)
       {
-        //to be implement
+        std::vector<int> svars;
+        std::vector<int> rvars;
+
+        fence_level flevel( f, spec.nr_in );
+
+        for (int i = 0; i < spec.nr_steps; i++) 
+        {
+          svars.clear();
+          rvars.clear();
+          
+          svars = get_all_svars_for_i( i );
+          
+          if( spec.verbosity > 2 )
+          {
+            const auto level      = flevel.get_level( i + spec.nr_in + 1 );
+            const auto first_step = flevel.first_step_on_level( level ) - spec.nr_in - 1;
+
+            auto nr_svars_for_i = fence_comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, f, first_step );
+
+            assert(svars.size() == nr_svars_for_i );
+            std::cout << " i : " << i
+                      << " level: " << level
+                      << " first step: " << first_step
+                      << " nr_svars_for_i: " << nr_svars_for_i 
+                      << " svar size: " << svars.size() << std::endl;
+          }
+          
+          const auto nr_res_vars = (1 + 2) * (svars.size() + 1);
+          
+          for (int j = 0; j < nr_res_vars; j++) 
+          {
+            rvars.push_back( get_res_var( spec, f, i, j ) );
+          }
+          
+          create_cardinality_circuit( solver, svars, rvars, 1 );
+
+          // Ensure that the fanin cardinality for each step i 
+          // is exactly FI.
+          const auto fi_var = get_res_var( spec, f, i, svars.size() * (1 + 2) + 1 );
+          auto fi_lit = pabc::Abc_Var2Lit( fi_var, 0 );
+          (void)solver->add_clause( &fi_lit, &fi_lit + 1 );
+        }
       }
 
-      void extract_mig5(const spec& spec, mig5& chain )
+      bool cegar_encode(const spec& spec, const fence& f)
+      {
+          cegar_fence_create_variables(spec, f);
+
+          fence_create_fanin_clauses(spec, f);
+
+          /* problematic to add cardinality constraints */
+          //create_cardinality_constraints(spec,f);
+          
+          if (spec.add_alonce_clauses) 
+          {
+            fence_create_alonce_clauses( spec, f );
+          }
+          
+          if (spec.add_colex_clauses) 
+          {
+            fence_create_colex_clauses( spec, f );
+          }
+          
+          return true;
+      }
+
+      void extract_mig5(const spec& spec, mig5& chain, bool is_cegar )
       {
         int op_inputs[5] = { 0, 0, 0, 0, 0 };
         chain.reset( spec.nr_in, 1, spec.nr_steps );
@@ -1372,9 +1033,213 @@ namespace also
          // printf( "[i] output is inverted\n" );
         }
 
-        //assert( chain.satisfies_spec( spec ) );
+        if( !is_cegar )
+        {
+          assert( chain.satisfies_spec( spec ) );
+        }
+      }
+      
+      void fence_extract_mig5(const spec& spec, mig5& chain, fence& f, bool is_cegar )
+      {
+        int op_inputs[5] = { 0, 0, 0, 0, 0 };
+        chain.reset( spec.nr_in, 1, spec.nr_steps );
+
+        int svar = 0;
+        for (int i = 0; i < spec.nr_steps; i++) 
+        {
+          int op = 0;
+          for (int j = 0; j < MIG_OP_VARS_PER_STEP; j++) 
+          {
+            if ( solver->var_value( get_op_var( spec, i, j ) ) ) 
+            {
+              op = j;
+              break;
+            }
+          }
+
+          auto num_svar_in_current_step = fence_comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, f, i, 
+                                                                            allow_two_const, 
+                                                                            allow_two_equal );
+
+          
+          for( int j = svar; j < svar + num_svar_in_current_step; j++ )
+          {
+            if( solver->var_value( j ) )
+            {
+              auto array = fence_sel_map[j];
+              op_inputs[0] = array[1];
+              op_inputs[1] = array[2];
+              op_inputs[2] = array[3];
+              op_inputs[3] = array[4];
+              op_inputs[4] = array[5];
+              break;
+            }
+          }
+          
+          svar += num_svar_in_current_step;
+
+          chain.set_step(i, op_inputs[0], op_inputs[1], op_inputs[2], op_inputs[3], op_inputs[4], op);
+
+          if( spec.verbosity > 2 )
+          {
+            printf("[i] Step %d performs op %d, inputs are:%d%d%d%d%d\n", i, op, op_inputs[0], op_inputs[1], 
+                                                                                              op_inputs[2],
+                                                                                              op_inputs[3],
+                                                                                              op_inputs[4] );
+          }
+
+        }
+        
+        const auto pol = spec.out_inv ? 1 : 0;
+        const auto tmp = ( ( spec.nr_steps + spec.nr_in ) << 1 ) + pol;
+        chain.set_output(0, tmp);
+
+        //printf("[i] %d nodes are required\n", spec.nr_steps );
+
+        if( spec.out_inv )
+        {
+         // printf( "[i] output is inverted\n" );
+        }
+
+        if( !is_cegar )
+        {
+          assert( chain.satisfies_spec( spec ) );
+        }
       }
 
+      /* 
+       * additional constraints for symmetry breaking 
+       * */
+      void create_alonce_clauses(const spec& spec)
+      {
+        for ( int i = 0; i < spec.nr_steps - 1; i++ ) 
+        {
+          int ctr = 0;
+          const auto idx = spec.nr_in + i + 1;
+          
+          for( const auto& e : sel_map )
+          {
+            auto sel_var = e.first;
+            auto array   = e.second;
+
+            auto ip = array[0];
+
+            if( ip > i )
+            {
+              auto g = array[1];
+              auto h = array[2];
+              auto j = array[3];
+              auto k = array[4];
+              auto l = array[5];
+
+              if( g == idx || h == idx || j == idx || k == idx || l == idx )
+              {
+                pLits[ctr++] = pabc::Abc_Var2Lit(sel_var, 0);
+              }
+            }
+
+          }
+          
+          const auto res = solver->add_clause(pLits, pLits + ctr);
+          assert(res);
+        }
+      }
+      
+      void fence_create_alonce_clauses(const spec& spec, const fence& f)
+      {
+        fence_level flevel( f, spec.nr_in );
+
+        for ( int i = 0; i < spec.nr_steps - 1; i++ ) 
+        {
+          int ctr = 0;
+          const auto idx = spec.nr_in + i + 1;
+
+          auto level = flevel.get_level( idx );
+          
+          for( const auto& e : fence_sel_map )
+          {
+            auto sel_var = e.first;
+            auto array   = e.second;
+
+            auto ip = array[0];
+            auto levelp = flevel.get_level( ip + spec.nr_in + 1 );
+            
+            if( ip > i && levelp >= level )
+            {
+              auto g = array[1];
+              auto h = array[2];
+              auto j = array[3];
+              auto k = array[4];
+              auto l = array[5];
+
+              if( g == idx || h == idx || j == idx || k == idx || l == idx )
+              {
+                pLits[ctr++] = pabc::Abc_Var2Lit(sel_var, 0);
+              }
+            }
+
+          }
+          
+          const auto res = solver->add_clause(pLits, pLits + ctr);
+          assert(res);
+        }
+      }
+      
+      void create_colex_clauses(const spec& spec)
+      {
+        for ( int i = 0; i < spec.nr_steps - 1; i++ ) 
+        {
+          const auto& smap = get_all_svars_map_for_i( sel_map, i );
+          
+          for( const auto& e : smap )
+          {
+            auto sel_var = e.first;
+            auto array   = e.second;
+            
+            pLits[0] = pabc::Abc_Var2Lit(sel_var, 1);
+
+            const auto svars = get_all_svars_colex_less_than( sel_map, i + 1, e.second );
+            for( const auto& s : svars )
+            {
+              pLits[1] = pabc::Abc_Var2Lit(s, 1);
+              const auto res = solver->add_clause(pLits, pLits + 2);
+              assert(res);
+            }
+          }
+        }
+      }
+      
+      void fence_create_colex_clauses(const spec& spec, const fence& f )
+      {
+        fence_level flevel( f, spec.nr_in );
+      
+        for ( int i = 0; i < spec.nr_steps - 1; i++ ) 
+        {
+          const auto& smap = get_all_svars_map_for_i( fence_sel_map, i );
+          
+          const auto level  = flevel.get_level( i + spec.nr_in + 1 );
+          const auto levelp = flevel.get_level( i + 1 + spec.nr_in + 1 );
+         
+          if( level == levelp )
+          {
+            for( const auto& e : smap )
+            {
+              auto sel_var = e.first;
+              auto array   = e.second;
+
+              pLits[0] = pabc::Abc_Var2Lit(sel_var, 1);
+
+              const auto svars = get_all_svars_colex_less_than( fence_sel_map, i + 1, e.second );
+              for( const auto& s : svars )
+              {
+                pLits[1] = pabc::Abc_Var2Lit(s, 1);
+                const auto res = solver->add_clause(pLits, pLits + 2);
+                assert(res);
+              }
+            }
+          }
+        }
+      }
       
       bool is_dirty() 
       {
@@ -1450,7 +1315,7 @@ namespace also
         if( status == success )
         {
           //encoder.show_verbose_result();
-          encoder.extract_mig5( spec, mig5 );
+          encoder.extract_mig5( spec, mig5, false );
           return success;
         }
         else if( status == failure )
@@ -1508,12 +1373,13 @@ namespace also
 
           if( status == success )
           {
-            encoder.extract_mig5( spec, mig5 );
+            encoder.extract_mig5( spec, mig5, true );
             auto sim_tt = mig5.simulate()[0];
             auto xot_tt = sim_tt ^ ( spec[0] );
             auto first_one = kitty::find_first_one_bit( xot_tt );
             if( first_one == -1 )
             {
+              encoder.extract_mig5( spec, mig5, false );
               return success;
             }
 
@@ -1565,7 +1431,7 @@ namespace also
 
          if (status == success) 
          {
-           encoder.extract_mig5(spec, mig5);
+           encoder.extract_mig5(spec, mig5, false);
            return success;
          } 
          else 
@@ -1575,6 +1441,391 @@ namespace also
        }
 
        return failure;
+    }
+   
+   synth_result mig_five_fence_synthesize(spec& spec, mig5& mig5, solver_wrapper& solver, mig_five_encoder& encoder)
+    {
+        spec.preprocess();
+
+        // The special case when the Boolean chain to be synthesized
+        // consists entirely of trivial functions.
+        if (spec.nr_triv == spec.get_nr_out()) 
+        {
+            mig5.reset(spec.get_nr_in(), spec.get_nr_out(), 0);
+            for (int h = 0; h < spec.get_nr_out(); h++) 
+            {
+                mig5.set_output(h, (spec.triv_func(h) << 1) +
+                    ((spec.out_inv >> h) & 1));
+            }
+            return success;
+        }
+
+        std::cout << "begin to fence synthesize" << std::endl;
+        // As the topological synthesizer decomposes the synthesis
+        // problem, to fairly count the total number of conflicts we
+        // should keep track of all conflicts in existence checks.
+        fence f;
+        po_filter<unbounded_generator> g( unbounded_generator(spec.initial_steps), spec.get_nr_out(), 5);
+        auto fence_ctr = 0;
+        while (true) 
+        {
+            ++fence_ctr;
+            g.next_fence(f);
+            spec.nr_steps = f.nr_nodes();
+            solver.restart();
+            if (!encoder.encode(spec, f)) 
+            {
+                continue;
+            }
+
+            if (spec.verbosity) 
+            {
+                printf("next fence (%d):\n", fence_ctr);
+                print_fence(f);
+                printf("\n");
+                printf("nr_nodes=%d, nr_levels=%d\n", f.nr_nodes(),
+                    f.nr_levels());
+                for (int i = 0; i < f.nr_levels(); i++) {
+                    printf("f[%d] = %d\n", i, f[i]);
+                }
+            }
+            auto status = solver.solve(spec.conflict_limit);
+            if (status == success) 
+            {
+              encoder.fence_extract_mig5(spec, mig5, f, false);
+              //encoder.show_variable_correspondence( spec );
+              //encoder.show_verbose_result();
+                return success;
+            } 
+            else if (status == failure) 
+            {
+                continue;
+            } 
+            else 
+            {
+                return timeout;
+            }
+        }
+    }
+   
+   synth_result parallel_nocegar_mig_five_fence_synthesize( spec& spec, mig5& mig5, 
+                                                              int num_threads = std::thread::hardware_concurrency() )
+    {
+        spec.preprocess();
+
+        // The special case when the Boolean chain to be synthesized
+        // consists entirely of trivial functions.
+        if (spec.nr_triv == spec.get_nr_out()) {
+            mig5.reset(spec.get_nr_in(), spec.get_nr_out(), 0);
+            for (int h = 0; h < spec.get_nr_out(); h++) {
+                mig5.set_output(h, (spec.triv_func(h) << 1) +
+                    ((spec.out_inv >> h) & 1));
+            }
+            return success;
+        }
+
+        std::vector<std::thread> threads(num_threads);
+        moodycamel::ConcurrentQueue<fence> q(num_threads * 3);
+
+        bool finished_generating = false;
+        bool* pfinished = &finished_generating;
+        bool found = false;
+        bool* pfound = &found;
+        std::mutex found_mutex;
+
+        spec.fanin = 5;
+        spec.nr_steps = spec.initial_steps;
+        while (true) 
+        {
+            for (int i = 0; i < num_threads; i++) 
+            {
+              //std::cout << "thread: " << i << std::endl;
+                threads[i] = std::thread([&spec, pfinished, pfound, &found_mutex, &mig5, &q] 
+                    {
+                    bmcg_wrapper solver;
+                    mig_five_encoder encoder(solver);
+                    fence local_fence;
+
+                    while (!(*pfound)) 
+                    {
+                        if (!q.try_dequeue(local_fence)) 
+                        {
+                            if (*pfinished) 
+                            {
+                                std::this_thread::yield();
+                                if (!q.try_dequeue(local_fence)) 
+                                {
+                                    break;
+                                }
+                            } 
+                            else 
+                            {
+                                std::this_thread::yield();
+                                continue;
+                            }
+                        }
+
+                        if (spec.verbosity)
+                        {
+                            std::lock_guard<std::mutex> vlock(found_mutex);
+                            printf("  next fence:\n");
+                            print_fence(local_fence);
+                            printf("\n");
+                            printf("nr_nodes=%d, nr_levels=%d\n",
+                                local_fence.nr_nodes(),
+                                local_fence.nr_levels());
+                        }
+
+                        synth_result status;
+                        solver.restart();
+                        if (!encoder.encode(spec, local_fence)) 
+                        {
+                            continue;
+                        }
+                        do 
+                        {
+                            status = solver.solve(10);
+                            if (*pfound) 
+                            {
+                                break;
+                            } 
+                            else if (status == success) 
+                            {
+                                std::lock_guard<std::mutex> vlock(found_mutex);
+                                if (!(*pfound)) 
+                                {
+                                    encoder.fence_extract_mig5(spec, mig5, local_fence, false );
+                                    std::cout << "[i] simulation tt: " << kitty::to_hex( mig5.simulate()[0] ) << std::endl;
+                                    *pfound = true;
+                                }
+                            }
+                        } while (status == timeout);
+                    }
+                });
+            }
+            
+            generate_fences(spec, q);
+            finished_generating = true;
+
+            for (auto& thread : threads) 
+            {
+                thread.join();
+            }
+            if (found) 
+            {
+                break;
+            }
+            finished_generating = false;
+            spec.nr_steps++;
+        }
+
+        return success;
+    }
+   
+   synth_result parallel_mig_five_fence_synthesize( spec& spec, mig5& mig5,
+                                                     int num_threads = std::thread::hardware_concurrency())
+     { 
+        spec.preprocess();
+
+        // The special case when the Boolean chain to be synthesized
+        // consists entirely of trivial functions.
+        if (spec.nr_triv == spec.get_nr_out()) 
+        {
+            mig5.reset(spec.get_nr_in(), spec.get_nr_out(), 0);
+            for (int h = 0; h < spec.get_nr_out(); h++) 
+            {
+                mig5.set_output(h, (spec.triv_func(h) << 1) +
+                    ((spec.out_inv >> h) & 1));
+            }
+            return success;
+        }
+
+        std::vector<std::thread> threads(num_threads);
+        moodycamel::ConcurrentQueue<fence> q(num_threads * 3);
+
+        bool finished_generating = false;
+        bool* pfinished = &finished_generating;
+        bool found = false;
+        bool* pfound = &found;
+        std::mutex found_mutex;
+
+        spec.nr_rand_tt_assigns = 0;// 2 * spec.get_nr_in();
+        spec.fanin = 5;
+        spec.nr_steps = spec.initial_steps;
+        while (true) 
+        {
+            for (int i = 0; i < num_threads; i++) 
+            {
+                threads[i] = std::thread([&spec, pfinished, pfound, &found_mutex, &mig5, &q] {
+                    also::mig5 local_mig;
+                    bmcg_wrapper solver;
+                    mig_five_encoder encoder(solver);
+                    fence local_fence;
+
+                    while (!(*pfound)) {
+                        if (!q.try_dequeue(local_fence)) {
+                            if (*pfinished) {
+                                std::this_thread::yield();
+                                if (!q.try_dequeue(local_fence)) {
+                                    break;
+                                }
+                            } else {
+                                std::this_thread::yield();
+                                continue;
+                            }
+                        }
+
+                        if (spec.verbosity)
+                        {
+                            std::lock_guard<std::mutex> vlock(found_mutex);
+                            printf("  next fence:\n");
+                            print_fence(local_fence);
+                            printf("\n");
+                            printf("nr_nodes=%d, nr_levels=%d\n",
+                                local_fence.nr_nodes(),
+                                local_fence.nr_levels());
+                        }
+
+                        synth_result status;
+                        solver.restart();
+                        if (!encoder.cegar_encode(spec, local_fence)) {
+                            continue;
+                        }
+                        do {
+                            status = solver.solve(10);
+                            if (*pfound) 
+                            {
+                                break;
+                            } 
+                            else if (status == success) 
+                            {
+                                encoder.fence_extract_mig5(spec, local_mig, local_fence, true);
+                                auto sim_tt = local_mig.simulate()[0];
+                                //auto sim_tt = encoder.simulate(spec);
+                                //if (spec.out_inv) {
+                                //    sim_tt = ~sim_tt;
+                                //}
+                                auto xor_tt = sim_tt ^ (spec[0]);
+                                auto first_one = kitty::find_first_one_bit(xor_tt);
+                                if (first_one != -1) 
+                                {
+                                    if (!encoder.fence_create_tt_clauses(spec, first_one - 1)) 
+                                    {
+                                        break;
+                                    }
+                                    status = timeout;
+                                    continue;
+                                }
+                                
+                                std::lock_guard<std::mutex> vlock(found_mutex);
+                                if (!(*pfound)) 
+                                {
+                                    encoder.fence_extract_mig5(spec, mig5, local_fence, false);
+                                    *pfound = true;
+                                    std::cout << "simulation tt: " << kitty::to_hex( mig5.simulate()[0] ) << std::endl;
+                                }
+                            }
+                          } while (status == timeout);
+                    }
+                });
+            }
+            generate_fences(spec, q);
+            finished_generating = true;
+
+            for (auto& thread : threads) 
+            {
+                thread.join();
+            }
+            if (found) 
+            {
+                break;
+            }
+            
+            finished_generating = false;
+            spec.nr_steps++;
+        }
+
+        return success;
+    }
+   
+   synth_result mig_five_cegar_fence_synthesize( spec& spec, mig5& mig5, solver_wrapper& solver, mig_five_encoder& encoder)
+   {
+     assert(spec.get_nr_in() >= spec.fanin);
+
+     spec.preprocess();
+
+     // The special case when the Boolean chain to be synthesized
+     // consists entirely of trivial functions.
+     if (spec.nr_triv == spec.get_nr_out()) {
+       mig5.reset(spec.get_nr_in(), spec.get_nr_out(), 0);
+       for (int h = 0; h < spec.get_nr_out(); h++) {
+         mig5.set_output(h, (spec.triv_func(h) << 1) +
+             ((spec.out_inv >> h) & 1));
+       }
+       return success;
+     }
+
+
+     fence f;
+     po_filter<unbounded_generator> g( unbounded_generator(spec.initial_steps), spec.get_nr_out(), 5);
+     int fence_ctr = 0;
+     while (true) 
+     {
+       ++fence_ctr;
+       g.next_fence(f);
+       spec.nr_steps = f.nr_nodes();
+
+       if (spec.verbosity) 
+       {
+         printf("  next fence (%d):\n", fence_ctr);
+         print_fence(f);
+         printf("\n");
+         printf("nr_nodes=%d, nr_levels=%d\n", f.nr_nodes(),
+             f.nr_levels());
+         for (int i = 0; i < f.nr_levels(); i++) {
+           printf("f[%d] = %d\n", i, f[i]);
+         }
+       }
+
+       solver.restart();
+       if (!encoder.cegar_encode(spec, f)) 
+       {
+         continue;
+       }
+       while (true) 
+       {
+         auto status = solver.solve(spec.conflict_limit);
+         if (status == success) 
+         {
+           encoder.fence_extract_mig5(spec, mig5, f, true);
+           auto sim_tt = mig5.simulate()[0];
+           //auto sim_tt = encoder.simulate(spec);
+           //if (spec.out_inv) {
+           //    sim_tt = ~sim_tt;
+           //}
+           auto xor_tt = sim_tt ^ (spec[0]);
+           auto first_one = kitty::find_first_one_bit(xor_tt);
+           if (first_one == -1) 
+           {
+             encoder.fence_extract_mig5(spec, mig5, f, false);
+             return success;
+           }
+           
+           if (!encoder.fence_create_tt_clauses(spec, first_one - 1)) 
+           {
+             break;
+           }
+         } 
+         else if (status == failure) 
+         {
+           break;
+         } 
+         else 
+         {
+           return timeout;
+         }
+       }
+     }
     }
 
 }
