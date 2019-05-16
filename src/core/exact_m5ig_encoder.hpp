@@ -101,8 +101,9 @@ namespace also
       int get_res_var(const spec& spec, const fence& f, int step_idx, int res_var_idx) const
       {
         auto offset = 0;
-        auto nr_svars_for_i = fence_comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, f, step_idx );
-        for (int i = 0; i < step_idx; i++) {
+        for (int i = 0; i < step_idx; i++) 
+        {
+          auto nr_svars_for_i = fence_comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, f, i );
           offset += (nr_svars_for_i + 1) * (1 + 2);
         }
 
@@ -956,8 +957,7 @@ namespace also
 
           fence_create_fanin_clauses(spec, f);
 
-          /* problematic to add cardinality constraints */
-          //create_cardinality_constraints(spec,f);
+          create_cardinality_constraints(spec,f);
           
           if (spec.add_alonce_clauses) 
           {
