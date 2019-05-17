@@ -46,8 +46,6 @@ namespace also
 
       bool dirty = false;
       bool print_clause = false;
-      bool allow_two_const = true;
-      bool allow_two_equal = true;
       bool write_cnf_file = false;
 
       FILE* f = NULL;
@@ -194,7 +192,7 @@ namespace also
       void create_variables( const spec& spec )
       {
         /* number of simulation variables, s_out_in1_in2_in3_in4_in5 */
-        sel_map = comput_select_vars_map( spec.nr_steps, spec.nr_in, allow_two_const, allow_two_equal );
+        sel_map = comput_select_vars_map( spec.nr_steps, spec.nr_in );
         nr_sel_vars = sel_map.size();
         
         /* number of operators per step */ 
@@ -230,7 +228,7 @@ namespace also
       void fence_create_variables( const spec& spec, const fence& f )
       {
         /* number of simulation variables, s_out_in1_in2_in3_in4_in5 */
-        fence_sel_map = fence_comput_select_vars_map( spec.nr_steps, spec.nr_in, f, allow_two_const, allow_two_equal );
+        fence_sel_map = fence_comput_select_vars_map( spec.nr_steps, spec.nr_in, f );
         nr_sel_vars   = fence_sel_map.size();
         
         /* number of operators per step */ 
@@ -269,14 +267,14 @@ namespace also
         nr_sim_vars = spec.nr_steps * spec.tt_size;
         
         /* number of simulation variables, s_out_in1_in2_in3_in4_in5 */
-        fence_sel_map = fence_comput_select_vars_map( spec.nr_steps, spec.nr_in, f, allow_two_const, allow_two_equal );
+        fence_sel_map = fence_comput_select_vars_map( spec.nr_steps, spec.nr_in, f );
         nr_sel_vars   = fence_sel_map.size();
 
         nr_res_vars = 0;
         for (int i = 0; i < spec.nr_steps; i++) 
         {
-          const auto nr_svars_for_i = fence_comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, f, i,
-                                                                              allow_two_const, allow_two_equal );
+          const auto nr_svars_for_i = fence_comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, f, i );
+
           nr_res_vars += (nr_svars_for_i + 1) * (1 + 2);
         }
 
@@ -316,9 +314,7 @@ namespace also
         {
           auto ctr = 0;
 
-          auto num_svar_in_current_step = comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, i, 
-                                                                            allow_two_const, 
-                                                                            allow_two_equal );
+          auto num_svar_in_current_step = comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, i );  
           
           for( int j = svar; j < svar + num_svar_in_current_step; j++ )
           {
@@ -349,9 +345,7 @@ namespace also
         {
           auto ctr = 0;
 
-          auto num_svar_in_current_step = fence_comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, f, i, 
-                                                                            allow_two_const, 
-                                                                            allow_two_equal );
+          auto num_svar_in_current_step = fence_comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, f, i ); 
           
           for( int j = svar; j < svar + num_svar_in_current_step; j++ )
           {
@@ -752,9 +746,7 @@ namespace also
           
         for (int i = 0; i < spec.nr_steps; i++) 
         {
-          auto num_svar_in_current_step = comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, i, 
-                                                                            allow_two_const, 
-                                                                            allow_two_equal );
+          auto num_svar_in_current_step = comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, i ); 
           
           for( int j = svar; j < svar + num_svar_in_current_step; j++ )
           {
@@ -990,9 +982,7 @@ namespace also
             }
           }
 
-          auto num_svar_in_current_step = comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, i, 
-                                                                            allow_two_const, 
-                                                                            allow_two_equal );
+          auto num_svar_in_current_step = comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, i ); 
           
           for( int j = svar; j < svar + num_svar_in_current_step; j++ )
           {
@@ -1057,9 +1047,7 @@ namespace also
             }
           }
 
-          auto num_svar_in_current_step = fence_comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, f, i, 
-                                                                            allow_two_const, 
-                                                                            allow_two_equal );
+          auto num_svar_in_current_step = fence_comput_select_vars_for_each_step( spec.nr_steps, spec.nr_in, f, i ); 
 
           
           for( int j = svar; j < svar + num_svar_in_current_step; j++ )
@@ -1251,16 +1239,6 @@ namespace also
           dirty = _dirty;
       }
 
-      void set_allow_two_const( bool _allow_two_const )
-      {
-        allow_two_const = _allow_two_const;
-      }
-
-      void set_allow_two_equal( bool _allow_two_equal )
-      {
-        allow_two_equal = _allow_two_equal;
-      }
-
       void set_print_clause(bool _print_clause)
       {
           print_clause = _print_clause;
@@ -1432,6 +1410,7 @@ namespace also
          if (status == success) 
          {
            encoder.extract_mig5(spec, mig5, false);
+           std::cout << "[i] simulation tt: " << kitty::to_hex( mig5.simulate()[0] ) << std::endl;
            return success;
          } 
          else 

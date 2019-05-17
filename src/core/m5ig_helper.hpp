@@ -100,7 +100,6 @@ namespace also
                 {
                     if( step[0] == 0)
                     {
-                      create_nth_var(tt_in1, 0);
                       kitty::clear( tt_in1 );
                     }
                     else
@@ -117,7 +116,6 @@ namespace also
                 {
                     if( step[1] == 0)
                     {
-                      create_nth_var(tt_in2, 0);
                       kitty::clear( tt_in2 );
                     }
                     else
