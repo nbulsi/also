@@ -584,7 +584,6 @@ namespace also
       bool is_element_duplicate( const std::vector<unsigned>& array )
       {
         auto copy = array;
-        copy.erase( copy.begin() ); //remove the first element that indicates step index
         auto last = std::unique( copy.begin(), copy.end() );
 
         return ( last == copy.end() ) ? false : true;
@@ -1024,31 +1023,31 @@ namespace also
 
             if( g == h && g != 0)
             {
-              for( const auto op_idx : ops_ab_compl )
+              for( const auto& op_idx : ops_ab_compl )
               {
                 pLits[1] = pabc::Abc_Var2Lit( get_op_var( spec, step_idx, op_idx ), 1 );
                 ret &= solver->add_clause(pLits, pLits + 2);
               }
             }
-            else if( h == j && h != 0 )
+            else if( h == j )
             {
-              for( const auto op_idx : ops_bc_compl )
+              for( const auto& op_idx : ops_bc_compl )
               {
                 pLits[1] = pabc::Abc_Var2Lit( get_op_var( spec, step_idx, op_idx ), 1 );
                 ret &= solver->add_clause(pLits, pLits + 2);
               }
             }
-            else if( j == k && j != 0 )
+            else if( j == k )
             {
-              for( const auto op_idx : ops_cd_compl )
+              for( const auto& op_idx : ops_cd_compl )
               {
                 pLits[1] = pabc::Abc_Var2Lit( get_op_var( spec, step_idx, op_idx ), 1 );
                 ret &= solver->add_clause(pLits, pLits + 2);
               }
             }
-            else if( k == l && k != 0 )
+            else if( k == l )
             {
-              for( const auto op_idx : ops_de_compl )
+              for( const auto& op_idx : ops_de_compl )
               {
                 pLits[1] = pabc::Abc_Var2Lit( get_op_var( spec, step_idx, op_idx ), 1 );
                 ret &= solver->add_clause(pLits, pLits + 2);
@@ -1056,7 +1055,14 @@ namespace also
             }
             else
             {
-              assert( false ); //cannot happen
+              if( g == h && g == 0 )
+              { 
+                continue;
+              }
+              else
+              {
+                assert( false ); //cannot happen
+              }
             }
           }
         }
