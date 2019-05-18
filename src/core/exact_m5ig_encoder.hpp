@@ -632,7 +632,29 @@ namespace also
         }
         else if( g != h && g == 0 ) /* a_const */
         {
-          input_set_map = comput_input_and_set_map( a_const );
+          if( is_element_duplicate( array ) )
+          {
+            if( h == j )
+            {
+              input_set_map = comput_input_and_set_map( a_const_bc_equal );
+            }
+            else if( j == k )
+            {
+              input_set_map = comput_input_and_set_map( a_const_cd_equal );
+            }
+            else if( k == l )
+            {
+              input_set_map = comput_input_and_set_map( a_const_de_equal );
+            }
+            else
+            {
+              assert( false );
+            }
+          }
+          else
+          {
+            input_set_map = comput_input_and_set_map( a_const );
+          }
         }
         else if( g == h && g == 0) /* ab_const */
         {
