@@ -83,6 +83,12 @@ namespace also
       // them symmetries and do not encode them.
       const int MIG_OP_VARS_PER_STEP = 16;
 
+      /* get all the ops that make ab complemented, such as <!abcde>, <a!bcde>.... */
+      std::array<int, 8> ops_ab_compl{ 1, 2, 7, 8, 9, 10, 11, 12 };
+      std::array<int, 8> ops_bc_compl{ 2, 3, 6, 7, 11, 12, 13, 14 };
+      std::array<int, 8> ops_cd_compl{ 3, 4, 7, 8, 10, 11, 14, 15 };
+      std::array<int, 8> ops_de_compl{ 4, 5, 8, 9, 11, 12, 13, 14 };
+
       /*
        * private functions
        * */
@@ -599,10 +605,14 @@ namespace also
         auto l = array[5];
 
         std::map<std::vector<int>, std::vector<int>> input_set_map;
+        
+        auto copy = array;
+        copy.erase( copy.begin() ); //remove step_idx
+        
         if( g != 0 ) /* no consts */
         {
           /* aabcd, abbcd, ... */
-          if( is_element_duplicate( array ) )
+          if( is_element_duplicate( copy ) )
           {
             if( g == h )
             {
@@ -632,7 +642,7 @@ namespace also
         }
         else if( g != h && g == 0 ) /* a_const */
         {
-          if( is_element_duplicate( array ) )
+          if( is_element_duplicate( copy ) )
           {
             if( h == j )
             {
@@ -810,6 +820,11 @@ namespace also
         {
           return false;
         }
+
+        if( !add_svar_op_constraints( spec, sel_map ) )
+        {
+          return false;
+        }
         
         if (spec.add_alonce_clauses) 
         {
@@ -853,6 +868,11 @@ namespace also
             return false;
           }
           
+          if( !add_svar_op_constraints( spec, fence_sel_map ) )
+          {
+            return false;
+          }
+          
           if (spec.add_alonce_clauses) 
           {
             fence_create_alonce_clauses( spec, f );
@@ -885,6 +905,11 @@ namespace also
         create_variables( spec );
         
         if( !create_fanin_clauses( spec ) )
+        {
+          return false;
+        }
+        
+        if( !add_svar_op_constraints( spec, sel_map ) )
         {
           return false;
         }
@@ -965,6 +990,80 @@ namespace also
         }
       }
 
+      /*
+       * add selection variables op constraints
+       * For example, <00aab>, we do not allow the op like <00a!ab> appeared, in that case, the output is constant 0
+       * also, for <0aabc>, ... <0cdee>, we do not allow the
+       * duplicated inputs have the complemented polarities, which
+       * make <0a!abc> reduced to <0bc>, since we already have
+       * <00bbc> encodeded, this case is redundant
+       *
+       * At last, <aabcd>, the same principle, <a!abcd> reduced to
+       * <bcd> that is equal to <01bcd>
+       * */
+      bool add_svar_op_constraints( const spec& spec, const std::map<int, std::vector<unsigned>>& map )
+      {
+        bool ret = true;
+        for( const auto& e : map )
+        {
+          const auto& svar = e.first;
+          const auto& step_idx = e.second[0];
+
+          auto copy = e.second;
+          copy.erase( copy.begin() ); // remove step_idx
+          
+          if( is_element_duplicate( copy ) )
+          {
+            auto g = copy[0];
+            auto h = copy[1];
+            auto j = copy[2];
+            auto k = copy[3];
+            auto l = copy[4];
+
+            pLits[0] = pabc::Abc_Var2Lit( svar, 1 );
+
+            if( g == h && g != 0)
+            {
+              for( const auto op_idx : ops_ab_compl )
+              {
+                pLits[1] = pabc::Abc_Var2Lit( get_op_var( spec, step_idx, op_idx ), 1 );
+                ret &= solver->add_clause(pLits, pLits + 2);
+              }
+            }
+            else if( h == j && h != 0 )
+            {
+              for( const auto op_idx : ops_bc_compl )
+              {
+                pLits[1] = pabc::Abc_Var2Lit( get_op_var( spec, step_idx, op_idx ), 1 );
+                ret &= solver->add_clause(pLits, pLits + 2);
+              }
+            }
+            else if( j == k && j != 0 )
+            {
+              for( const auto op_idx : ops_cd_compl )
+              {
+                pLits[1] = pabc::Abc_Var2Lit( get_op_var( spec, step_idx, op_idx ), 1 );
+                ret &= solver->add_clause(pLits, pLits + 2);
+              }
+            }
+            else if( k == l && k != 0 )
+            {
+              for( const auto op_idx : ops_de_compl )
+              {
+                pLits[1] = pabc::Abc_Var2Lit( get_op_var( spec, step_idx, op_idx ), 1 );
+                ret &= solver->add_clause(pLits, pLits + 2);
+              }
+            }
+            else
+            {
+              assert( false ); //cannot happen
+            }
+          }
+        }
+
+        return ret;
+      }
+
       bool cegar_encode(const spec& spec, const fence& f)
       {
           cegar_fence_create_variables(spec, f);
@@ -972,6 +1071,11 @@ namespace also
           fence_create_fanin_clauses(spec, f);
 
           create_cardinality_constraints(spec,f);
+          
+          if( !add_svar_op_constraints( spec, fence_sel_map ) )
+          {
+            return false;
+          }
           
           if (spec.add_alonce_clauses) 
           {
