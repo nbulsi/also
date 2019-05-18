@@ -29,7 +29,11 @@ namespace also
     ab_equal,
     bc_equal,
     cd_equal,
-    de_equal
+    de_equal,
+
+    a_const_bc_equal,
+    a_const_cd_equal,
+    a_const_de_equal
   };
 
   /******************************************************************************
@@ -348,21 +352,21 @@ namespace also
 
           case a_const:
             {
-              kitty::create_from_hex_string( a, "00000000");
+              kitty::clear( a );
             }
             break;
 
           case ab_const:
             {
-              kitty::create_from_hex_string( a, "00000000");
-              kitty::create_from_hex_string( b, "00000000");
+              kitty::clear( a );
+              kitty::clear( b );
             }
             break;
 
           case ab_const_cd_equal:
             {
-              kitty::create_from_hex_string( a, "00000000");
-              kitty::create_from_hex_string( b, "00000000");
+              kitty::clear( a );
+              kitty::clear( b );
               kitty::create_nth_var( d, 2 );
             }
             break;
@@ -391,6 +395,27 @@ namespace also
             }
             break;
 
+          case a_const_bc_equal:
+            {
+              kitty::clear( a );
+              kitty::create_nth_var( c, 1 );
+            }
+            break;
+
+          case a_const_cd_equal:
+            {
+              kitty::clear( a );
+              kitty::create_nth_var( d, 2 );
+            }
+            break;
+          
+          case a_const_de_equal:
+            {
+              kitty::clear( a );
+              kitty::create_nth_var( e, 3 );
+            }
+            break;
+          
           default:
             break;
         }
@@ -557,6 +582,9 @@ namespace also
         {
           //ab_equal
           count += get_all_combination_index( idx_array, idx_array.size(), 4u ).size() * 4;
+
+          //0aabc, ..., 0cdee
+          count += get_all_combination_index( idx_array, idx_array.size(), 3u ).size() * 3;
         }
         return count;
       }
@@ -633,6 +661,7 @@ namespace also
           //ab_equal
           if( allow_two_equal )
           {
+            /* aabcd, ... bcdee */
             for( const auto c : get_all_combination_index( idx_array, idx_array.size(), 4u ) )
             {
               for( auto k = 0; k < 4; k++ )
@@ -640,6 +669,20 @@ namespace also
                 auto copy = c;
                 auto val = copy[k];
                 copy.insert( copy.begin() + k, val );
+                copy.insert( copy.begin(), i);
+                map.insert( std::pair<int, std::vector<unsigned>>( count++, copy ) );
+              }
+            }
+            
+            /* 0aabc, ... 0cdee */
+            for( const auto c : get_all_combination_index( idx_array, idx_array.size(), 3u ) )
+            {
+              for( auto k = 0; k < 3; k++ )
+              {
+                auto copy = c;
+                auto val = copy[k];
+                copy.insert( copy.begin() + k, val );
+                copy.insert( copy.begin(), 0);
                 copy.insert( copy.begin(), i);
                 map.insert( std::pair<int, std::vector<unsigned>>( count++, copy ) );
               }
@@ -773,6 +816,9 @@ namespace also
         {
           //ab_equal
           count += get_all_combination_index( idx_array, idx_array.size(), 4u ).size() * 4;
+
+          //0aabc, ..., 0cdee
+          count += get_all_combination_index( idx_array, idx_array.size(), 3u ).size() * 3;
         }
         return count;
       }
@@ -854,6 +900,7 @@ namespace also
           //ab_equal
           if( allow_two_equal )
           {
+            /* aabcd, ... bcdee */
             for( const auto c : get_all_combination_index( idx_array, idx_array.size(), 4u ) )
             {
               for( auto k = 0; k < 4; k++ )
@@ -861,6 +908,20 @@ namespace also
                 auto copy = c;
                 auto val = copy[k];
                 copy.insert( copy.begin() + k, val );
+                copy.insert( copy.begin(), i);
+                map.insert( std::pair<int, std::vector<unsigned>>( count++, copy ) );
+              }
+            }
+            
+            /* 0aabc, ... 0cdee */
+            for( const auto c : get_all_combination_index( idx_array, idx_array.size(), 3u ) )
+            {
+              for( auto k = 0; k < 3; k++ )
+              {
+                auto copy = c;
+                auto val = copy[k];
+                copy.insert( copy.begin() + k, val );
+                copy.insert( copy.begin(), 0);
                 copy.insert( copy.begin(), i);
                 map.insert( std::pair<int, std::vector<unsigned>>( count++, copy ) );
               }
