@@ -218,7 +218,7 @@ public:
     return (( a == b ) && ( a == c ));
   }
 
-  signal create_maj( signal a, signal b, signal c, signal d, signal e )
+  signal create_maj5( signal a, signal b, signal c, signal d, signal e )
   {
     /* order inputs */
     std::array<signal, 5> children = { a, b, c, d, e };
@@ -296,11 +296,15 @@ public:
 
     return {index, node_complement};
   }
+  
+  signal create_maj( signal a, signal b, signal c )
+  {
+    return create_maj5( get_constant( false ), get_constant( true ), a, b, c );
+  }
 
-#if 0
   signal create_and( signal const& a, signal const& b )
   {
-    return create_maj( get_constant( false ), a, b );
+    return create_maj5( get_constant( false ), get_constant( false ), a, a, b );
   }
 
   signal create_nand( signal const& a, signal const& b )
@@ -310,7 +314,7 @@ public:
 
   signal create_or( signal const& a, signal const& b )
   {
-    return create_maj( get_constant( true ), a, b );
+    return create_maj5( get_constant( true ), get_constant( true ), a, a, b );
   }
 
   signal create_nor( signal const& a, signal const& b )
@@ -320,10 +324,28 @@ public:
 
   signal create_xor( signal const& a, signal const& b )
   {
-    const auto fcompl = a.complement ^ b.complement;
-    const auto c1 = create_and( +a, -b );
-    const auto c2 = create_and( +b, -a );
-    return create_and( !c1, !c2 ) ^ !fcompl;
+    /* [ab] = <1a!b<00!a!ab><00!a!ab>> */
+    const auto c1 = create_maj5( get_constant( false ), get_constant( false ), !a, !a, b );
+    const auto c2 = create_maj5( get_constant( true ), a, !b, c1, c1 );
+    return c2;
+  }
+  
+  signal create_xor3( signal const& a, signal const& b, signal const& c )
+  {
+    /* [a[bc]] = <a!b!c<01!abc><01!abc>> */
+    const auto c1 = create_maj5( get_constant( false ), get_constant( true ), !a, b, c );
+    const auto c2 = create_maj5( a, !b, !c, c1, c1 );
+    return c2;
+  }
+  
+  signal create_lt( signal const& a, signal const& b )
+  {
+    return create_and( !a, b );
+  }
+
+  signal create_le( signal const& a, signal const& b )
+  {
+    return !create_and( a, !b );
   }
 
   signal create_ite( signal cond, signal f_then, signal f_else )
@@ -343,7 +365,6 @@ public:
 
     return create_and( !create_and( !cond, f_else ), !create_and( cond, f_then ) ) ^ !f_compl;
   }
-#endif
 #pragma endregion
 
 #pragma region Create arbitrary functions
@@ -352,7 +373,7 @@ public:
     (void)other;
     (void)source;
     assert( children.size() == 5u );
-    return create_maj( children[0u], children[1u], children[2u], children[3u], children[4u] );
+    return create_maj5( children[0u], children[1u], children[2u], children[3u], children[4u] );
   }
 #pragma endregion
 

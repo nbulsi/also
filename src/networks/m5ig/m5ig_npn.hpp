@@ -173,67 +173,67 @@ private:
       switch( std::stoi( substrs[1] ) )
       {
         case 0:
-          sig.push_back( db.create_maj( sig[a], sig[b], sig[c], sig[d], sig[e] ) );
+          sig.push_back( db.create_maj5( sig[a], sig[b], sig[c], sig[d], sig[e] ) );
           break;
 
         case 1:
-          sig.push_back( db.create_maj( sig[a] ^ true, sig[b] , sig[c], sig[d], sig[e] ) );
+          sig.push_back( db.create_maj5( sig[a] ^ true, sig[b] , sig[c], sig[d], sig[e] ) );
           break;
         
         case 2:
-          sig.push_back( db.create_maj( sig[a], sig[b] ^ true, sig[c], sig[d], sig[e] ) );
+          sig.push_back( db.create_maj5( sig[a], sig[b] ^ true, sig[c], sig[d], sig[e] ) );
           break;
         
         case 3:
-          sig.push_back( db.create_maj( sig[a], sig[b], sig[c] ^ true, sig[d], sig[e] ) );
+          sig.push_back( db.create_maj5( sig[a], sig[b], sig[c] ^ true, sig[d], sig[e] ) );
           break;
         
         case 4:
-          sig.push_back( db.create_maj( sig[a], sig[b], sig[c], sig[d] ^ true, sig[e] ) );
+          sig.push_back( db.create_maj5( sig[a], sig[b], sig[c], sig[d] ^ true, sig[e] ) );
           break;
         
         case 5:
-          sig.push_back( db.create_maj( sig[a], sig[b], sig[c], sig[d], sig[e] ^ true ) );
+          sig.push_back( db.create_maj5( sig[a], sig[b], sig[c], sig[d], sig[e] ^ true ) );
           break;
         
         case 6:
-          sig.push_back( db.create_maj( sig[a] ^ true, sig[b] ^ true, sig[c], sig[d], sig[e] ) );
+          sig.push_back( db.create_maj5( sig[a] ^ true, sig[b] ^ true, sig[c], sig[d], sig[e] ) );
           break;
         
         case 7:
-          sig.push_back( db.create_maj( sig[a] ^ true, sig[b], sig[c] ^ true, sig[d], sig[e] ) );
+          sig.push_back( db.create_maj5( sig[a] ^ true, sig[b], sig[c] ^ true, sig[d], sig[e] ) );
           break;
         
         case 8:
-          sig.push_back( db.create_maj( sig[a] ^ true, sig[b], sig[c], sig[d] ^ true, sig[e] ) );
+          sig.push_back( db.create_maj5( sig[a] ^ true, sig[b], sig[c], sig[d] ^ true, sig[e] ) );
           break;
         
         case 9:
-          sig.push_back( db.create_maj( sig[a] ^ true, sig[b], sig[c], sig[d], sig[e] ^ true ) );
+          sig.push_back( db.create_maj5( sig[a] ^ true, sig[b], sig[c], sig[d], sig[e] ^ true ) );
           break;
         
         case 10:
-          sig.push_back( db.create_maj( sig[a], sig[b] ^ true, sig[c] ^ true, sig[d], sig[e] ) );
+          sig.push_back( db.create_maj5( sig[a], sig[b] ^ true, sig[c] ^ true, sig[d], sig[e] ) );
           break;
         
         case 11:
-          sig.push_back( db.create_maj( sig[a], sig[b] ^ true, sig[c], sig[d] ^ true, sig[e] ) );
+          sig.push_back( db.create_maj5( sig[a], sig[b] ^ true, sig[c], sig[d] ^ true, sig[e] ) );
           break;
         
         case 12:
-          sig.push_back( db.create_maj( sig[a], sig[b] ^ true, sig[c], sig[d], sig[e] ^ true ) );
+          sig.push_back( db.create_maj5( sig[a], sig[b] ^ true, sig[c], sig[d], sig[e] ^ true ) );
           break;
         
         case 13:
-          sig.push_back( db.create_maj( sig[a], sig[b], sig[c] ^ true, sig[d] ^ true, sig[e] ) );
+          sig.push_back( db.create_maj5( sig[a], sig[b], sig[c] ^ true, sig[d] ^ true, sig[e] ) );
           break;
         
         case 14:
-          sig.push_back( db.create_maj( sig[a], sig[b], sig[c] ^ true, sig[d], sig[e] ^ true ) );
+          sig.push_back( db.create_maj5( sig[a], sig[b], sig[c] ^ true, sig[d], sig[e] ^ true ) );
           break;
         
         case 15:
-          sig.push_back( db.create_maj( sig[a], sig[b], sig[c], sig[d] ^ true, sig[e] ^ true ) );
+          sig.push_back( db.create_maj5( sig[a], sig[b], sig[c], sig[d] ^ true, sig[e] ^ true ) );
           break;
 
         default: assert( false ); break;

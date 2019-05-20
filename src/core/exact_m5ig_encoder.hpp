@@ -1399,6 +1399,7 @@ namespace also
       // consists entirely of trivial functions.
       if (spec.nr_triv == spec.get_nr_out()) 
       {
+        spec.nr_steps = 0;
         mig5.reset(spec.get_nr_in(), spec.get_nr_out(), 0);
         for (int h = 0; h < spec.get_nr_out(); h++) 
         {
@@ -1456,6 +1457,7 @@ namespace also
       // consists entirely of trivial functions.
       if (spec.nr_triv == spec.get_nr_out()) 
       {
+        spec.nr_steps = 0;
         mig5.reset(spec.get_nr_in(), spec.get_nr_out(), 0);
         for (int h = 0; h < spec.get_nr_out(); h++) 
         {
@@ -1562,12 +1564,14 @@ namespace also
         // consists entirely of trivial functions.
         if (spec.nr_triv == spec.get_nr_out()) 
         {
+            spec.nr_steps = 0;
             mig5.reset(spec.get_nr_in(), spec.get_nr_out(), 0);
             for (int h = 0; h < spec.get_nr_out(); h++) 
             {
                 mig5.set_output(h, (spec.triv_func(h) << 1) +
                     ((spec.out_inv >> h) & 1));
             }
+
             return success;
         }
 
@@ -1627,6 +1631,7 @@ namespace also
         // The special case when the Boolean chain to be synthesized
         // consists entirely of trivial functions.
         if (spec.nr_triv == spec.get_nr_out()) {
+          spec.nr_steps = 0;
             mig5.reset(spec.get_nr_in(), spec.get_nr_out(), 0);
             for (int h = 0; h < spec.get_nr_out(); h++) {
                 mig5.set_output(h, (spec.triv_func(h) << 1) +
@@ -1742,6 +1747,7 @@ namespace also
         // consists entirely of trivial functions.
         if (spec.nr_triv == spec.get_nr_out()) 
         {
+          spec.nr_steps = 0;
             mig5.reset(spec.get_nr_in(), spec.get_nr_out(), 0);
             for (int h = 0; h < spec.get_nr_out(); h++) 
             {
@@ -1868,6 +1874,7 @@ namespace also
      // The special case when the Boolean chain to be synthesized
      // consists entirely of trivial functions.
      if (spec.nr_triv == spec.get_nr_out()) {
+        spec.nr_steps = 0;
        mig5.reset(spec.get_nr_in(), spec.get_nr_out(), 0);
        for (int h = 0; h < spec.get_nr_out(); h++) {
          mig5.set_output(h, (spec.triv_func(h) << 1) +
