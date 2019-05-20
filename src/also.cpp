@@ -39,6 +39,7 @@
 #include "commands/xmgcost.hpp"
 #include "commands/magic.hpp"
 #include "commands/write_dot.hpp"
+#include "commands/compute_opt_m5ig.hpp"
 
 ALICE_MAIN( also )
 

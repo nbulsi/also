@@ -252,6 +252,11 @@ namespace also
             outputs[out_idx] = lit;
         }
 
+        int get_output( int out_idx )
+        {
+          return outputs[out_idx];
+        }
+
         bool satisfies_spec(const percy::spec& spec)
         {
             if (spec.nr_triv == spec.get_nr_out()) 
@@ -277,30 +282,6 @@ namespace also
 
 
             return true;
-        }
-
-        void to_expression(std::ostream& o, const int i)
-        {
-            if (i < nr_in) 
-            {
-                o << static_cast<char>('a' + i);
-            } 
-            else 
-            {
-                const auto& step = steps[i - nr_in];
-                o << "<";
-                to_expression(o, step[0]);
-                to_expression(o, step[1]);
-                to_expression(o, step[2]);
-                to_expression(o, step[3]);
-                to_expression(o, step[4]);
-                o << ">";
-            }
-        }
-
-        void to_expression(std::ostream& o)
-        {
-            to_expression(o, nr_in + steps.size() - 1);
         }
     };
 
@@ -983,6 +964,34 @@ namespace also
     assert( step_idx >= 0 && step_idx < nr_steps );
     fence_select s( nr_steps, nr_in, f, allow_two_const, allow_two_equal );
     return s.get_num_of_sel_vars_for_each_step( step_idx );
+  }
+
+  /* mig5 to expressions */
+  std::string mig5_to_string( const spec& spec, const mig5& mig5 )
+  {
+    if( mig5.get_nr_steps() == 0 )
+    {
+      return "";
+    }
+
+    assert( mig5.get_nr_steps() >= 1 );
+
+    std::stringstream ss;
+    
+    auto pol = spec.out_inv ? 1 : 0;
+    ss << pol << " ";
+    
+    for(auto i = 0; i < spec.nr_steps; i++ )
+    {
+      ss << i + spec.nr_in + 1 << "-" << mig5.operators[i] << "-" 
+                                      << mig5.steps[i][0] 
+                                      << mig5.steps[i][1] 
+                                      << mig5.steps[i][2] 
+                                      << mig5.steps[i][3] 
+                                      << mig5.steps[i][4] << " ";
+    }
+
+    return ss.str();
   }
 
 }
