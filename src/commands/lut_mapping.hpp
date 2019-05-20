@@ -14,6 +14,7 @@
 #define LUT_MAPPING_HPP
 
 #include <mockturtle/mockturtle.hpp>
+#include <mockturtle/algorithms/satlut_mapping.hpp>
 
 namespace alice
 {
@@ -25,6 +26,7 @@ namespace alice
       {
         add_option( "cut_size, -k", cut_size, "set the cut size from 2 to 8, default = 4" );
         add_flag( "--verbose, -v", "print the information" );
+        add_flag( "--satlut, -s",  "satlut mapping" );
       }
 
       rules validity_rules() const
@@ -38,11 +40,21 @@ namespace alice
         /* derive some AIG */
         aig_network aig = store<aig_network>().current();
 
-        /* LUT mapping */
         mapping_view<aig_network, true> mapped_aig{aig};
-        lut_mapping_params ps;
-        ps.cut_enumeration_ps.cut_size = 4;
-        lut_mapping<mapping_view<aig_network, true>, true>( mapped_aig, ps );
+        
+        /* LUT mapping */
+        if( is_set( "satlut" ) )
+        {
+          satlut_mapping_params ps;
+          ps.cut_enumeration_ps.cut_size = 4;
+          satlut_mapping<mapping_view<aig_network, true>, true>(mapped_aig, ps );
+        }
+        else
+        {
+          lut_mapping_params ps;
+          ps.cut_enumeration_ps.cut_size = 4;
+          lut_mapping<mapping_view<aig_network, true>, true>( mapped_aig, ps );
+        }
 
         /* collapse into k-LUT network */
         const auto klut = *collapse_mapped_network<klut_network>( mapped_aig );
