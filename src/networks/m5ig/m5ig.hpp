@@ -221,6 +221,7 @@ public:
   signal create_maj5( signal a, signal b, signal c, signal d, signal e )
   {
     /* order inputs */
+#if 0
     std::array<signal, 5> children = { a, b, c, d, e };
     std::sort( children.begin(), children.end(), [this]( auto const& c1, auto const& c2 ) {
       return c1.index < c2.index;
@@ -247,7 +248,8 @@ public:
     else if(  c == !d && c.index != 0 ) { c = get_constant( false ); d = get_constant( true ); }
     else if(  d == !e && d.index != 0 ) { d = get_constant( false ); e = get_constant( true ); }
     else { ; } //do nothing
-    
+#endif
+
     /*  complemented edges minimization */
     auto node_complement = false;
     if ( static_cast<unsigned>( a.complement ) + static_cast<unsigned>( b.complement ) +
@@ -275,7 +277,6 @@ public:
     {
       return {it->second, node_complement};
     }
-
     const auto index = _storage->nodes.size();
 
     if ( index >= .9 * _storage->nodes.capacity() )

@@ -256,6 +256,11 @@ namespace alice
   {
      mockturtle::write_bench( xmg, filename );
   }
+  
+  ALICE_WRITE_FILE( m5ig_network, bench, m5ig, filename, cmd )
+  {
+     mockturtle::write_bench( m5ig, filename );
+  }
 
   /********************************************************************
    * Convert from aig to mig                                          *

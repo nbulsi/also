@@ -148,7 +148,8 @@ private:
     }
   }
 
-  std::vector<m5ig_network::signal> create_m5ig_from_str_vec( const std::vector<std::string> strs, const std::vector<m5ig_network::signal> signals)
+  std::vector<m5ig_network::signal> create_m5ig_from_str_vec( const std::vector<std::string> strs, 
+                                                              const std::vector<m5ig_network::signal>& signals )
   {
     auto sig = signals;
     auto size = strs.size();
@@ -157,6 +158,11 @@ private:
     std::vector<m5ig_network::signal> result;
     
     int a, b, c, d, e;
+
+    /*for( const auto& s : strs )
+    {
+      std::cout << s << std::endl;
+    }*/
 
     for( auto i = 1; i < size; i++ )
     {
@@ -170,6 +176,13 @@ private:
       d = substrs[2][3] - '0';
       e = substrs[2][4] - '0';
 
+#if 0
+      std::cout << " a: " << a << " sig[a]: " << sig[a].index << std::endl
+                << " b: " << b << " sig[b]: " << sig[b].index << std::endl
+                << " c: " << c << " sig[c]: " << sig[c].index << std::endl
+                << " d: " << d << " sig[d]: " << sig[d].index << std::endl
+                << " e: " << e << " sig[e]: " << sig[e].index << std::endl;
+#endif
       switch( std::stoi( substrs[1] ) )
       {
         case 0:
@@ -264,7 +277,20 @@ private:
 
     for( const auto e : opt_m5ig )
     {
-      class2signal.insert( std::make_pair( e.first, create_m5ig_from_str_vec( e.second, signals ) ) );
+      if( e.first == "0x0000" )
+      {
+        std::vector<m5ig_network::signal> tmp{ signals[0] };
+        class2signal.insert( std::make_pair( e.first, tmp ) );
+      }
+      else if( e.first == "0x00ff" )
+      {
+        std::vector<m5ig_network::signal> tmp{ signals[4] ^ true };
+        class2signal.insert( std::make_pair( e.first, tmp ) );
+      }
+      else
+      {
+        class2signal.insert( std::make_pair( e.first, create_m5ig_from_str_vec( e.second, signals ) ) );
+      }
     }
 
   }
