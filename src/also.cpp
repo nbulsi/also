@@ -40,6 +40,7 @@
 #include "commands/magic.hpp"
 #include "commands/write_dot.hpp"
 #include "commands/compute_opt_mig.hpp"
+#include "commands/test_tt.hpp"
 
 ALICE_MAIN( also )
 

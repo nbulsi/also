@@ -63,6 +63,7 @@ namespace alice
     {
       add_option( "truth_table,--tt", truth_table, "truth table in hex format" );
       add_flag( "--binary,-b", "read truth table as binary string" );
+      add_option( "--majn,-m", odd_inputs, "generate majority-of-n truth table " );
     }
 
     protected:
@@ -75,6 +76,19 @@ namespace alice
             kitty::dynamic_truth_table function( num_vars );
             kitty::create_from_binary_string( function, truth_table );
             return function;
+          }
+          else if( is_set( "majn" ) )
+          {
+            if( !( odd_inputs & 1 ) )
+            {
+              std::cout << " majority-of-n, n must be an odd number\n ";
+              assert( false );
+            }
+
+            kitty::dynamic_truth_table maj( odd_inputs );
+            kitty::create_majority( maj );
+            std::cout << " MAJ" << odd_inputs << " : " << kitty::to_hex( maj ) << std::endl;
+            return maj;
           }
           else
           {
@@ -90,6 +104,7 @@ namespace alice
 
     private:
       std::string truth_table;
+      unsigned odd_inputs;
   };
 
   ALICE_ADD_COMMAND( load, "Loading" );
