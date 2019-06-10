@@ -475,6 +475,31 @@ namespace also
     return s.get_num_of_sel_vars_for_each_step( step_idx );
   }
 
+  /* mig3 to expressions */
+  std::string mig3_to_string( const spec& spec, const mig3& mig3 )
+  {
+    if( mig3.get_nr_steps() == 0 )
+    {
+      return "";
+    }
+
+    assert( mig3.get_nr_steps() >= 1 );
+
+    std::stringstream ss;
+    
+    auto pol = spec.out_inv ? 1 : 0;
+    ss << pol << " ";
+    
+    for(auto i = 0; i < spec.nr_steps; i++ )
+    {
+      ss << i + spec.nr_in + 1 << "-" << mig3.operators[i] << "-" 
+                                      << mig3.steps[i][0] 
+                                      << mig3.steps[i][1] 
+                                      << mig3.steps[i][2] << " ";
+    }
+
+    return ss.str();
+  }
 
 }
 
