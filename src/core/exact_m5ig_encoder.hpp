@@ -52,7 +52,7 @@ namespace also
       int num_clauses = 0;
       std::vector<std::vector<int>> clauses;
       
-      pabc::lit pLits[2048];
+      pabc::lit pLits[65536];
       solver_wrapper* solver;
 
 
@@ -292,7 +292,7 @@ namespace also
         total_nr_vars = nr_sel_vars + nr_res_vars + nr_op_vars + nr_sim_vars;
 
         if (spec.verbosity) {
-          printf("Creating variables (MIG)\n");
+          printf("Creating variables (cegar fence)\n");
           printf("nr steps = %d\n", spec.nr_steps);
           printf("nr_sel_vars=%d\n", nr_sel_vars);
           printf("nr_res_vars=%d\n", nr_res_vars);
@@ -347,6 +347,7 @@ namespace also
       {
         auto status = true;
         int svar = 0;
+
         for(int i = 0; i < spec.nr_steps; i++ )
         {
           auto ctr = 0;
@@ -357,7 +358,7 @@ namespace also
           {
             pLits[ctr++] = pabc::Abc_Var2Lit(j, 0);
           }
-          
+
           svar += num_svar_in_current_step;
 
           status &= solver->add_clause(pLits, pLits + ctr);
