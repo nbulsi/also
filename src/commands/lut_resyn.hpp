@@ -17,6 +17,7 @@
 #include <mockturtle/algorithms/node_resynthesis/xmg_npn.hpp>
 
 #include "../networks/m5ig/m5ig_npn.hpp"
+#include "../networks/m5ig/exact_online_m3ig.hpp"
 
 namespace alice
 {
@@ -30,6 +31,7 @@ namespace alice
         add_option( "cut_size, -k", cut_size, "set the cut size from 2 to 8, default = 4" );
         add_flag( "--verbose, -v", "print the information" );
         add_flag( "--xmg, -x", "using xmg as target logic network" );
+        add_flag( "--m3ig, -m", "using m3ig as target logic network, exact_m3ig online" );
         add_flag( "--m5ig, -r", "using m5ig as target logic network" );
         add_flag( "--new_entry, -n", "adds new store entry" );
       }
@@ -65,12 +67,21 @@ namespace alice
         }
         else if( is_set( "m5ig" ) )
         {
-          m5ig_npn_resynthesis resyn;
-          const auto m5ig = node_resynthesis<m5ig_network>( klut, resyn );
+          m5ig_network m5ig;
 
-          depth_view m5ig_depth{m5ig};
-          std::cout << "[I/O:" << m5ig.num_pis() << "/" << m5ig.num_pos() << "] M5IG gates: " 
-                    << m5ig.num_gates() << " M5IG depth: " << m5ig_depth.depth() << std::endl;
+          if( cut_size <= 4 )
+          {
+            m5ig_npn_resynthesis resyn;
+            m5ig = node_resynthesis<m5ig_network>( klut, resyn );
+
+            depth_view m5ig_depth{m5ig};
+            std::cout << "[I/O:" << m5ig.num_pis() << "/" << m5ig.num_pos() << "] M5IG gates: " 
+              << m5ig.num_gates() << " M5IG depth: " << m5ig_depth.depth() << std::endl;
+          }
+          else
+          {
+            /*TODO: compute m5ig online */
+          }
 
           /* add to store */
           if( is_set( "new_entry" ) )
@@ -78,6 +89,33 @@ namespace alice
             store<m5ig_network>().extend(); 
             store<m5ig_network>().current() = m5ig;
           }
+        }
+        else if( is_set( "m3ig" ) )
+        {
+          /***************************************************************/
+          /* This is an example to generate an MIG by exact_m3ig online  */
+          /***************************************************************/
+          kitty::dynamic_truth_table maj( 5u );
+          kitty::create_majority( maj );
+
+          mig_network mig;
+          const auto a = mig.get_constant( false );
+          const auto b = mig.create_pi();
+          const auto c = mig.create_pi();
+          const auto d = mig.create_pi();
+          const auto e = mig.create_pi();
+          const auto f = mig.create_pi();
+
+          std::vector<mig_network::signal> pis = {a, b, c, d, e, f};
+
+          also::exact_mig_resynthesis<mig_network> resyn;
+          resyn( mig, maj, pis.begin(), pis.end(), [&]( auto const& f ) { 
+              mig.create_po( f );
+              } );
+          
+          depth_view mig_depth{mig};
+          std::cout << "[I/O:" << mig.num_pis() << "/" << mig.num_pos() << "] MIG gates: " 
+                    << mig.num_gates() << " MIG depth: " << mig_depth.depth() << std::endl;
         }
         else
         {
