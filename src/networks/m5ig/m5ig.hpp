@@ -474,7 +474,7 @@ public:
     if( is_three_signals_equal( child1, child2, child3 ) ) { return std::make_pair( n, child1 ); }
     if( is_three_signals_equal( child1, child2, child4 ) ) { return std::make_pair( n, child1 ); }
     if( is_three_signals_equal( child2, child3, child4 ) ) { return std::make_pair( n, child2 ); }
-
+    
     // node already in hash table
     storage::element_type::node_type _hash_obj;
     _hash_obj.children[0] = child0;
@@ -868,6 +868,19 @@ public:
 #pragma endregion
 
 #pragma region Value simulation
+  kitty::dynamic_truth_table maj5(  kitty::dynamic_truth_table a,
+                                    kitty::dynamic_truth_table b,
+                                    kitty::dynamic_truth_table c,
+                                    kitty::dynamic_truth_table d,
+                                    kitty::dynamic_truth_table e ) const 
+  {
+    auto m1 = kitty::ternary_majority( a, b, c );
+    auto m2 = kitty::ternary_majority( a, b, d );
+    auto m3 = kitty::ternary_majority( m2, c, d );
+
+    return kitty::ternary_majority( m1, m3, e );
+  }
+
   template<typename Iterator>
   iterates_over_t<Iterator, bool>
   compute( node const& n, Iterator begin, Iterator end ) const
@@ -919,13 +932,12 @@ public:
     auto tt3 = *begin++;
     auto tt4 = *begin++;
     auto tt5 = *begin++;
-    
-    auto m1 = kitty::ternary_majority( c1.weight ? ~tt1 : tt1, c2.weight ? ~tt2 : tt2, c3.weight ? ~tt3 : tt3 );
-    auto m2 = kitty::ternary_majority( c2.weight ? ~tt2 : tt2, c3.weight ? ~tt3 : tt3, c4.weight ? ~tt4 : tt4 );
-    auto m3 = kitty::ternary_majority( m2, c4.weight ? ~tt4 : tt4, c5.weight ? ~tt5 : tt5 );
-    auto m4 = kitty::ternary_majority( m1, m3, c1.weight ? ~tt1 : tt1 );
 
-    return m4;
+    return maj5( c1.weight ? ~tt1 : tt1,
+                 c2.weight ? ~tt2 : tt2,
+                 c3.weight ? ~tt3 : tt3,
+                 c4.weight ? ~tt4 : tt4,
+                 c5.weight ? ~tt5 : tt5 );
   }
 #pragma endregion
 
