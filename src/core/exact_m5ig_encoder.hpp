@@ -1545,7 +1545,7 @@ namespace also
          if (status == success) 
          {
            encoder.extract_mig5(spec, mig5, false);
-           std::cout << "[i] simulation tt: " << kitty::to_hex( mig5.simulate()[0] ) << std::endl;
+           //std::cout << "[i] simulation tt: " << kitty::to_hex( mig5.simulate()[0] ) << std::endl;
            return success;
          } 
          else 
@@ -1712,7 +1712,7 @@ namespace also
                                 if (!(*pfound)) 
                                 {
                                     encoder.fence_extract_mig5(spec, mig5, local_fence, false );
-                                    std::cout << "[i] simulation tt: " << kitty::to_hex( mig5.simulate()[0] ) << std::endl;
+                                    //std::cout << "[i] simulation tt: " << kitty::to_hex( mig5.simulate()[0] ) << std::endl;
                                     *pfound = true;
                                 }
                             }
@@ -1840,7 +1840,7 @@ namespace also
                                 {
                                     encoder.fence_extract_mig5(spec, mig5, local_fence, false);
                                     *pfound = true;
-                                    std::cout << "simulation tt: " << kitty::to_hex( mig5.simulate()[0] ) << std::endl;
+                                    //std::cout << "simulation tt: " << kitty::to_hex( mig5.simulate()[0] ) << std::endl;
                                 }
                             }
                           } while (status == timeout);

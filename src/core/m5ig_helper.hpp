@@ -54,6 +54,24 @@ namespace also
         {
             reset(0, 0, 0);
         }
+        
+        std::array<int,5> get_step_inputs( int i )
+        {
+          std::array<int, 5> array;
+
+          array[0] = steps[i][0];
+          array[1] = steps[i][1];
+          array[2] = steps[i][2];
+          array[3] = steps[i][3];
+          array[4] = steps[i][4];
+
+          return array;
+        }
+
+        int get_op( int i)
+        {
+          return operators[i];
+        }
 
         void reset(int _nr_in, int _nr_out, int _nr_steps)
         {

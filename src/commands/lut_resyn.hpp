@@ -16,8 +16,10 @@
 #include <mockturtle/mockturtle.hpp>
 #include <mockturtle/algorithms/node_resynthesis/xmg_npn.hpp>
 
+#include "../networks/m5ig/m5ig.hpp"
 #include "../networks/m5ig/m5ig_npn.hpp"
 #include "../networks/m5ig/exact_online_m3ig.hpp"
+#include "../networks/m5ig/exact_online_m5ig.hpp"
 
 namespace alice
 {
@@ -31,7 +33,8 @@ namespace alice
         add_option( "cut_size, -k", cut_size, "set the cut size from 2 to 8, default = 4" );
         add_flag( "--verbose, -v", "print the information" );
         add_flag( "--xmg, -x", "using xmg as target logic network" );
-        add_flag( "--m3ig, -m", "using m3ig as target logic network, exact_m3ig online" );
+        add_flag( "--test_m3ig", "using m3ig as target logic network, exact_m3ig online" );
+        add_flag( "--test_m5ig", "using m5ig as target logic network, exact_m5ig online" );
         add_flag( "--m5ig, -r", "using m5ig as target logic network" );
         add_flag( "--new_entry, -n", "adds new store entry" );
       }
@@ -90,7 +93,7 @@ namespace alice
             store<m5ig_network>().current() = m5ig;
           }
         }
-        else if( is_set( "m3ig" ) )
+        else if( is_set( "test_m3ig" ) )
         {
           /***************************************************************/
           /* This is an example to generate an MIG by exact_m3ig online  */
@@ -116,6 +119,35 @@ namespace alice
           depth_view mig_depth{mig};
           std::cout << "[I/O:" << mig.num_pis() << "/" << mig.num_pos() << "] MIG gates: " 
                     << mig.num_gates() << " MIG depth: " << mig_depth.depth() << std::endl;
+        }
+        else if( is_set( "test_m5ig" ) )
+        {
+          /***************************************************************/
+          /* This is an example to generate an M5IG by exact_m5ig online  */
+          /***************************************************************/
+          //kitty::dynamic_truth_table maj( 5u );
+          //kitty::create_majority( maj );
+          kitty::dynamic_truth_table maj( 5u );
+          kitty::create_from_hex_string( maj, "fee8e88a" );
+
+          m5ig_network m5ig;
+          const auto a = m5ig.get_constant( false );
+          const auto b = m5ig.create_pi();
+          const auto c = m5ig.create_pi();
+          const auto d = m5ig.create_pi();
+          const auto e = m5ig.create_pi();
+          const auto f = m5ig.create_pi();
+
+          std::vector<m5ig_network::signal> pis = {a, b, c, d, e, f};
+
+          also::exact_m5ig_resynthesis<m5ig_network> resyn;
+          resyn( m5ig, maj, pis.begin(), pis.end(), [&]( auto const& f ) { 
+              m5ig.create_po( f );
+              } );
+          
+          depth_view m5ig_depth{m5ig};
+          std::cout << "[I/O:" << m5ig.num_pis() << "/" << m5ig.num_pos() << "] M5IG gates: " 
+                    << m5ig.num_gates() << " M5IG depth: " << m5ig_depth.depth() << std::endl;
         }
         else
         {
