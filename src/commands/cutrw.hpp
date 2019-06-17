@@ -83,7 +83,8 @@ namespace alice
           cut_rewriting_params ps;
           //ps.very_verbose = true;
           //ps.progress = true;
-          ps.cut_enumeration_ps.cut_size = 5u;
+          ps.allow_zero_gain = false;
+          ps.cut_enumeration_ps.cut_size = 4u;
           cut_rewriting( m5ig, resyn, ps );
           m5ig = cleanup_dangling( m5ig );
 
