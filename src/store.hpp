@@ -126,6 +126,14 @@ namespace alice
     return fmt::format( "{} nodes", element.size() );
   }
   
+  ALICE_PRINT_STORE_STATISTICS( klut_network, os, lut )
+  {
+    mockturtle::depth_view depth_lut{lut};
+    os << fmt::format( "LUTs   i/o = {}/{}   gates = {}   level = {}", 
+          lut.num_pis(), lut.num_pos(), lut.num_gates(), depth_lut.depth() );
+    os << "\n";
+  }
+  
   /* opt_network */
   class optimum_network
   {
