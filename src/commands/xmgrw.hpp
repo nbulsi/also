@@ -24,7 +24,7 @@ namespace alice
   class xmgrw_command : public command
   {
     public:
-      explicit xmgrw_command( const environment::ptr& env ) : command( env, "Performs algebraic MIG rewriting" )
+      explicit xmgrw_command( const environment::ptr& env ) : command( env, "Performs algebraic XMG rewriting" )
       {
         add_option( "strategy, -s", strategy, "dfs = 0, aggressive = 1, selective = 2, qca = 3" );
         add_flag( "--area_aware", "do not increase area" );
