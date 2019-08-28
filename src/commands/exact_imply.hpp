@@ -40,6 +40,7 @@
 
 #include "../store.hpp"
 #include "../core/exact_img.hpp"
+#include "../core/img_encoder.hpp"
 
 namespace alice
 {
@@ -50,6 +51,7 @@ namespace alice
       explicit exact_imply_command( const environment::ptr& env ) : command( env, "using exact synthesis to find optimal imgs" )
       {
         add_flag( "--verbose, -v",  "print the information" );
+        add_flag( "--implication_encoder, -i",      "exact synthesis using implication encoder" );
       }
 
       rules validity_rules() const
@@ -69,7 +71,15 @@ namespace alice
         }
 
         auto& opt = store<optimum_network>().current();
-        also::img_syn( opt.function, verb );
+
+        if( is_set( "implication_encoder" ) )
+        {
+          also::nbu_img_encoder_test( opt.function );
+        }
+        else
+        {
+          also::img_from_aig_syn( opt.function, verb );
+        }
       }
 
   };
