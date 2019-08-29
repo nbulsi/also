@@ -348,10 +348,16 @@ namespace also
         }
         
         const auto sim_var = get_sim_var(spec, ilast_step, t);
+        std::cout << "t: " << t << " outbit: " << outbit << " sim_var: " << sim_var << std::endl;
         pabc::lit sim_lit = pabc::Abc_Var2Lit(sim_var, 1 - outbit);
         if( print_clause ) { print_sat_clause( solver, &sim_lit, &sim_lit + 1 ); }
         if( write_cnf_file ) { add_print_clause( clauses, &sim_lit, &sim_lit + 1); }
         return solver->add_clause(&sim_lit, &sim_lit + 1);
+      }
+
+      int getbit( int i, int t) //truth table of ith value on position t
+      {
+          return ( ( t + 1) & ( 1 << i ) ) ? 1 : 0;
       }
 
       /*
@@ -367,6 +373,7 @@ namespace also
       {
         int ctr = 0;
         bool ret = true;
+        bool flag_clause_true = false;
 
         pabc::lit ptmp[9];
 
@@ -375,17 +382,49 @@ namespace also
         ptmp[2] = pabc::Abc_Var2Lit(get_sim_var(spec, i, t), 1); // ~x_it
         ptmp[3] = pabc::Abc_Var2Lit(get_ext_var(spec, i, t), 0); //  c_it
         ptmp[4] = pabc::Abc_Var2Lit(get_ext_var(spec, i, t), 1); // ~c_it
-        ptmp[5] = pabc::Abc_Var2Lit(get_sim_var(spec, j - spec.nr_in, t), 0); // x_jt
-        ptmp[6] = pabc::Abc_Var2Lit(get_sim_var(spec, j - spec.nr_in, t), 1); // ~x_jt
-        ptmp[7] = pabc::Abc_Var2Lit(get_sim_var(spec, k - spec.nr_in, t), 0); // x_kt
-        ptmp[8] = pabc::Abc_Var2Lit(get_sim_var(spec, k - spec.nr_in, t), 1); // ~x_kt
+     
+        /*
+        if( j < spec.nr_in )
+        {
+        }
+        else
+        {
+          ptmp[5] = pabc::Abc_Var2Lit(get_sim_var(spec, j - spec.nr_in, t), 0); // x_jt
+          ptmp[6] = pabc::Abc_Var2Lit(get_sim_var(spec, j - spec.nr_in, t), 1); // ~x_jt
+        }
+        
+        if( k < spec.nr_in )
+        {
+          ptmp[7] = pabc::Abc_Var2Lit(get_sim_var(spec, k - spec.nr_in, t), 0); // x_kt
+          ptmp[8] = pabc::Abc_Var2Lit(get_sim_var(spec, k - spec.nr_in, t), 1); // ~x_kt
+        }*/
 
         //first
         pLits[ctr++] = ptmp[0];
         pLits[ctr++] = ptmp[2];
-        pLits[ctr++] = ptmp[6];
-        pLits[ctr++] = ptmp[7];
-        ret &= solver->add_clause(pLits, pLits + ctr);
+        
+        if( j < spec.nr_in && getbit( j, t ) == 0 ) 
+        {
+          flag_clause_true = true;
+        }
+        else
+        {
+          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, j - spec.nr_in, t), 1); // ~x_jt
+        }
+        
+        if( k < spec.nr_in && getbit( k, t ) == 1 ) 
+        {
+          flag_clause_true = true;
+        }
+        else
+        {
+          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, k - spec.nr_in, t), 0); // x_kt
+        }
+
+        if( !flag_clause_true )
+        {
+          ret &= solver->add_clause(pLits, pLits + ctr);
+        }
 
         //second
         /*ctr = 0;
@@ -396,28 +435,70 @@ namespace also
         
         //third
         ctr = 0;
+        flag_clause_true = false;
         pLits[ctr++] = ptmp[0];
         pLits[ctr++] = ptmp[1];
-        pLits[ctr++] = ptmp[6];
-        pLits[ctr++] = ptmp[7];
         pLits[ctr++] = ptmp[3];
-        ret &= solver->add_clause(pLits, pLits + ctr);
+        if( j < spec.nr_in && getbit( j, t ) == 0 ) 
+        {
+          flag_clause_true = true;
+        }
+        else
+        {
+          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, j - spec.nr_in, t), 1); // ~x_jt
+        }
+        
+        if( k < spec.nr_in && getbit( k, t ) == 1 ) 
+        {
+          flag_clause_true = true;
+        }
+        else
+        {
+          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, k - spec.nr_in, t), 0); // x_kt
+        }
+
+        if( !flag_clause_true )
+        {
+          ret &= solver->add_clause(pLits, pLits + ctr);
+        }
         
         //fourth
         ctr = 0;
+        flag_clause_true = false;
         pLits[ctr++] = ptmp[0];
         pLits[ctr++] = ptmp[1];
-        pLits[ctr++] = ptmp[5];
         pLits[ctr++] = ptmp[4];
-        ret &= solver->add_clause(pLits, pLits + ctr);
+        if( j < spec.nr_in && getbit( j, t ) == 1 ) 
+        {
+          flag_clause_true = true;
+        }
+        else
+        {
+          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, j - spec.nr_in, t), 0); // x_jt
+        }
+        if( !flag_clause_true )
+        {
+          ret &= solver->add_clause(pLits, pLits + ctr);
+        }
         
         //fifth
         ctr = 0;
+        flag_clause_true = false;
         pLits[ctr++] = ptmp[0];
         pLits[ctr++] = ptmp[1];
-        pLits[ctr++] = ptmp[8];
         pLits[ctr++] = ptmp[4];
-        ret &= solver->add_clause(pLits, pLits + ctr);
+        if( k < spec.nr_in && getbit( k, t ) == 0 ) 
+        {
+          flag_clause_true = true;
+        }
+        else
+        {
+          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, k - spec.nr_in, t), 1); // ~x_kt
+        }
+        if( !flag_clause_true )
+        {
+          ret &= solver->add_clause(pLits, pLits + ctr);
+        }
         return ret;
       }
       /*bool add_simulation_clause(
@@ -480,14 +561,48 @@ namespace also
         int  ctr = 0;
         bool ret = true;
 
+        bool flag_clause_true = false;
+
         pLits[ctr++] = pabc::Abc_Var2Lit(sel_var, 1);
         pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, i, t), 0);
-        pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, j - spec.nr_in, t), 0);
-        ret &= solver->add_clause(pLits, pLits + ctr);
+        if( j < spec.nr_in )
+        {
+          if( getbit( j, t ) == 1 )
+          {
+            flag_clause_true = true;
+          }
+        }
+        else
+        {
+          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, j - spec.nr_in, t), 0 );
+        }
+
+        if( !flag_clause_true )
+        {
+          ret &= solver->add_clause(pLits, pLits + ctr); // ~s_ij0 + x_it + x_jt
+        }
         
-        pLits[ctr - 2] = pabc::Abc_Var2Lit(get_sim_var(spec, i, t), 0);
-        pLits[ctr - 1] = pabc::Abc_Var2Lit(get_sim_var(spec, j - spec.nr_in, t), 0);
-        ret &= solver->add_clause(pLits, pLits + ctr);
+        flag_clause_true = false;
+        ctr = 0;
+        pLits[ctr++] = pabc::Abc_Var2Lit(sel_var, 1);
+        pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, i, t), 1);
+        
+        if( j < spec.nr_in )
+        {
+          if( getbit( j, t ) == 0 )
+          {
+            flag_clause_true = true;
+          }
+        }
+        else
+        {
+          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, j - spec.nr_in, t), 1 );
+        }
+
+        if( !flag_clause_true )
+        {
+          ret &= solver->add_clause(pLits, pLits + ctr);
+        }
 
         return ret;
       }
