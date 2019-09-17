@@ -131,7 +131,7 @@ namespace also
 
       while (next_solution(spec, c, solver, encoder) == success) 
       {
-        //c.print_expression();
+        c.print_expression();
         auto tts = c.simulate();
         assert( tts[0] == spec[0] );
         assert( c.is_aig() );

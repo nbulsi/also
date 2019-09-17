@@ -358,7 +358,7 @@ namespace also
       int getbit( int i, int t) //truth table of ith value on position t
       {
         assert( i <= nr_in );
-        assert( i != 0 );
+        if( i == 0 ) return 0;
         kitty::dynamic_truth_table nth_tt( nr_in );
         kitty::create_nth_var( nth_tt, i - 1 );
         return kitty::get_bit( nth_tt, t );
@@ -676,7 +676,8 @@ namespace also
           
           if( k == 0 )
           {
-            ret &= add_const_simulation_clause( spec, t, i, j, s );
+            //ret &= add_const_simulation_clause( spec, t, i, j, s );
+            ret &= add_simulation_clause( spec, t, i, j, k, s );
           }
           else
           {
