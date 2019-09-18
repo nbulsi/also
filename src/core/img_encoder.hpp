@@ -175,9 +175,9 @@ namespace also
         return sim_offset + ( spec.tt_size + 1 ) * step_idx + t;
       }
       
-      int get_ext_var( const spec& spec, int step_idx, int t ) const
+      int get_ext_var( const spec& spec, int step_idx, int sel_var, int t ) const
       {
-        return ext_offset + ( spec.tt_size + 1 ) * step_idx + t;
+        return ext_offset + ( spec.tt_size + 1 ) * step_idx + sel_var * tt_size  + t;
       }
       
     public:
@@ -212,7 +212,7 @@ namespace also
         
         /* number of truth table simulation variables */
         nr_sim_vars = spec.nr_steps * tt_size;
-        nr_ext_vars = nr_sim_vars;
+        nr_ext_vars = nr_sim_vars * nr_sel_vars;
         
         /* offsets, this is used to find varibles correspondence */
         sel_offset  = 0;
@@ -365,9 +365,166 @@ namespace also
         //return ( ( t + 1) & ( 1 << i ) ) ? 1 : 0;
       }
 
+      bool add_simulation_clause( 
+                                  const spec& spec,
+                                  const int t,
+                                  const int i,
+                                  const int j,
+                                  const int k,
+                                  const int sel_var )
+      {
+        int ctr = 0;
+        bool ret = true;
+        bool flag_clause_true = false;
+
+        pabc::lit ptmp[9];
+
+        ptmp[0] = pabc::Abc_Var2Lit(sel_var, 1); // ~s_ijk
+        ptmp[1] = pabc::Abc_Var2Lit(get_sim_var(spec, i, t), 0); //  x_it
+        ptmp[2] = pabc::Abc_Var2Lit(get_sim_var(spec, i, t), 1); // ~x_it
+        ptmp[3] = pabc::Abc_Var2Lit(get_ext_var(spec, i, sel_var, t), 0); //  c_it
+        ptmp[4] = pabc::Abc_Var2Lit(get_ext_var(spec, i, sel_var, t), 1); // ~c_it
+     
+
+        //first
+        pLits[ctr++] = ptmp[0];
+        pLits[ctr++] = ptmp[2];
+        
+        
+        if( j <= spec.nr_in ) 
+        {
+          if( getbit( j, t ) == 0 )
+          {
+            flag_clause_true = true;
+          }
+        }
+        else
+        {
+          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, j - spec.nr_in - 1, t), 1); // ~x_jt
+        }
+        
+        if( k <= spec.nr_in  ) 
+        {
+          if( getbit( k, t ) == 1 )
+          {
+            flag_clause_true = true;
+          }
+        }
+        else
+        {
+          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, k - spec.nr_in - 1, t), 0); // x_kt
+        }
+
+        if( !flag_clause_true )
+        {
+          ret &= solver->add_clause(pLits, pLits + ctr);
+          if( write_cnf_file ) { add_print_clause( clauses, pLits, pLits + ctr); }
+          if( print_clause ) { std::cout << "case 0"; print_sat_clause( solver, pLits, pLits + ctr); }
+        }
+
+        //second
+        ctr = 0;
+        pLits[ctr++] = ptmp[0];
+        pLits[ctr++] = ptmp[1];
+        pLits[ctr++] = ptmp[3];
+        
+        ret &= solver->add_clause(pLits, pLits + ctr);
+        if( write_cnf_file ) { add_print_clause( clauses, pLits, pLits + ctr); }
+        if( print_clause ) { std::cout << "case 1"; print_sat_clause( solver, pLits, pLits + ctr); }
+
+        //third ~x_jt + x_kt + c_it
+        ctr = 0;
+        flag_clause_true = false;
+
+        if( j <= spec.nr_in ) 
+        {
+          if( getbit( j, t ) == 0 )
+          {
+            flag_clause_true = true;
+          }
+        }
+        else
+        {
+          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, j - spec.nr_in - 1, t), 1); // ~x_jt
+        }
+        
+        if( k <= spec.nr_in  ) 
+        {
+          if( getbit( k, t ) == 1 )
+          {
+            flag_clause_true = true;
+          }
+        }
+        else
+        {
+          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, k - spec.nr_in - 1, t), 0); // x_kt
+        }
+        
+        pLits[ctr++] = ptmp[3]; // c_it
+        
+        if( !flag_clause_true )
+        {
+          ret &= solver->add_clause(pLits, pLits + ctr);
+          if( write_cnf_file ) { add_print_clause( clauses, pLits, pLits + ctr); }
+          if( print_clause ) { std::cout << "case 2"; print_sat_clause( solver, pLits, pLits + ctr); }
+        }
+
+        //fouth x_jt + ~c_it
+        ctr = 0;
+        flag_clause_true = false;
+
+        if( j <= spec.nr_in ) 
+        {
+          if( getbit( j, t ) == 1 )
+          {
+            flag_clause_true = true;
+          }
+        }
+        else
+        {
+          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, j - spec.nr_in - 1, t), 0); // x_jt
+        }
+        
+        pLits[ctr++] = ptmp[4]; // ~c_it
+        if( !flag_clause_true )
+        {
+          ret &= solver->add_clause(pLits, pLits + ctr);
+          if( write_cnf_file ) { add_print_clause( clauses, pLits, pLits + ctr); }
+          if( print_clause ) { std::cout << "case 3"; print_sat_clause( solver, pLits, pLits + ctr); }
+        }
+
+        //fifth
+        ctr = 0;
+        flag_clause_true = false;
+        
+        if( k <= spec.nr_in  ) 
+        {
+          if( getbit( k, t ) == 0 )
+          {
+            flag_clause_true = true;
+          }
+        }
+        else
+        {
+          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, k - spec.nr_in - 1, t), 1); // ~x_kt
+        }
+        
+        pLits[ctr++] = ptmp[4]; // ~c_it
+        
+        if( !flag_clause_true )
+        {
+          ret &= solver->add_clause(pLits, pLits + ctr);
+          if( write_cnf_file ) { add_print_clause( clauses, pLits, pLits + ctr); }
+          if( print_clause ) { std::cout << "case 4"; print_sat_clause( solver, pLits, pLits + ctr); }
+        }
+        
+        return ret;
+      }
+
       /*
        * for the select variable s_i_jk
        * */
+  /*
       bool add_simulation_clause( 
                                   const spec& spec,
                                   const int t,
@@ -511,7 +668,8 @@ namespace also
           if( print_clause ) { std::cout << "case 3"; print_sat_clause( solver, pLits, pLits + ctr); }
         }
         return ret;
-      }
+      }*/
+
       /*bool add_simulation_clause(
           const spec& spec,
           const int t,
