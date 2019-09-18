@@ -153,8 +153,8 @@ namespace also
       int total_nr_vars;
 
       bool dirty = false;
-      bool print_clause = true;
-      bool write_cnf_file = true;
+      bool print_clause = false;
+      bool write_cnf_file = false;
 
       int num_clauses = 0;
       std::vector<std::vector<int>> clauses;
@@ -259,7 +259,10 @@ namespace also
           return false;
         }
 
-        show_variable_correspondence( spec );
+        if( spec.verbosity) 
+        {
+          show_variable_correspondence( spec );
+        }
         
         if( write_cnf_file )
         {
@@ -320,23 +323,6 @@ namespace also
         return status;
       }
 
-      /*bool create_op_clauses( const spec& spec )
-      {
-        bool ret = true;
-        for( auto i = 0; i < spec.nr_steps; i++ )
-        {
-          int ctr = 0;
-          pLits[ctr++] = pabc::Abc_Var2Lit( get_op_var( spec, i, 0 ) , 0 );
-          
-          if( print_clause ) { print_sat_clause( solver, pLits, pLits + ctr ); }
-          if( write_cnf_file ) { add_print_clause( clauses, pLits, pLits + ctr ); }
-          ret &= solver->add_clause(pLits, pLits + ctr);
-        }
-        
-        assert( ret );
-        return ret;
-      }*/
-      
       bool fix_output_sim_vars(const spec& spec, int t)
       {
         const auto ilast_step = spec.nr_steps - 1;
@@ -344,11 +330,11 @@ namespace also
         
         if ((spec.out_inv >> spec.synth_func(0)) & 1) 
         {
-          //outbit = 1 - outbit;
+          //HERE we do not require a function is NORMAL
+          //outbit = 1 - outbit; 
         }
         
         const auto sim_var = get_sim_var(spec, ilast_step, t);
-        //std::cout << "t: " << t << " outbit: " << outbit << " sim_var: " << sim_var << std::endl;
         pabc::lit sim_lit = pabc::Abc_Var2Lit(sim_var, 1 - outbit);
         if( print_clause ) { print_sat_clause( solver, &sim_lit, &sim_lit + 1 ); }
         if( write_cnf_file ) { add_print_clause( clauses, &sim_lit, &sim_lit + 1); }
@@ -364,7 +350,10 @@ namespace also
         return kitty::get_bit( nth_tt, t );
         //return ( ( t + 1) & ( 1 << i ) ) ? 1 : 0;
       }
-
+      
+      /*
+       * for the select variable s_i_jk
+       * */
       bool add_simulation_clause( 
                                   const spec& spec,
                                   const int t,
@@ -373,6 +362,9 @@ namespace also
                                   const int k,
                                   const int sel_var )
       {
+        /****************************************************************
+         * Initialization
+         ***************************************************************/
         int ctr = 0;
         bool ret = true;
         bool flag_clause_true = false;
@@ -382,11 +374,14 @@ namespace also
         ptmp[0] = pabc::Abc_Var2Lit(sel_var, 1); // ~s_ijk
         ptmp[1] = pabc::Abc_Var2Lit(get_sim_var(spec, i, t), 0); //  x_it
         ptmp[2] = pabc::Abc_Var2Lit(get_sim_var(spec, i, t), 1); // ~x_it
-        ptmp[3] = pabc::Abc_Var2Lit(get_ext_var(spec, i, sel_var, t), 0); //  c_it
-        ptmp[4] = pabc::Abc_Var2Lit(get_ext_var(spec, i, sel_var, t), 1); // ~c_it
+        ptmp[3] = pabc::Abc_Var2Lit(get_ext_var(spec, i, sel_var, t), 0); //  c_jkt
+        ptmp[4] = pabc::Abc_Var2Lit(get_ext_var(spec, i, sel_var, t), 1); // ~c_jkt
      
 
-        //first
+        /****************************************************************
+         * first clause
+         * ~s_ijk + ~x_it + ~x_jt + x_kt
+         ***************************************************************/
         pLits[ctr++] = ptmp[0];
         pLits[ctr++] = ptmp[2];
         
@@ -419,10 +414,13 @@ namespace also
         {
           ret &= solver->add_clause(pLits, pLits + ctr);
           if( write_cnf_file ) { add_print_clause( clauses, pLits, pLits + ctr); }
-          if( print_clause ) { std::cout << "case 0"; print_sat_clause( solver, pLits, pLits + ctr); }
+          if( print_clause ) { std::cout << "case 0 "; print_sat_clause( solver, pLits, pLits + ctr); }
         }
 
-        //second
+        /****************************************************************
+         * second clause
+         * ~s_ijk + x_it + c_jkt
+         ***************************************************************/
         ctr = 0;
         pLits[ctr++] = ptmp[0];
         pLits[ctr++] = ptmp[1];
@@ -430,9 +428,12 @@ namespace also
         
         ret &= solver->add_clause(pLits, pLits + ctr);
         if( write_cnf_file ) { add_print_clause( clauses, pLits, pLits + ctr); }
-        if( print_clause ) { std::cout << "case 1"; print_sat_clause( solver, pLits, pLits + ctr); }
+        if( print_clause ) { std::cout << "case 1 "; print_sat_clause( solver, pLits, pLits + ctr); }
 
-        //third ~x_jt + x_kt + c_it
+        /****************************************************************
+         * third clause
+         * ~x_jt + x_kt + c_jkt
+         ***************************************************************/
         ctr = 0;
         flag_clause_true = false;
 
@@ -466,10 +467,13 @@ namespace also
         {
           ret &= solver->add_clause(pLits, pLits + ctr);
           if( write_cnf_file ) { add_print_clause( clauses, pLits, pLits + ctr); }
-          if( print_clause ) { std::cout << "case 2"; print_sat_clause( solver, pLits, pLits + ctr); }
+          if( print_clause ) { std::cout << "case 2 "; print_sat_clause( solver, pLits, pLits + ctr); }
         }
 
-        //fouth x_jt + ~c_it
+        /****************************************************************
+         * fouth clause
+         * x_jt + ~c_jkt
+         ***************************************************************/
         ctr = 0;
         flag_clause_true = false;
 
@@ -490,10 +494,13 @@ namespace also
         {
           ret &= solver->add_clause(pLits, pLits + ctr);
           if( write_cnf_file ) { add_print_clause( clauses, pLits, pLits + ctr); }
-          if( print_clause ) { std::cout << "case 3"; print_sat_clause( solver, pLits, pLits + ctr); }
+          if( print_clause ) { std::cout << "case 3 "; print_sat_clause( solver, pLits, pLits + ctr); }
         }
 
-        //fifth
+        /****************************************************************
+         * fifth clause
+         * ~x_kt + ~c_jkt
+         ***************************************************************/
         ctr = 0;
         flag_clause_true = false;
         
@@ -515,308 +522,11 @@ namespace also
         {
           ret &= solver->add_clause(pLits, pLits + ctr);
           if( write_cnf_file ) { add_print_clause( clauses, pLits, pLits + ctr); }
-          if( print_clause ) { std::cout << "case 4"; print_sat_clause( solver, pLits, pLits + ctr); }
+          if( print_clause ) { std::cout << "case 4 "; print_sat_clause( solver, pLits, pLits + ctr); }
         }
         
         return ret;
       }
-
-      /*
-       * for the select variable s_i_jk
-       * */
-  /*
-      bool add_simulation_clause( 
-                                  const spec& spec,
-                                  const int t,
-                                  const int i,
-                                  const int j,
-                                  const int k,
-                                  const int sel_var )
-      {
-        int ctr = 0;
-        bool ret = true;
-        bool flag_clause_true = false;
-
-        pabc::lit ptmp[9];
-
-        ptmp[0] = pabc::Abc_Var2Lit(sel_var, 1); // ~s_ijk
-        ptmp[1] = pabc::Abc_Var2Lit(get_sim_var(spec, i, t), 0); //  x_it
-        ptmp[2] = pabc::Abc_Var2Lit(get_sim_var(spec, i, t), 1); // ~x_it
-        ptmp[3] = pabc::Abc_Var2Lit(get_ext_var(spec, i, t), 0); //  c_it
-        ptmp[4] = pabc::Abc_Var2Lit(get_ext_var(spec, i, t), 1); // ~c_it
-     
-
-        //first
-        pLits[ctr++] = ptmp[0];
-        pLits[ctr++] = ptmp[2];
-        
-        
-        if( j <= spec.nr_in ) 
-        {
-          if( getbit( j, t ) == 0 )
-          {
-            flag_clause_true = true;
-          }
-        }
-        else
-        {
-          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, j - spec.nr_in - 1, t), 1); // ~x_jt
-        }
-        
-        if( k <= spec.nr_in  ) 
-        {
-          if( getbit( k, t ) == 1 )
-          {
-            flag_clause_true = true;
-          }
-        }
-        else
-        {
-          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, k - spec.nr_in - 1, t), 0); // x_kt
-        }
-
-        if( !flag_clause_true )
-        {
-          ret &= solver->add_clause(pLits, pLits + ctr);
-          if( write_cnf_file ) { add_print_clause( clauses, pLits, pLits + ctr); }
-          if( print_clause ) { std::cout << "case 0"; print_sat_clause( solver, pLits, pLits + ctr); }
-        }
-
-        //third
-        ctr = 0;
-        flag_clause_true = false;
-        pLits[ctr++] = ptmp[0];
-        pLits[ctr++] = ptmp[1];
-        pLits[ctr++] = ptmp[3];
-        if( j <= spec.nr_in  ) 
-        {
-          if( getbit( j, t ) == 0 )
-          {
-            flag_clause_true = true;
-          }
-        }
-        else
-        {
-          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, j - spec.nr_in - 1, t), 1); // ~x_jt
-        }
-        
-        if( k <= spec.nr_in  ) 
-        {
-          if( getbit( k, t ) == 1 )
-          {
-            flag_clause_true = true;
-          }
-        }
-        else
-        {
-          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, k - spec.nr_in - 1, t), 0); // x_kt
-        }
-
-        if( !flag_clause_true )
-        {
-          ret &= solver->add_clause(pLits, pLits + ctr);
-          if( write_cnf_file ) { add_print_clause( clauses, pLits, pLits + ctr); }
-          if( print_clause ) { std::cout << "case 1"; print_sat_clause( solver, pLits, pLits + ctr); }
-        }
-        
-        //fourth
-        ctr = 0;
-        flag_clause_true = false;
-        pLits[ctr++] = ptmp[0];
-        pLits[ctr++] = ptmp[1];
-        pLits[ctr++] = ptmp[4];
-        if( j <= spec.nr_in  ) 
-        {
-          if( getbit( j, t ) == 1 )
-          {
-            flag_clause_true = true;
-          }
-        }
-        else
-        {
-          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, j - spec.nr_in - 1, t), 0); // x_jt
-        }
-        if( !flag_clause_true )
-        {
-          ret &= solver->add_clause(pLits, pLits + ctr);
-          if( write_cnf_file ) { add_print_clause( clauses, pLits, pLits + ctr); }
-          if( print_clause ) { std::cout << "case 2"; print_sat_clause( solver, pLits, pLits + ctr); }
-        }
-        
-        //fifth
-        ctr = 0;
-        flag_clause_true = false;
-        pLits[ctr++] = ptmp[0];
-        pLits[ctr++] = ptmp[1];
-        pLits[ctr++] = ptmp[4];
-        if( k <= spec.nr_in  ) 
-        {
-          if( getbit( k, t ) == 0 )
-          {
-            flag_clause_true = true;
-          }
-        }
-        else
-        {
-          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, k - spec.nr_in - 1, t), 1); // ~x_kt
-        }
-        
-        if( !flag_clause_true )
-        {
-          ret &= solver->add_clause(pLits, pLits + ctr );
-          if( write_cnf_file ) { add_print_clause( clauses, pLits, pLits + ctr); }
-          if( print_clause ) { std::cout << "case 3"; print_sat_clause( solver, pLits, pLits + ctr); }
-        }
-        return ret;
-      }*/
-
-      /*bool add_simulation_clause(
-          const spec& spec,
-          const int t,
-          const int i,
-          const int j,
-          const int k,
-          const int b,
-          const int a,
-          const int sel_var
-          )
-      {
-        int ctr = 0;
-        //assert(j > 0);
-
-        if (j < spec.nr_in) {
-          if ((((t + 1) & (1 << j)) ? 1 : 0) != a) {
-            return true;
-          }
-        } else {
-          pLits[ctr++] = pabc::Abc_Var2Lit(
-              get_sim_var(spec, j - spec.nr_in, t), a);
-        }
-
-        if (k < spec.nr_in) {
-          if ((((t + 1) & (1 << k)) ? 1 : 0) != b) {
-            return true;
-          }
-        } else {
-          pLits[ctr++] = pabc::Abc_Var2Lit(
-              get_sim_var(spec, k - spec.nr_in, t), b);
-        }
-
-        if (sel_var != -1) {
-          pLits[ctr++] = pabc::Abc_Var2Lit(sel_var, 1);
-        }
-
-        if ( imply(a, b) ) {
-          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, i, t), 0);
-        } else {
-          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, i, t), 1);
-        }
-
-        const auto ret = solver->add_clause(pLits, pLits + ctr);
-        if( print_clause ) { print_sat_clause( solver, pLits, pLits + ctr ); }
-        assert(ret);
-        return ret;
-      }*/
-
-      /*
-       * for the select variable s_i_j0
-       * */
-      bool add_const_simulation_clause( const spec& spec,
-                                        const int t,
-                                        const int i,
-                                        const int j,
-                                        const int sel_var )
-      {
-        int  ctr = 0;
-        bool ret = true;
-
-        bool flag_clause_true = false;
-
-        pLits[ctr++] = pabc::Abc_Var2Lit(sel_var, 1);
-        pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, i, t), 0);
-        if( j <= spec.nr_in  )
-        {
-          if( getbit( j, t ) == 1 )
-          {
-            flag_clause_true = true;
-          }
-        }
-        else
-        {
-          std::cout << "i: " << i << " j: " << j << " nr_in: " << spec.nr_in << std::endl;
-          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, j - spec.nr_in - 1, t), 0 );
-        }
-
-        if( !flag_clause_true )
-        {
-          ret &= solver->add_clause(pLits, pLits + ctr ); // ~s_ij0 + x_it + x_jt
-          if( write_cnf_file ) { add_print_clause( clauses, pLits, pLits + ctr ); }
-          if( print_clause ) { std::cout << "case 4"; print_sat_clause( solver, pLits, pLits + ctr ); }
-        }
-        
-        flag_clause_true = false;
-        ctr = 0;
-        pLits[ctr++] = pabc::Abc_Var2Lit(sel_var, 1);
-        pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, i, t), 1);
-        
-        if( j <= spec.nr_in )
-        {
-          if( getbit( j, t ) == 0 )
-          {
-            flag_clause_true = true;
-          }
-        }
-        else
-        {
-          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, j - spec.nr_in - 1, t), 1 );
-        }
-
-        if( !flag_clause_true )
-        {
-          ret &= solver->add_clause(pLits, pLits + ctr );
-          if( write_cnf_file ) { add_print_clause( clauses, pLits, pLits + ctr ); }
-          if( print_clause ) { std::cout << "case 5"; print_sat_clause( solver, pLits, pLits + ctr ); }
-        }
-
-        return ret;
-      }
-
-      /*bool add_const_simulation_clause(
-                                        const spec& spec,
-                                        const int t,
-                                        const int i,
-                                        const int j,
-                                        const int a,
-                                        const int sel_var
-                                      )
-      {
-        int ctr = 0;
-        //assert(j > 0);
-
-        if (j < spec.nr_in) {
-          if ((((t + 1) & (1 << j)) ? 1 : 0) != a) {
-            return true;
-          }
-        } else {
-          pLits[ctr++] = pabc::Abc_Var2Lit(
-              get_sim_var(spec, j - spec.nr_in, t), a);
-        }
-
-        if (sel_var != -1) {
-          pLits[ctr++] = pabc::Abc_Var2Lit(sel_var, 1);
-        }
-
-        if (a) {
-          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, i, t), 1);
-        } else {
-          pLits[ctr++] = pabc::Abc_Var2Lit(get_sim_var(spec, i, t), 0);
-        }
-
-        const auto ret = solver->add_clause(pLits, pLits + ctr);
-        if( print_clause ) { print_sat_clause( solver, pLits, pLits + ctr ); }
-        assert(ret);
-        return ret;
-      }*/
 
 
       bool create_tt_clauses(const spec& spec, const int t)
@@ -831,16 +541,8 @@ namespace also
           auto i = array[0];
           auto j = array[1];
           auto k = array[2];
-          
-          if( k == 0 )
-          {
-            //ret &= add_const_simulation_clause( spec, t, i, j, s );
-            ret &= add_simulation_clause( spec, t, i, j, k, s );
-          }
-          else
-          {
-            ret &= add_simulation_clause( spec, t, i, j, k, s );
-          }
+
+          ret &= add_simulation_clause( spec, t, i, j, k, s );
         }
 
         ret &= fix_output_sim_vars(spec, t);
@@ -879,19 +581,6 @@ namespace also
           }
         }
 
-        for( auto i = 0; i < spec.nr_steps; i++ )
-        {
-          printf( "x_%d performs implication operation \n", i );
-
-          for (int t = spec.get_tt_size() - 1 + 1; t >= 0; t--) 
-          {
-            printf("  x_%d_%d=%d\n", spec.get_nr_in() + i + 1, t + 2, 
-                solver->var_value(get_sim_var(spec, i, t) ));
-          }
-        }
-
-        printf("\n");
-
         printf("========================================"
             "========================================\n");
       }
@@ -910,10 +599,8 @@ namespace also
    ******************************************************************************/
   synth_result implication_syn_by_img_encoder( spec& spec, solver_wrapper& solver, img_encoder& encoder )
   {
-    spec.verbosity = 2;
+    spec.verbosity = 0;
     spec.preprocess();
-    //encoder.set_dirty( true );
-    //encoder.set_print_clause( true );
 
     spec.nr_steps = spec.initial_steps;
 
@@ -931,7 +618,7 @@ namespace also
 
       if( status == success )
       {
-        encoder.show_verbose_result();
+        //encoder.show_verbose_result();
         //encoder.extract_mig( spec, mig );
         encoder.print_solver_state( spec );
         return success;
