@@ -131,7 +131,7 @@ namespace also
 
       while (next_solution(spec, c, solver, encoder) == success) 
       {
-        c.print_expression();
+        //c.print_expression();
         auto tts = c.simulate();
         assert( tts[0] == spec[0] );
         assert( c.is_aig() );
@@ -158,6 +158,7 @@ namespace also
       if( nr_solutions != 0 )
       {
         printf( "[i]: found img_network with minimum number of gates: %d\n", min_num_gates );
+        printf( "[i]: expression: " );
         img_to_expression( std::cout, best_img );
       }
     } 

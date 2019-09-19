@@ -50,8 +50,8 @@ namespace alice
     public:
       explicit exact_imply_command( const environment::ptr& env ) : command( env, "using exact synthesis to find optimal imgs" )
       {
-        add_flag( "--verbose, -v",  "print the information" );
-        add_flag( "--implication_encoder, -i",      "exact synthesis using implication encoder" );
+        add_flag( "--verbose, -v",        "print the information" );
+        add_flag( "--aig_exact, -a",      "from exact AIG synthesis" );
       }
 
       rules validity_rules() const
@@ -72,13 +72,13 @@ namespace alice
 
         auto& opt = store<optimum_network>().current();
 
-        if( is_set( "implication_encoder" ) )
+        if( is_set( "aig_exact" ) )
         {
-          also::nbu_img_encoder_test( opt.function );
+          also::img_from_aig_syn( opt.function, verb );
         }
         else
         {
-          also::img_from_aig_syn( opt.function, verb );
+          also::nbu_img_encoder_test( opt.function );
         }
       }
 
