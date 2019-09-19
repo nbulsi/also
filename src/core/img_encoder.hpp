@@ -135,6 +135,173 @@ namespace also
     select_imp s( nr_steps, nr_in );
     return s.get_num_of_sel_vars_for_each_step( step_idx );
   }
+  
+  /******************************************************************************
+   * img chain *
+   ******************************************************************************/
+  class img
+  {
+    private:
+      int nr_in;
+      std::vector<int> outputs;
+      using step = std::array<int, 2>;
+
+    public:
+      std::vector<std::array<int, 2>> steps;
+
+      img()
+      {
+        reset( 0, 0, 0 );
+      }
+
+      std::array<int, 2> get_step_inputs( int i )
+      {
+        std::array<int, 2> array;
+
+        array[0] = steps[i][0];
+        array[1] = steps[i][1];
+
+        return array;
+      }
+      
+      void reset(int _nr_in, int _nr_out, int _nr_steps)
+      {
+        assert(_nr_steps >= 0 && _nr_out >= 0);
+        nr_in = _nr_in;
+        steps.resize(_nr_steps);
+        outputs.resize(_nr_out);
+      }
+      
+      int get_nr_steps() const { return steps.size(); }
+        
+      kitty::dynamic_truth_table imply(  kitty::dynamic_truth_table a,
+                                         kitty::dynamic_truth_table b ) const
+      {
+        return ~a | b;
+      }
+      
+      std::vector<kitty::dynamic_truth_table> simulate() const
+      {
+        std::vector<kitty::dynamic_truth_table> fs(outputs.size());
+        std::vector<kitty::dynamic_truth_table> tmps(steps.size());
+
+        kitty::dynamic_truth_table tt_in1(nr_in);
+        kitty::dynamic_truth_table tt_in2(nr_in);
+
+        auto tt_step = kitty::create<kitty::dynamic_truth_table>(nr_in);
+        auto tt_inute = kitty::create<kitty::dynamic_truth_table>(nr_in);
+
+
+        for (auto i = 0u; i < steps.size(); i++) 
+        {
+          const auto& step = steps[i];
+
+          if (step[0] <= nr_in) 
+          {
+            if( step[0] == 0)
+            {
+              create_nth_var( tt_in1, 0 );
+              kitty::clear( tt_in1 );
+            }
+            else
+            {
+              create_nth_var(tt_in1, step[0] - 1);
+            }
+          } 
+          else 
+          {
+            tt_in1 = tmps[step[0] - nr_in - 1];
+          }
+
+          if (step[1] <= nr_in) 
+          {
+            if( step[1] == 0)
+            {
+              create_nth_var( tt_in2, 0 );
+              kitty::clear( tt_in2 );
+            }
+            else
+            {
+              create_nth_var(tt_in2, step[1] - 1);
+            }
+          } 
+          else 
+          {
+            tt_in2 = tmps[step[1] - nr_in - 1];
+          }
+
+          kitty::clear(tt_step);
+          
+          tt_step = imply( tt_in1, tt_in2 );
+
+          tmps[i] = tt_step;
+
+          for (auto h = 0u; h < outputs.size(); h++) 
+          {
+            fs[h] = tt_step;
+          }
+        }
+
+        return fs;
+      }
+        
+      void set_step( int i, int fanin1, int fanin2 )
+      {
+        steps[i][0] = fanin1;
+        steps[i][1] = fanin2;
+      }
+      
+      void set_output(int out_idx, int lit) 
+      {
+        outputs[out_idx] = lit;
+      }
+      
+      bool satisfies_spec(const percy::spec& spec)
+      {
+        auto tts = simulate();
+
+        auto nr_nontriv = 0;
+
+        std::cout << "[i] simulated tt: " << kitty::to_hex( tts[0] ) << std::endl;
+
+        for (int i = 0; i < spec.nr_nontriv; i++) 
+        {
+          if( tts[nr_nontriv++] != spec[i] )
+          {
+            assert(false);
+            return false;
+          }
+        }
+
+        return true;
+      }
+      
+      void to_expression( std::ostream& o, const int i )
+      {
+        if( i == 0 )
+        {
+          o << "0";
+        }
+        else if (i <= nr_in) 
+        {
+          o << static_cast<char>('a' + i - 1);
+        } 
+        else 
+        {
+          const auto& step = steps[i - nr_in - 1];
+          o << "(";
+          to_expression(o, step[0]);
+          o << "->";
+          to_expression(o, step[1]);
+          o << ")";
+        }
+      }
+
+      void to_expression(std::ostream& o)
+      {
+        to_expression(o, nr_in + steps.size() );
+      }
+  };
 
   /******************************************************************************
    * implication logic encoder                                                  *
@@ -592,6 +759,47 @@ namespace also
           printf( "var %d : %d\n", i, solver->var_value( i ) );
         }
       }
+      
+      void extract_img(const spec& spec, img& chain )
+      {
+        int op_inputs[2] = { 0, 0 };
+        chain.reset( spec.nr_in, 1, spec.nr_steps );
+
+        int svar = 0;
+        for (int i = 0; i < spec.nr_steps; i++) 
+        {
+          auto num_svar_in_current_step = comput_select_imp_vars_for_each_step( spec.nr_steps, spec.nr_in, i ); 
+          
+          for( int j = svar; j < svar + num_svar_in_current_step; j++ )
+          {
+            if( solver->var_value( j ) )
+            {
+              auto array = sel_map[j];
+              op_inputs[0] = array[1];
+              op_inputs[1] = array[2];
+              break;
+            }
+          }
+          
+          svar += num_svar_in_current_step;
+
+          chain.set_step( i, op_inputs[0], op_inputs[1] );
+
+          if( spec.verbosity > 2 )
+          {
+            printf("[i] Step %d performs op %d, inputs are:%d%d%d\n", i, op_inputs[0], op_inputs[1] );
+          }
+
+        }
+        
+        const auto pol = 0;
+        const auto tmp = ( ( spec.nr_steps + spec.nr_in ) << 1 ) + pol;
+        chain.set_output(0, tmp);
+
+        printf("[i] %d nodes are required\n", spec.nr_steps );
+
+        assert( chain.satisfies_spec( spec ) );
+      }
   };
   
   /******************************************************************************
@@ -601,6 +809,8 @@ namespace also
   {
     spec.verbosity = 0;
     spec.preprocess();
+
+    img img;
 
     spec.nr_steps = spec.initial_steps;
 
@@ -618,9 +828,9 @@ namespace also
 
       if( status == success )
       {
-        //encoder.show_verbose_result();
-        //encoder.extract_mig( spec, mig );
-        encoder.print_solver_state( spec );
+        encoder.extract_img( spec, img );
+        std::cout << "[i] expression: ";
+        img.to_expression( std::cout );
         return success;
       }
       else if( status == failure )
@@ -656,11 +866,11 @@ namespace also
 
     if ( implication_syn_by_img_encoder( spec, solver, encoder ) == success )
     {
-      std::cout << " success " << std::endl;
+      std::cout << std::endl << "[i] Success " << std::endl;
     }
     else
     {
-      std::cout << " fail " << std::endl;
+      std::cout << " Fail " << std::endl;
     }
   }
 
