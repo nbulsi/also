@@ -262,7 +262,7 @@ namespace also
 
         auto nr_nontriv = 0;
 
-        std::cout << "[i] simulated tt: " << kitty::to_hex( tts[0] ) << std::endl;
+        //std::cout << "[i] simulated tt: " << kitty::to_hex( tts[0] ) << std::endl;
 
         for (int i = 0; i < spec.nr_nontriv; i++) 
         {
@@ -356,6 +356,16 @@ namespace also
       ~img_encoder()
       {
       }
+      
+      bool is_dirty() 
+      {
+        return dirty;
+      }
+
+      void set_dirty(bool _dirty)
+      {
+        dirty = _dirty;
+      }
 
       int imply(int a, int b ) const
       {
@@ -404,6 +414,7 @@ namespace also
         /* declare in the solver */
         solver->set_nr_vars(total_nr_vars);
       }
+
       
       bool encode( const spec& spec )
       {
@@ -796,21 +807,46 @@ namespace also
         const auto tmp = ( ( spec.nr_steps + spec.nr_in ) << 1 ) + pol;
         chain.set_output(0, tmp);
 
-        printf("[i] %d nodes are required\n", spec.nr_steps );
+        //printf("[i] %d nodes are required\n", spec.nr_steps );
 
         assert( chain.satisfies_spec( spec ) );
+      }
+      
+      //block solution
+      bool block_solution( const spec& spec )
+      {
+        int ctr  = 0;
+        int svar = 0;
+          
+        for (int i = 0; i < spec.nr_steps; i++) 
+        {
+          auto num_svar_in_current_step = comput_select_imp_vars_for_each_step( spec.nr_steps, spec.nr_in, i );
+          
+          for( int j = svar; j < svar + num_svar_in_current_step; j++ )
+          {
+            if( solver->var_value( j ) )
+            {
+              pLits[ctr++] = pabc::Abc_Var2Lit(j, 1);
+              break;
+            }
+          }
+          
+          svar += num_svar_in_current_step;
+        }
+        
+        assert(ctr == spec.nr_steps);
+
+        return solver->add_clause(pLits, pLits + ctr);
       }
   };
   
   /******************************************************************************
    * Public functions                                                           *
    ******************************************************************************/
-  synth_result implication_syn_by_img_encoder( spec& spec, solver_wrapper& solver, img_encoder& encoder )
+  synth_result implication_syn_by_img_encoder( spec& spec, img& img, solver_wrapper& solver, img_encoder& encoder )
   {
     spec.verbosity = 0;
     spec.preprocess();
-
-    img img;
 
     spec.nr_steps = spec.initial_steps;
 
@@ -851,6 +887,7 @@ namespace also
   {
     bsat_wrapper solver;
     spec spec;
+    img img;
 
     auto copy = tt;
     if( copy.num_vars()  < 2 )
@@ -864,7 +901,7 @@ namespace also
 
     img_encoder encoder( solver );
 
-    if ( implication_syn_by_img_encoder( spec, solver, encoder ) == success )
+    if ( implication_syn_by_img_encoder( spec, img, solver, encoder ) == success )
     {
       std::cout << std::endl << "[i] Success " << std::endl;
     }
@@ -872,6 +909,67 @@ namespace also
     {
       std::cout << " Fail " << std::endl;
     }
+  }
+   
+  synth_result next_solution( spec& spec, img& img, solver_wrapper& solver, img_encoder& encoder )
+  {
+    //spec.verbosity = 3;
+    if (!encoder.is_dirty()) 
+    {
+      encoder.set_dirty(true);
+      return implication_syn_by_img_encoder(spec, img, solver, encoder);
+    }
+
+    if (encoder.block_solution(spec)) 
+    {
+      const auto status = solver.solve(spec.conflict_limit);
+
+      if (status == success) 
+      {
+        encoder.extract_img( spec, img );
+        std::cout << std::endl;
+        img.to_expression( std::cout );
+        return success;
+      } 
+      else 
+      {
+        return status;
+      }
+    }
+
+    return failure;
+  }
+  
+  void enumerate_img( const kitty::dynamic_truth_table& tt )
+  {
+    bsat_wrapper solver;
+    spec spec;
+    img img;
+
+    spec.verbosity = 1;
+
+    auto copy = tt;
+    if( copy.num_vars()  < 2 )
+    {
+      spec[0] = kitty::extend_to( copy, 3 );
+    }
+    else
+    {
+      spec[0] = tt;
+    }
+
+    img_encoder encoder( solver );
+
+    int nr_solutions = 0;
+
+    while( next_solution( spec, img, solver, encoder ) == success )
+    {
+      //img.to_expression( std::cout );
+      nr_solutions++;
+    }
+
+    std::cout << "\nThere are " << nr_solutions << " solutions found." << std::endl;
+
   }
 
 }

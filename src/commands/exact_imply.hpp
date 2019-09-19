@@ -52,6 +52,7 @@ namespace alice
       {
         add_flag( "--verbose, -v",        "print the information" );
         add_flag( "--aig_exact, -a",      "from exact AIG synthesis" );
+        add_flag( "--enumerate, -e",      "enumerate all the solutions" );
       }
 
       rules validity_rules() const
@@ -75,6 +76,10 @@ namespace alice
         if( is_set( "aig_exact" ) )
         {
           also::img_from_aig_syn( opt.function, verb );
+        }
+        else if( is_set( "enumerate" ) )
+        {
+          also::enumerate_img( opt.function );
         }
         else
         {
