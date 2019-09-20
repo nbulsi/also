@@ -302,6 +302,15 @@ namespace also
         to_expression(o, nr_in + steps.size() );
       }
   };
+  
+  std::string img_to_string( img& img )
+  {
+    std::ostream& out = std::cout;
+    img.to_expression( out );
+    std::stringstream ss;
+    ss << out.rdbuf();
+    return ss.str();
+  }
 
   /******************************************************************************
    * implication logic encoder                                                  *
@@ -866,7 +875,8 @@ namespace also
       {
         encoder.extract_img( spec, img );
         std::cout << "[i] expression: ";
-        img.to_expression( std::cout );
+        //img.to_expression( std::cout );
+        std::cout << img_to_string( img ) << std::endl;
         return success;
       }
       else if( status == failure )
@@ -903,11 +913,11 @@ namespace also
 
     if ( implication_syn_by_img_encoder( spec, img, solver, encoder ) == success )
     {
-      std::cout << std::endl << "[i] Success " << std::endl;
+      std::cout << "[i] Success " << std::endl;
     }
     else
     {
-      std::cout << " Fail " << std::endl;
+      std::cout << "[i] Fail " << std::endl;
     }
   }
    
@@ -939,6 +949,7 @@ namespace also
 
     return failure;
   }
+
   
   void enumerate_img( const kitty::dynamic_truth_table& tt )
   {
