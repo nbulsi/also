@@ -2,7 +2,7 @@
  * Copyright (C) 2019- Ningbo University, Ningbo, China */
 
 /**
- * @file compute_opt_graph.hpp
+ * @file cog.hpp //compute optimal graph representations
  *
  * @brief given a file that contains multiple Boolean functions
  * represented in truth tables, compute its optimal m5ig or m3ig
@@ -13,8 +13,8 @@
  * @since  0.1
  */
 
-#ifndef COMPUTE_OPT_GRAPH_HPP
-#define COMPUTE_OPT_GRAPH_HPP
+#ifndef COG_HPP
+#define COG_HPP
 
 #include <mockturtle/mockturtle.hpp>
 
@@ -30,10 +30,10 @@
 namespace alice
 {
 
-  class compute_opt_graph_command: public command
+  class cog_command: public command
   {
     public:
-      explicit compute_opt_graph_command( const environment::ptr& env ) : command( env, "compute optimal m5ig" )
+      explicit cog_command( const environment::ptr& env ) : command( env, "compute optimal m5ig" )
       {
         add_option( "filename, -f", filename, "the input txt file name" );
         add_flag(   "--m3ig, -m", "using m3ig as the underlying logic network" );
@@ -105,7 +105,7 @@ namespace alice
 
             if ( also::implication_syn_by_img_encoder( spec, img, solver, encoder ) == success )
             {
-              auto s = also::img_to_string( img );
+              auto s = also::img_to_string( spec, img );
               outfile << "0x" << f << " " << s << " size: " << spec.nr_steps << std::endl;
             }
           }
@@ -139,7 +139,7 @@ namespace alice
       std::string filename = "test.txt";
   };
 
-  ALICE_ADD_COMMAND( compute_opt_graph, "Exact synthesis" )
+  ALICE_ADD_COMMAND( cog, "Exact synthesis" )
 
 
 }

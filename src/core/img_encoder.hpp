@@ -303,12 +303,21 @@ namespace also
       }
   };
   
-  std::string img_to_string( img& img )
+  std::string img_to_string( const spec& spec, const img& img )
   {
-    std::ostream& out = std::cout;
-    img.to_expression( out );
+    if( img.get_nr_steps() == 0 )
+    {
+      return "";
+    }
+
     std::stringstream ss;
-    ss << out.rdbuf();
+    
+    for(auto i = 0; i < spec.nr_steps; i++ )
+    {
+      ss << i + spec.nr_in + 1 << "-" << img.steps[i][0] 
+                                      << img.steps[i][1] << " "; 
+    }
+
     return ss.str();
   }
 
@@ -875,8 +884,7 @@ namespace also
       {
         encoder.extract_img( spec, img );
         std::cout << "[i] expression: ";
-        //img.to_expression( std::cout );
-        std::cout << img_to_string( img ) << std::endl;
+        img.to_expression( std::cout );
         return success;
       }
       else if( status == failure )
