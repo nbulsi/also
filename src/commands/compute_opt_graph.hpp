@@ -2,18 +2,19 @@
  * Copyright (C) 2019- Ningbo University, Ningbo, China */
 
 /**
- * @file compute_opt_mig.hpp
+ * @file compute_opt_graph.hpp
  *
  * @brief given a file that contains multiple Boolean functions
  * represented in truth tables, compute its optimal m5ig or m3ig
+ * or img
  * expressions
  *
  * @author Zhufei Chu
  * @since  0.1
  */
 
-#ifndef COMPUTE_OPT_MIG_HPP
-#define COMPUTE_OPT_MIG_HPP
+#ifndef COMPUTE_OPT_GRAPH_HPP
+#define COMPUTE_OPT_GRAPH_HPP
 
 #include <mockturtle/mockturtle.hpp>
 
@@ -29,13 +30,14 @@
 namespace alice
 {
 
-  class compute_opt_mig_command: public command
+  class compute_opt_graph_command: public command
   {
     public:
-      explicit compute_opt_mig_command( const environment::ptr& env ) : command( env, "compute optimal m5ig" )
+      explicit compute_opt_graph_command( const environment::ptr& env ) : command( env, "compute optimal m5ig" )
       {
         add_option( "filename, -f", filename, "the input txt file name" );
         add_flag(   "--m3ig, -m", "using m3ig as the underlying logic network" );
+        add_flag(   "--img, -i",  "using img as the underlying logic network" );
       }
 
     protected:
@@ -85,6 +87,28 @@ namespace alice
               outfile << "0x" << f << " " << s << std::endl;
             }
           }
+          else if( !is_set( "img" ) )
+          {
+            also::img img;
+
+            if( num_vars < 2 )
+            {
+              spec[0] = kitty::extend_to( t, 2 );
+            }
+            else
+            {
+              spec[0] = t;
+            }
+
+            bsat_wrapper solver;
+            also::img_encoder encoder( solver );
+
+            if ( also::implication_syn_by_img_encoder( spec, img, solver, encoder ) == success )
+            {
+              auto s = also::img_to_string( img );
+              outfile << "0x" << f << " " << s << " size: " << spec.nr_steps << std::endl;
+            }
+          }
           else
           {
             /* mig three synthesize */
@@ -115,7 +139,7 @@ namespace alice
       std::string filename = "test.txt";
   };
 
-  ALICE_ADD_COMMAND( compute_opt_mig, "Exact synthesis" )
+  ALICE_ADD_COMMAND( compute_opt_graph, "Exact synthesis" )
 
 
 }
