@@ -968,8 +968,8 @@ namespace also
           auto first_one = kitty::find_first_one_bit( xot_tt );
           if( first_one == -1 )
           {
-            std::cout << "[i] expression: ";
-            img.to_expression( std::cout );
+            //std::cout << "[i] expression: ";
+            //img.to_expression( std::cout );
             return success;
           }
 
