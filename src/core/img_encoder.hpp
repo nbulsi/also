@@ -468,6 +468,44 @@ namespace also
 
         return true;
       }
+      
+      /*
+       * cegar: counter-example guided abstract refine
+       * do not create main clauses initially
+       * */
+      bool cegar_encode( const spec& spec )
+      {
+        if( write_cnf_file )
+        {
+          f = fopen( "out.cnf", "w" );
+          if( f == NULL )
+          {
+            printf( "Cannot open output cnf file\n" );
+            assert( false );
+          }
+          clauses.clear();
+        }
+
+        create_variables( spec );
+
+        if( !create_fanin_clauses( spec ))
+        {
+          return false;
+        }
+
+        if( spec.verbosity) 
+        {
+          show_variable_correspondence( spec );
+        }
+        
+        if( write_cnf_file )
+        {
+          to_dimacs( f, solver, clauses );
+          fclose( f );
+        }
+
+        return true;
+      }
 
       void show_variable_correspondence( const spec& spec )
       {
@@ -827,7 +865,7 @@ namespace also
 
         //printf("[i] %d nodes are required\n", spec.nr_steps );
 
-        assert( chain.satisfies_spec( spec ) );
+        //assert( chain.satisfies_spec( spec ) );
       }
       
       //block solution
@@ -900,6 +938,66 @@ namespace also
 
     return success;
   }
+
+  synth_result img_cegar_synthesize( spec& spec, img& img, solver_wrapper& solver, img_encoder& encoder )
+  {
+    spec.verbosity = 0;
+    spec.preprocess();
+    
+    spec.nr_steps = spec.initial_steps; 
+
+    while( true )
+    {
+      solver.restart();
+
+      if( !encoder.cegar_encode( spec ) )
+      {
+        spec.nr_steps++;
+        continue;
+      }
+
+      while( true )
+      {
+        const auto status = solver.solve( spec.conflict_limit );
+
+        if( status == success )
+        {
+          encoder.extract_img( spec, img );
+          auto sim_tt = img.simulate()[0];
+          auto xot_tt = sim_tt ^ ( spec[0] );
+          auto first_one = kitty::find_first_one_bit( xot_tt );
+          if( first_one == -1 )
+          {
+            std::cout << "[i] expression: ";
+            img.to_expression( std::cout );
+            return success;
+          }
+
+          if( !encoder.create_tt_clauses( spec, first_one ) )
+          {
+            spec.nr_steps++;
+            break;
+          }
+        }
+        else if( status == failure )
+        {
+          spec.nr_steps++;
+          if( spec.nr_steps == 20 )
+          {
+            break;
+          }
+          break;
+        }
+        else
+        {
+          return timeout;
+        }
+      }
+
+    }
+
+    return success;
+  }
   
   void nbu_img_encoder_test( const kitty::dynamic_truth_table& tt )
   {
@@ -921,7 +1019,35 @@ namespace also
 
     if ( implication_syn_by_img_encoder( spec, img, solver, encoder ) == success )
     {
-      std::cout << "[i] Success " << std::endl;
+      std::cout << std::endl << "[i] Success. " << spec.nr_steps << " nodes are required." << std::endl;
+    }
+    else
+    {
+      std::cout << "[i] Fail " << std::endl;
+    }
+  }
+  
+  void nbu_img_cegar_synthesize( const kitty::dynamic_truth_table& tt )
+  {
+    bsat_wrapper solver;
+    spec spec;
+    img img;
+
+    auto copy = tt;
+    if( copy.num_vars()  < 2 )
+    {
+      spec[0] = kitty::extend_to( copy, 2 );
+    }
+    else
+    {
+      spec[0] = tt;
+    }
+
+    img_encoder encoder( solver );
+
+    if ( img_cegar_synthesize( spec, img, solver, encoder ) == success )
+    {
+      std::cout << std::endl << "[i] Success. " << spec.nr_steps << " nodes are required." << std::endl;
     }
     else
     {

@@ -53,6 +53,7 @@ namespace alice
         add_flag( "--verbose, -v",        "print the information" );
         add_flag( "--aig_exact, -a",      "from exact AIG synthesis" );
         add_flag( "--enumerate, -e",      "enumerate all the solutions" );
+        add_flag( "--cegar, -c",          "cegar encoding" );
       }
 
       rules validity_rules() const
@@ -70,21 +71,44 @@ namespace alice
         {
           verb = true;
         }
+        
+        stopwatch<>::duration time{0};
 
         auto& opt = store<optimum_network>().current();
 
         if( is_set( "aig_exact" ) )
         {
-          also::img_from_aig_syn( opt.function, verb );
+          call_with_stopwatch( time, [&]() 
+            {
+              also::img_from_aig_syn( opt.function, verb );
+            } );
         }
         else if( is_set( "enumerate" ) )
         {
-          also::enumerate_img( opt.function );
+          call_with_stopwatch( time, [&]() 
+            {
+             also::enumerate_img( opt.function );
+            } );
         }
         else
         {
-          also::nbu_img_encoder_test( opt.function );
+          if( is_set( "cegar" ) )
+          {
+            call_with_stopwatch( time, [&]() 
+                {
+                also::nbu_img_cegar_synthesize( opt.function );
+                } );
+          }
+          else
+          {
+            call_with_stopwatch( time, [&]() 
+                {
+                also::nbu_img_encoder_test( opt.function );
+                } );
+          }
         }
+        
+        std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
       }
 
   };
