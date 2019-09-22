@@ -103,7 +103,7 @@ namespace alice
             bsat_wrapper solver;
             also::img_encoder encoder( solver );
 
-            if ( also::implication_syn_by_img_encoder( spec, img, solver, encoder ) == success )
+            if ( also::img_cegar_synthesize( spec, img, solver, encoder ) == success )
             {
               auto s = also::img_to_string( spec, img );
               outfile << "0x" << f << " " << s << " size: " << spec.nr_steps << std::endl;
