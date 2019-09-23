@@ -938,6 +938,24 @@ namespace also
 
     return success;
   }
+  
+  synth_result implication_syn_by_fixed_num_steps( spec& spec, img& img, solver_wrapper& solver, img_encoder& encoder, int& num_steps )
+  {
+    spec.verbosity = 0;
+    spec.preprocess();
+
+    spec.nr_steps = num_steps;
+    solver.restart();
+
+    if( !encoder.encode( spec ) )
+    {
+      return failure;
+    }
+    
+    const auto status = solver.solve( spec.conflict_limit );
+
+    return status;
+  }
 
   synth_result img_cegar_synthesize( spec& spec, img& img, solver_wrapper& solver, img_encoder& encoder )
   {
@@ -997,6 +1015,57 @@ namespace also
     }
 
     return success;
+  }
+
+  void nbu_img_aig_upper_bound_synthesize( const kitty::dynamic_truth_table& tt )
+  {
+    bsat_wrapper solver;
+    spec spec;
+    img img;
+
+    auto copy = tt;
+    if( copy.num_vars()  < 2 )
+    {
+      spec[0] = kitty::extend_to( copy, 2 );
+    }
+    else
+    {
+      spec[0] = tt;
+    }
+
+    img_encoder encoder( solver );
+
+    //get the upper bound by AIG synthesize
+    int upper_bound;
+    img_from_aig_syn( tt, false, upper_bound );
+
+    if( upper_bound <= 1 )
+    {
+      std::cout << "Guranteed Optimum" << std::endl;
+      return;
+    }
+
+    std::cout << "UPPER BOUND: " << upper_bound << std::endl;
+
+    auto current_step = upper_bound - 1;
+
+    while( true )
+    {
+      auto res = implication_syn_by_fixed_num_steps( spec, img, solver, encoder, current_step );
+      
+      auto str = ( res == 0 ? "Success" : "Failure" );
+      std::cout << "#Current_step: " << current_step << " Status: " <<str << std::endl;
+
+      if( res == success && current_step >= 2 )
+      {
+        current_step -= 1;
+      }
+      else
+      {
+        std::cout << "No more improvement. The optimal number of nodes is " << current_step + 1 << std::endl;
+        break;
+      }
+    }
   }
   
   void nbu_img_encoder_test( const kitty::dynamic_truth_table& tt )

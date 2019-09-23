@@ -101,7 +101,7 @@ namespace also
     return img;
   }
 
-  void img_from_aig_syn( const kitty::dynamic_truth_table& tt, const bool& verbose )
+  void img_from_aig_syn( const kitty::dynamic_truth_table& tt, const bool& verbose, int& min_gates )
   {
     chain c;
     spec spec;
@@ -161,6 +161,8 @@ namespace also
         printf( "[i]: expression: " );
         img_to_expression( std::cout, best_img );
       }
+      
+      min_gates = min_num_gates;
     } 
       
     if( verbose )
@@ -168,6 +170,6 @@ namespace also
       std::cout << fmt::format( "[i]: {:5.2f} seconds passed to enumerate {} solutions\n", 
           to_seconds( time ), nr_solutions );
     }
-  }
 
+  }
 }

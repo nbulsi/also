@@ -54,6 +54,7 @@ namespace alice
         add_flag( "--aig_exact, -a",      "from exact AIG synthesis" );
         add_flag( "--enumerate, -e",      "enumerate all the solutions" );
         add_flag( "--cegar, -c",          "cegar encoding" );
+        add_flag( "--heuristic, -u",      "heuristic algorithm by providing an upper bound obtained by AIG synthesis" );
       }
 
       rules validity_rules() const
@@ -78,9 +79,10 @@ namespace alice
 
         if( is_set( "aig_exact" ) )
         {
+          int min_gates = 0;
           call_with_stopwatch( time, [&]() 
             {
-              also::img_from_aig_syn( opt.function, verb );
+              also::img_from_aig_syn( opt.function, verb, min_gates );
             } );
         }
         else if( is_set( "enumerate" ) )
@@ -97,6 +99,13 @@ namespace alice
             call_with_stopwatch( time, [&]() 
                 {
                 also::nbu_img_cegar_synthesize( opt.function );
+                } );
+          }
+          else if( is_set( "heuristic" ) )
+          {
+            call_with_stopwatch( time, [&]() 
+                {
+                also::nbu_img_aig_upper_bound_synthesize( opt.function );
                 } );
           }
           else
