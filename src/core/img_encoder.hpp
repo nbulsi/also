@@ -1021,7 +1021,10 @@ namespace also
   {
     bsat_wrapper solver;
     spec spec;
-    img img;
+    img img, best_img;
+    spec.verbosity = 0;
+
+    std::cout << "[i] Heuristic synthesize with upper bound of AIG." << std::endl;
 
     auto copy = tt;
     if( copy.num_vars()  < 2 )
@@ -1045,7 +1048,10 @@ namespace also
       return;
     }
 
-    std::cout << "UPPER BOUND: " << upper_bound << std::endl;
+    if( spec.verbosity )
+    {
+      std::cout << "UPPER BOUND: " << upper_bound << std::endl;
+    }
 
     auto current_step = upper_bound - 1;
 
@@ -1053,16 +1059,22 @@ namespace also
     {
       auto res = implication_syn_by_fixed_num_steps( spec, img, solver, encoder, current_step );
       
-      auto str = ( res == 0 ? "Success" : "Failure" );
-      std::cout << "#Current_step: " << current_step << " Status: " <<str << std::endl;
+      if( spec.verbosity )
+      {
+        auto str = ( res == 0 ? "Success" : "Failure" );
+        std::cout << "#Current_step: " << current_step << " Status: " << str << std::endl;
+      }
 
       if( res == success && current_step >= 2 )
       {
+        encoder.extract_img( spec, best_img);
         current_step -= 1;
       }
       else
       {
         std::cout << "No more improvement. The optimal number of nodes is " << current_step + 1 << std::endl;
+        best_img.to_expression( std::cout );
+        std::cout << std::endl;
         break;
       }
     }
