@@ -982,7 +982,7 @@ namespace also
         else if( status == failure )
         {
           spec.nr_steps++;
-          if( spec.nr_steps == 20 )
+          if( spec.nr_steps == 13 )
           {
             break;
           }
