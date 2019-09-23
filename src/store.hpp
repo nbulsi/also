@@ -270,9 +270,19 @@ namespace alice
      mockturtle::write_bench( mig, filename );
   }
   
+  ALICE_WRITE_FILE( aig_network, bench, aig, filename, cmd )
+  {
+     mockturtle::write_bench( aig, filename );
+  }
+  
   ALICE_WRITE_FILE( m5ig_network, bench, m5ig, filename, cmd )
   {
      mockturtle::write_bench( m5ig, filename );
+  }
+  
+  ALICE_WRITE_FILE( img_network, bench, img, filename, cmd )
+  {
+     mockturtle::write_bench( img, filename );
   }
 
   /********************************************************************

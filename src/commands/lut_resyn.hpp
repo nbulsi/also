@@ -20,6 +20,8 @@
 #include "../networks/m5ig/m5ig_npn.hpp"
 #include "../networks/m5ig/exact_online_m3ig.hpp"
 #include "../networks/m5ig/exact_online_m5ig.hpp"
+#include "../networks/img/img.hpp"
+#include "../networks/img/img_npn.hpp"
 
 namespace alice
 {
@@ -36,6 +38,7 @@ namespace alice
         add_flag( "--test_m3ig", "using m3ig as target logic network, exact_m3ig online" );
         add_flag( "--test_m5ig", "using m5ig as target logic network, exact_m5ig online" );
         add_flag( "--m5ig, -r", "using m5ig as target logic network" );
+        add_flag( "--img, -i",  "using img as target logic network" );
         add_flag( "--new_entry, -n", "adds new store entry" );
       }
 
@@ -91,6 +94,24 @@ namespace alice
           {
             store<m5ig_network>().extend(); 
             store<m5ig_network>().current() = m5ig;
+          }
+        }
+        else if( is_set( "img" ) )
+        {
+          img_network img;
+
+          img_npn_resynthesis resyn;
+          img = node_resynthesis<img_network>( klut, resyn );
+
+          depth_view img_depth{img};
+          std::cout << "[I/O:" << img.num_pis() << "/" << img.num_pos() << "] IMG gates: " 
+            << img.num_gates() << " IMG depth: " << img_depth.depth() << std::endl;
+
+          /* add to store */
+          if( is_set( "new_entry" ) )
+          {
+            store<img_network>().extend(); 
+            store<img_network>().current() = img;
           }
         }
         else if( is_set( "test_m3ig" ) )

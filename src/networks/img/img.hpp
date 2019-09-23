@@ -48,6 +48,13 @@
 
 namespace mockturtle
 {
+
+struct img_storage_data
+{
+  uint32_t num_pis = 0u;
+  uint32_t num_pos = 0u;
+  uint32_t trav_id = 0u;
+};
 /*! \brief IMG storage container
 
   IMGs have nodes with fan-in 2.  We split of one bit of the index pointer to
@@ -60,7 +67,7 @@ namespace mockturtle
 */
 using img_node = regular_node<2, 2, 1>;
 using img_storage = storage< img_node,
-                             empty_storage_data >;
+                             img_storage_data>;
 
 class img_network
 {
@@ -698,16 +705,32 @@ public:
   {
     _storage->nodes[n].data[1].h1 = v;
   }
+  
+  uint32_t trav_id() const
+  {
+    return _storage->data.trav_id;
+  }
+
+  void incr_trav_id() const
+  {
+    ++_storage->data.trav_id;
+  }
 #pragma endregion
 
 #pragma region General methods
   void update()
   {
   }
+  
+  auto& events() const
+  {
+    return *_events;
+  }
 #pragma endregion
 
 public:
   std::shared_ptr<img_storage> _storage;
+  std::shared_ptr<network_events<base_type>> _events;
 };
 
 

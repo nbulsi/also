@@ -83,12 +83,12 @@ namespace alice
           if( is_set( "satlut" ) )
           {
             satlut_mapping_params ps;
-            ps.cut_enumeration_ps.cut_size = 4;
+            ps.cut_enumeration_ps.cut_size = cut_size;
             satlut_mapping<mapping_view<aig_network, true>, true>(mapped_aig, ps );
           }
           else
           {
-            ps.cut_enumeration_ps.cut_size = 4;
+            ps.cut_enumeration_ps.cut_size = cut_size;
             lut_mapping<mapping_view<aig_network, true>, true>( mapped_aig, ps );
           }
 
