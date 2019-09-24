@@ -1017,7 +1017,7 @@ namespace also
     return success;
   }
 
-  void nbu_img_aig_upper_bound_synthesize( const kitty::dynamic_truth_table& tt )
+  std::string nbu_img_aig_upper_bound_synthesize( const kitty::dynamic_truth_table& tt )
   {
     bsat_wrapper solver;
     spec spec;
@@ -1045,7 +1045,7 @@ namespace also
     if( upper_bound <= 1 )
     {
       std::cout << "Guranteed Optimum" << std::endl;
-      return;
+      return "Already optimum";
     }
 
     if( spec.verbosity )
@@ -1078,6 +1078,8 @@ namespace also
         break;
       }
     }
+
+    return img_to_string( spec, best_img );
   }
   
   void nbu_img_encoder_test( const kitty::dynamic_truth_table& tt )

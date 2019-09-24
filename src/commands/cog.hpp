@@ -100,14 +100,16 @@ namespace alice
               spec[0] = t;
             }
 
-            bsat_wrapper solver;
+            outfile << "0x" << f << " " <<  also::nbu_img_aig_upper_bound_synthesize( t ) << std::endl;
+
+            /*bsat_wrapper solver;
             also::img_encoder encoder( solver );
 
             if ( also::img_cegar_synthesize( spec, img, solver, encoder ) == success )
             {
               auto s = also::img_to_string( spec, img );
               outfile << "0x" << f << " " << s << " size: " << spec.nr_steps << std::endl;
-            }
+            }*/
           }
           else
           {
