@@ -91,7 +91,6 @@ public:
     const auto config = kitty::exact_npn_canonization( fe );
 
     auto func_str = "0x" + kitty::to_hex( std::get<0>( config ) );
-    std::cout << "func: " << func_str << std::endl;
     const auto it = class2signal.find( func_str );
     assert( it != class2signal.end() );
 
@@ -111,6 +110,8 @@ public:
       if ( ( phase >> perm[i] ) & 1 )
       {
         pis_perm[i] = !pis_perm[i];
+        //TODO: HERE we need to add new nodes to convert invtered
+        //signals
       }
     }
 
@@ -119,8 +120,10 @@ public:
       topo_view topo{db, po};
       auto f = cleanup_dangling( topo, img, pis_perm.begin(), pis_perm.end() ).front();
 
-      if ( !fn( ( ( phase >> 3 ) & 1 ) ? f : f ) ) //we do not have explicit inverter
+      if ( !fn( ( ( phase >> 3 ) & 1 ) ? !f : f ) ) 
       {
+        //TODO: HERE we need to add new nodes to convert invtered
+        //signals
         return; /* quit */
       }
     }
@@ -162,13 +165,6 @@ private:
     
     int a, b;
 
-    /*for( const auto& s : strs )
-    {
-      std::cout << s << std::endl;
-    }*/
-
-    //std::cout << "sig size: " << sig.size() << std::endl;
-
     for( auto i = 0; i < size; i++ )
     {
       const auto substrs = also::split_by_delim( strs[i], '-' );
@@ -178,22 +174,8 @@ private:
       a = std::stoi( substrs[1] );
       b = std::stoi( substrs[2] );
 
-      //std::cout << " a: " << a << " sig[a]: " << sig[a].index << std::endl;
-      //std::cout << " b: " << b << " sig[b]: " << sig[b].index << std::endl;
-
       auto f = db.create_imp( sig[a], sig[b] );
       sig.push_back( f );
-      //std::cout << "create " << f.index << " : " << f.complement << std::endl;
-      //sig.push_back( db.create_imp( sig[a], sig[b] ) );
-
-      /*if( b == 0 )
-      {
-        sig.push_back( db.create_not( sig[a] ) );
-      }
-      else
-      {
-        sig.push_back( db.create_imp( sig[a], sig[b] ) );
-      }*/
     }
     
     const auto driver = sig[ sig.size() - 1]; 
@@ -207,7 +189,6 @@ private:
     std::vector<img_network::signal> signals;
     signals.push_back( db.get_constant( false ) );
 
-    //note we do not use pi[5]
     for ( auto i = 0u; i < 3; ++i )
     {
       signals.push_back( db.create_pi() );

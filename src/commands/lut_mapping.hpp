@@ -31,11 +31,6 @@ namespace alice
         add_flag( "--mig, -m",  "LUT mapping for MIG" );
       }
 
-      rules validity_rules() const
-      {
-        return { has_store_element<aig_network>( env ) };
-      }
-
     protected:
       void execute()
       {
@@ -74,6 +69,10 @@ namespace alice
         }
         else
         {
+          if( store<aig_network>().size() == 0 )
+          {
+            assert( false && "no AIG in the store" );
+          }
           /* derive some AIG */
           aig_network aig = store<aig_network>().current();
 

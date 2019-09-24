@@ -51,7 +51,7 @@ namespace alice
     protected:
       void execute()
       {
-        /* derive some AIG */
+        /* derive klut  */
         klut_network klut = store<klut_network>().current();
 
         /* lut resynthesis */
