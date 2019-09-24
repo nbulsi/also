@@ -27,7 +27,7 @@
 
 #include "exact_img.hpp"
 #include "../networks/img/img.hpp"
-#include "../networks/img/img_rewrite.hpp"
+#include "../networks/img/imgrw.hpp"
 
 using namespace percy; 
 using namespace mockturtle; 

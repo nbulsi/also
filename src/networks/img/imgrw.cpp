@@ -1,52 +1,16 @@
 /* also: Advanced Logic Synthesis and Optimization tool
- * Copyright (C) 2019- Ningbo University, Ningbo, China 
- * 
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
+ * Copyright (C) 2019- Ningbo University, Ningbo, China */
 
-/**
- * @file img_rewrite.hpp
- *
- * @brief rewriting IMG
- *
- * @author Zhufei Chu
- * @since  0.1
- */
+#include "imgrw.hpp"
 
-#ifndef IMG_REWRITE_HPP
-#define IMG_REWRITE_HPP
+using namespace mockturtle;
 
-#include "img.hpp"
-#include <mockturtle/algorithms/cleanup.hpp>
-
-namespace mockturtle
+namespace also
 {
-  std::array<img_network::signal, 2> get_children( const img_network& img, img_network::node const& n ) 
-  {
-    std::array<img_network::signal, 2> children;
-    img.foreach_fanin( n, [&children]( auto const& f, auto i ) { children[i] = f; } );
-    return children;
-  }
 
+/******************************************************************************
+ * Types                                                                      *
+ ******************************************************************************/
   class img_rewrite
   {
     public:
@@ -59,10 +23,8 @@ namespace mockturtle
       {
         img.foreach_po( [this]( auto po )
             {
-              const auto driver = img.get_node( po );
-
               topo_view topo{ img, po };
-
+              
               topo.foreach_node( [this]( auto n )
                   {
                     rewrite_complement_edges_to_imply( n );
@@ -115,6 +77,20 @@ namespace mockturtle
       img_network& img;
   };
 
+/******************************************************************************
+ * Private functions                                                          *
+ ******************************************************************************/
+
+/******************************************************************************
+ * Public functions                                                           *
+ ******************************************************************************/
+  std::array<img_network::signal, 2> get_children( const img_network& img, img_network::node const& n ) 
+  {
+    std::array<img_network::signal, 2> children;
+    img.foreach_fanin( n, [&children]( auto const& f, auto i ) { children[i] = f; } );
+    return children;
+  }
+
   img_network img_rewriting( img_network& img )
   {
     img_rewrite p( img );
@@ -123,7 +99,6 @@ namespace mockturtle
 
     return cleanup_dangling( img );
   }
-
 
   void step_to_expression( const img_network& img, std::ostream& s, int index )
   {
@@ -162,7 +137,5 @@ namespace mockturtle
         );
     s << "\n";
   }
-  
-}
 
-#endif
+}
