@@ -910,6 +910,8 @@ namespace also
     {
       solver.restart();
 
+      solver.set_time_limit( 60 * 60 ); //60 * 60 seconds
+
       if( !encoder.encode( spec ) )
       {
         spec.nr_steps++;
@@ -1099,7 +1101,7 @@ namespace also
     }
 
     img_encoder encoder( solver );
-
+    
     if ( implication_syn_by_img_encoder( spec, img, solver, encoder ) == success )
     {
       std::cout << std::endl << "[i] Success. " << spec.nr_steps << " nodes are required." << std::endl;
