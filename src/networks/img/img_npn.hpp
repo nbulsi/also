@@ -147,7 +147,7 @@ private:
     {
       v.clear();
       auto strs = also::split_by_delim( line, ' ' );
-      for( auto i = 1u; i < strs.size() - 1; i++ )
+      for( auto i = 1u; i < strs.size(); i++ )
       {
         v.push_back( strs[i] );
       }

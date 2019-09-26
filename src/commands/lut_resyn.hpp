@@ -102,9 +102,10 @@ namespace alice
           img_network img, tmp_img;
 
           img_npn_resynthesis resyn;
-          tmp_img = node_resynthesis<img_network>( klut, resyn );
+          //tmp_img = node_resynthesis<img_network>( klut, resyn );
+          img = node_resynthesis<img_network>( klut, resyn );
 
-          img = also::img_rewriting( tmp_img);
+          //img = also::img_rewriting( tmp_img);
 
           depth_view img_depth{img};
           std::cout << "[I/O:" << img.num_pis() << "/" << img.num_pos() << "] IMG gates: " 

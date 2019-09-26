@@ -80,6 +80,16 @@ namespace also
 /******************************************************************************
  * Private functions                                                          *
  ******************************************************************************/
+  void img_rewriting_po( img_network& img )
+  {
+    img.foreach_po( [&]( auto const& f, auto index ) {
+        if( img.is_complemented( f ) )
+        {
+          std::cout << "rewriting IO is required." << std::endl;
+        }
+        } );
+
+  }
 
 /******************************************************************************
  * Public functions                                                           *
@@ -96,6 +106,10 @@ namespace also
     img_rewrite p( img );
 
     p.run();
+
+    img = cleanup_dangling( img );
+
+    img_rewriting_po( img );
 
     return cleanup_dangling( img );
   }
