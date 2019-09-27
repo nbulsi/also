@@ -149,11 +149,16 @@ public:
     }
   };
 
-  img_network() : _storage( std::make_shared<img_storage>() )
+  
+  img_network()
+      : _storage( std::make_shared<img_storage>() ),
+        _events( std::make_shared<decltype( _events )::element_type>() )
   {
   }
 
-  img_network( std::shared_ptr<img_storage> storage ) : _storage( storage )
+  img_network( std::shared_ptr<img_storage> storage )
+      : _storage( storage ),
+        _events( std::make_shared<decltype( _events )::element_type>() )
   {
   }
 #pragma endregion
@@ -399,6 +404,196 @@ public:
 #pragma endregion
 
 #pragma region Restructuring
+  std::optional<std::pair<node, signal>> replace_in_node( node const& n, node const& old_node, signal new_signal )
+  {
+    auto& node = _storage->nodes[n];
+
+    uint32_t fanin = 0u;
+    if ( node.children[0].index == old_node )
+    {
+      fanin = 0u;
+      new_signal.complement ^= node.children[0].weight;
+    }
+    else if ( node.children[1].index == old_node )
+    {
+      fanin = 1u;
+      new_signal.complement ^= node.children[1].weight;
+    }
+    else
+    {
+      return std::nullopt;
+    }
+
+    // determine potential new children of node n
+    signal child0 = ( fanin == 0u ) ? node.children[ 0 ] : node.children[ 1 ];
+    signal child1 = ( fanin == 0u ) ? node.children[ 1 ] : node.children[ 0 ];
+
+    //signal child1 = new_signal;
+    //signal child0 = node.children[fanin ^ 1];
+
+    /*if ( child0.index > child1.index )
+    {
+      std::swap( child0, child1 );
+    }*/
+
+    // check for trivial cases?
+    if ( child0.index == child1.index )
+    {
+      return std::make_pair( n, get_constant( true ) );
+    }
+    else if ( child0.index == 0 ) /* constant child */
+    {
+      assert( false && " child0 cannot be the constant 0" );
+    }
+
+    // node already in hash table
+    storage::element_type::node_type _hash_obj;
+    _hash_obj.children[0] = child0;
+    _hash_obj.children[1] = child1;
+    if ( const auto it = _storage->hash.find( _hash_obj ); it != _storage->hash.end() )
+    {
+      return std::make_pair( n, signal( it->second, 0 ) );
+    }
+
+    // remember before
+    const auto old_child0 = signal{node.children[0]};
+    const auto old_child1 = signal{node.children[1]};
+
+    // erase old node in hash table
+    _storage->hash.erase( node );
+
+    // insert updated node into hash table
+    node.children[0] = child0;
+    node.children[1] = child1;
+    _storage->hash[node] = n;
+
+    // update the reference counter of the new signal
+    _storage->nodes[new_signal.index].data[0].h1++;
+
+    for ( auto const& fn : _events->on_modified )
+    {
+      fn( n, {old_child0, old_child1} );
+    }
+
+    return std::nullopt;
+  }
+
+  void replace_in_outputs( node const& old_node, signal const& new_signal )
+  {
+    for ( auto& output : _storage->outputs )
+    {
+      if ( output.index == old_node )
+      {
+        output.index = new_signal.index;
+        output.weight ^= new_signal.complement;
+
+        // increment fan-in of new node
+        _storage->nodes[new_signal.index].data[0].h1++;
+      }
+    }
+  }
+
+  void take_out_node( node const& n )
+  {
+    /* we cannot delete CIs or constants */
+    if ( n == 0 || is_pi( n ) )
+      return;
+
+    auto& nobj = _storage->nodes[n];
+    nobj.data[0].h1 = UINT32_C( 0x80000000 ); /* fanout size 0, but dead */
+    _storage->hash.erase( nobj );
+
+    for ( auto const& fn : _events->on_delete )
+    {
+      fn( n );
+    }
+
+    for ( auto i = 0u; i < 2u; ++i )
+    {
+      if ( fanout_size( nobj.children[i].index ) == 0 )
+      {
+        continue;
+      }
+      if ( decr_fanout_size( nobj.children[i].index ) == 0 )
+      {
+        take_out_node( nobj.children[i].index );
+      }
+    }
+  }
+
+  inline bool is_dead( node const& n ) const
+  {
+    return ( _storage->nodes[n].data[0].h1 >> 31 ) & 1;
+  }
+
+  void substitute_node( node const& old_node, signal const& new_signal )
+  {
+    std::stack<std::pair<node, signal>> to_substitute;
+    to_substitute.push( {old_node, new_signal} );
+
+    while ( !to_substitute.empty() )
+    {
+      const auto [_old, _new] = to_substitute.top();
+      to_substitute.pop();
+
+      for ( auto idx = 1u; idx < _storage->nodes.size(); ++idx )
+      {
+        if ( is_pi( idx ) )
+          continue; /* ignore PIs */
+
+        if ( const auto repl = replace_in_node( idx, _old, _new ); repl )
+        {
+          to_substitute.push( *repl );
+        }
+      }
+
+      /* check outputs */
+      replace_in_outputs( _old, _new );
+
+      // reset fan-in of old node
+      take_out_node( _old );
+    }
+  }
+  
+  void substitute_node_of_parents( std::vector<node> const& parents, node const& old_node, signal const& new_signal )
+  {
+    for ( auto& p : parents )
+    {
+      auto& n = _storage->nodes[p];
+      for ( auto& child : n.children )
+      {
+        if ( child.index == old_node )
+        {
+          child.index = new_signal.index;
+          child.weight ^= new_signal.complement;
+
+          // increment fan-in of new node
+          _storage->nodes[new_signal.index].data[0].h1++;
+
+          // decrement fan-in of old node
+          _storage->nodes[old_node].data[0].h1--;
+        }
+      }
+    }
+
+    /* check outputs */
+    for ( auto& output : _storage->outputs )
+    {
+      if ( output.index == old_node )
+      {
+        output.index = new_signal.index;
+        output.weight ^= new_signal.complement;
+
+        // increment fan-in of new node
+        _storage->nodes[new_signal.index].data[0].h1++;
+
+        // decrement fan-in of old node
+        _storage->nodes[old_node].data[0].h1--;
+      }
+    }
+  }
+
+#if 0
   void substitute_node( node const& old_node, signal const& new_signal )
   {
     /* find all parents from old_node */
@@ -433,6 +628,7 @@ public:
     // reset fan-in of old node
     _storage->nodes[old_node].data[0].h1 = 0;
   }
+#endif
 #pragma endregion
 
 #pragma region Structural properties
@@ -465,7 +661,17 @@ public:
 
   uint32_t fanout_size( node const& n ) const
   {
-    return _storage->nodes[n].data[0].h1;
+    return _storage->nodes[n].data[0].h1 & UINT32_C( 0x7FFFFFFF );
+  }
+  
+  uint32_t incr_fanout_size( node const& n ) const
+  {
+    return _storage->nodes[n].data[0].h1++ & UINT32_C( 0x7FFFFFFF );
+  }
+
+  uint32_t decr_fanout_size( node const& n ) const
+  {
+    return --_storage->nodes[n].data[0].h1 & UINT32_C( 0x7FFFFFFF );
   }
 
   bool is_imp( node const& n ) const
