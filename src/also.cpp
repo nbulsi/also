@@ -41,6 +41,7 @@
 #include "commands/write_dot.hpp"
 #include "commands/cog.hpp"
 #include "commands/test_tt.hpp"
+#include "commands/test_img.hpp"
 
 ALICE_MAIN( also )
 
