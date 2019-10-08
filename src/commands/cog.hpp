@@ -43,98 +43,121 @@ namespace alice
     protected:
       void execute()
       {
-        std::ifstream infile( filename ); 
+        spec spec;
 
-        std::ofstream outfile;
-
-        outfile.open( "opt.txt" );
-
-        if( !infile || !outfile ) 
+        if( is_set( "img" ) )
         {
-          std::cout << " Cannot open file " << std::endl;
-          assert( false );
-        }
+          kitty::dynamic_truth_table tt2s( 2 );
+          kitty::dynamic_truth_table tt3s( 3 );
+          also::img img;
+          bsat_wrapper solver;
+          also::img_encoder encoder( solver );
+          
+          std::ofstream outfile;
+          outfile.open( "opt_img.txt" );
 
-        std::string line;
-        while (std::getline(infile, line) ) 
+          if( !outfile ) 
+          {
+            std::cout << " Cannot open file " << std::endl;
+            assert( false );
+          }
+
+          /* enumerate all 2-input Boolean function */
+          do
+          {
+              spec[0] = tt2s;
+              if ( also::implication_syn_by_img_encoder( spec, img, solver, encoder ) == success )
+              {
+                auto s = also::img_to_string( spec, img );
+                outfile << "0x" << kitty::to_hex( tt2s ) << " " << s << std::endl;
+              }
+
+            kitty::next_inplace( tt2s );
+          }while( !kitty::is_const0( tt2s ) );
+          
+          /* enumerate all 3-input Boolean function */
+          do
+          {
+              spec[0] = tt3s;
+              if ( also::implication_syn_by_img_encoder( spec, img, solver, encoder ) == success )
+              {
+                auto s = also::img_to_string( spec, img );
+                outfile << "0x" << kitty::to_hex( tt3s ) << " " << s << std::endl;
+              }
+
+            kitty::next_inplace( tt3s );
+          }while( !kitty::is_const0( tt3s ) );
+        }
+        else
         {
-          std::string f = line;
-          f.replace( f.begin(), f.begin() + 2, "" );
-          
-          const unsigned num_vars = ::log( f.size() * 4 ) / ::log( 2.0 );
-          
-          kitty::dynamic_truth_table t( num_vars );
-          kitty::create_from_hex_string( t, f );
+          std::ifstream infile( filename ); 
 
-          spec spec;
-          if( is_set( "m5ig" ) )
+          std::ofstream outfile;
+
+          outfile.open( "opt.txt" );
+
+          if( !infile || !outfile ) 
           {
-            /* mig five synthesize */
-            also::mig5 mig5;
+            std::cout << " Cannot open file " << std::endl;
+            assert( false );
+          }
 
-            if( num_vars < 5 )
+          std::string line;
+          while (std::getline(infile, line) ) 
+          {
+            std::string f = line;
+            f.replace( f.begin(), f.begin() + 2, "" );
+
+            const unsigned num_vars = ::log( f.size() * 4 ) / ::log( 2.0 );
+
+            kitty::dynamic_truth_table t( num_vars );
+            kitty::create_from_hex_string( t, f );
+
+            if( is_set( "m5ig" ) )
             {
-              spec[0] = kitty::extend_to( t, 5 );
+              /* mig five synthesize */
+              also::mig5 mig5;
+
+              if( num_vars < 5 )
+              {
+                spec[0] = kitty::extend_to( t, 5 );
+              }
+              else
+              {
+                spec[0] = t;
+              }
+
+              if ( also::parallel_mig_five_fence_synthesize( spec, mig5 ) == success )
+              {
+                auto s = also::mig5_to_string( spec, mig5 );
+                outfile << "0x" << f << " " << s << std::endl;
+              }
             }
             else
             {
-              spec[0] = t;
-            }
+              /* mig three synthesize */
+              also::mig3 mig3;
 
-            if ( also::parallel_mig_five_fence_synthesize( spec, mig5 ) == success )
-            {
-              auto s = also::mig5_to_string( spec, mig5 );
-              outfile << "0x" << f << " " << s << std::endl;
-            }
-          }
-          else if( is_set( "img" ) )
-          {
-            also::img img;
+              if( num_vars < 3 )
+              {
+                spec[0] = kitty::extend_to( t, 3 );
+              }
+              else
+              {
+                spec[0] = t;
+              }
 
-            if( num_vars < 2 )
-            {
-              spec[0] = kitty::extend_to( t, 2 );
-            }
-            else
-            {
-              spec[0] = t;
-            }
-
-            outfile << "0x" << f << " " <<  also::nbu_img_aig_upper_bound_synthesize( t ) << std::endl;
-
-            /*bsat_wrapper solver;
-            also::img_encoder encoder( solver );
-
-            if ( also::img_cegar_synthesize( spec, img, solver, encoder ) == success )
-            {
-              auto s = also::img_to_string( spec, img );
-              outfile << "0x" << f << " " << s << " size: " << spec.nr_steps << std::endl;
-            }*/
-          }
-          else
-          {
-            /* mig three synthesize */
-            also::mig3 mig3;
-
-            if( num_vars < 3 )
-            {
-              spec[0] = kitty::extend_to( t, 3 );
-            }
-            else
-            {
-              spec[0] = t;
-            }
-
-            if ( also::parallel_mig_three_fence_synthesize( spec, mig3 ) == success )
-            {
-              auto s = also::mig3_to_string( spec, mig3 );
-              outfile << "0x" << f << " " << s << std::endl;
+              if ( also::parallel_mig_three_fence_synthesize( spec, mig3 ) == success )
+              {
+                auto s = also::mig3_to_string( spec, mig3 );
+                outfile << "0x" << f << " " << s << std::endl;
+              }
             }
           }
+
+          infile.close();
+          outfile.close();
         }
-
-        infile.close();
-        outfile.close();
       }
 
     private:
