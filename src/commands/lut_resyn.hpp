@@ -22,6 +22,7 @@
 #include "../networks/m5ig/exact_online_m5ig.hpp"
 #include "../networks/img/img.hpp"
 #include "../networks/img/img_npn.hpp"
+#include "../networks/img/img_all.hpp"
 #include "../networks/img/imgrw.hpp"
 
 namespace alice
@@ -101,7 +102,7 @@ namespace alice
         {
           img_network img, tmp_img;
 
-          img_npn_resynthesis resyn;
+          img_all_resynthesis resyn;
           img = node_resynthesis<img_network>( klut, resyn );
 
           //img = also::img_rewriting( tmp_img);
