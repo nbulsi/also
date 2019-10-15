@@ -56,6 +56,8 @@ namespace also
 
     /*! \brief Allow area increase while optimizing depth. */
     bool allow_area_increase{true};
+
+    bool verbose{false};
   };
 
   namespace detail
@@ -193,8 +195,10 @@ namespace also
         bool reduce_depth( node<Ntk> const& n )
         {
           auto b1 = reduce_depth_rule_one( n );
+          auto b2 = reduce_depth_rule_two( n );
+          auto b3 = reduce_depth_rule_three( n );
 
-          return b1;
+          return b1 | b2 | b3;
         }
 
         /* a -> ( a -> b ) = a -> b */
@@ -216,7 +220,82 @@ namespace also
 
           if( ntk.get_node( cs[0] ) == ntk.get_node( gcs[0] ) )
           {
+            std::cout << " rule one " << std::endl;
             auto opt = cs[1];
+            ntk.substitute_node( n, opt );
+            ntk.update_levels();
+            return true;
+          }
+          
+          return true;
+        }
+
+        /* ( a -> b ) -> a = a */
+        bool reduce_depth_rule_two( node<Ntk> const& n )
+        {
+          if( ntk.level( n ) == 0 )
+            return false;
+
+          const auto cs = get_children( n );
+
+          if( ntk.level( ntk.get_node( cs[0] ) ) == 0 )
+            return false;
+          
+          /* child must have single fanout, if no area overhead is allowed */
+          if ( !ps.allow_area_increase && ntk.fanout_size( ntk.get_node( cs[0] ) ) != 1 )
+            return false;
+
+          const auto gcs = get_children( ntk.get_node( cs[0] ) );
+
+          if( ntk.get_node( cs[1] ) == ntk.get_node( gcs[0] ) )
+          {
+            std::cout << " rule two" << std::endl;
+            auto opt = cs[1];
+            ntk.substitute_node( n, opt );
+            ntk.update_levels();
+            return true;
+          }
+          
+          return true;
+        }
+
+        /* ( b -> 0 ) -> ( a -> 0 ) = a -> b */
+        bool reduce_depth_rule_three( node<Ntk> const& n )
+        {
+          if( ntk.level( n ) == 0 )
+            return false;
+
+          const auto cs = get_children( n );
+
+          if( ( ntk.level( ntk.get_node( cs[0] ) ) == 0 ) || ( ntk.level( ntk.get_node( cs[1] ) ) == 0 ) )
+            return false;
+          
+          /* child must have single fanout, if no area overhead is allowed */
+          if ( !ps.allow_area_increase && ntk.fanout_size( ntk.get_node( cs[0] ) ) != 1 )
+            return false;
+          
+          if ( !ps.allow_area_increase && ntk.fanout_size( ntk.get_node( cs[1] ) ) != 1 )
+            return false;
+
+          const auto gcs0 = get_children( ntk.get_node( cs[0] ) );
+          const auto gcs1 = get_children( ntk.get_node( cs[1] ) );
+
+          if( ntk.get_node( gcs0[1] ) != 0 )
+            return false;
+          
+          if( ntk.get_node( gcs1[1] ) != 0 )
+            return false;
+
+          if( ntk.get_node( gcs0[1] ) == ntk.get_node( gcs1[1] ) )
+          {
+            if( ps.verbose )
+            {
+              std::cout << " rule three" << std::endl;
+              std::cout << " gcs0[0]: " << ntk.get_node( gcs0[0] ) << " gcs0[1]: " << ntk.get_node( gcs0[1] ) << std::endl;
+              std::cout << " gcs1[0]: " << ntk.get_node( gcs1[0] ) << " gcs1[1]: " << ntk.get_node( gcs1[1] ) << std::endl;
+            }
+            
+            auto opt = ntk.create_imp( gcs1[0], gcs0[0] );
             ntk.substitute_node( n, opt );
             ntk.update_levels();
             return true;

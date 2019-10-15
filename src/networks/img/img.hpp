@@ -526,6 +526,7 @@ public:
     return ( _storage->nodes[n].data[0].h1 >> 31 ) & 1;
   }
 
+#if 0
   void substitute_node( node const& old_node, signal const& new_signal )
   {
     std::stack<std::pair<node, signal>> to_substitute;
@@ -554,6 +555,7 @@ public:
       take_out_node( _old );
     }
   }
+#endif
   
   void substitute_node_of_parents( std::vector<node> const& parents, node const& old_node, signal const& new_signal )
   {
@@ -593,7 +595,6 @@ public:
     }
   }
 
-#if 0
   void substitute_node( node const& old_node, signal const& new_signal )
   {
     /* find all parents from old_node */
@@ -628,7 +629,6 @@ public:
     // reset fan-in of old node
     _storage->nodes[old_node].data[0].h1 = 0;
   }
-#endif
 #pragma endregion
 
 #pragma region Structural properties
