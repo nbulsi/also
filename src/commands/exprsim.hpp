@@ -57,12 +57,15 @@ namespace alice
            opt.function = tt;
            opt.network  = expression;
            opt_ntks.current() = opt;
-           std::cout << fmt::format( "tt: 0x{}", kitty::to_hex( opt.function ) ) << std::endl;;
+           std::cout << fmt::format( "tt: 0x{}", kitty::to_hex( opt.function ) ) << std::endl;
+
+           store<optimum_network>().extend();
+           store<optimum_network>().current() = opt;
          }
       }
 
     private:
-      std::string expression;
+      std::string expression = "";
 
   };
 
