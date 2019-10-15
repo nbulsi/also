@@ -147,11 +147,12 @@ namespace also
       }
     }
     
-    void print_stats( const xmg_network& xmg )
+    template<class Ntk>
+    void print_stats( const Ntk& ntk )
     {
-      depth_view depth_xmg( xmg );
-      std::cout << fmt::format( "xmg   i/o = {}/{}   gates = {}   level = {}\n", 
-          xmg.num_pis(), xmg.num_pos(), xmg.num_gates(), depth_xmg.depth() );
+      depth_view depth_ntk( ntk );
+      std::cout << fmt::format( "ntk   i/o = {}/{}   gates = {}   level = {}\n", 
+          ntk.num_pis(), ntk.num_pos(), ntk.num_gates(), depth_ntk.depth() );
     }
 }
 

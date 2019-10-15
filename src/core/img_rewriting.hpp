@@ -1,0 +1,284 @@
+/* also: Advanced Logic Synthesis and Optimization tool
+ * Copyright (C) 2019- Ningbo University, Ningbo, China */
+
+/**
+ * @file img_rewriting.hpp
+ *
+ * @brief implication logic network rewriting for area/depth
+ * optimization
+ *
+ * @author Zhufei Chu
+ * @since  0.1
+ */
+
+#ifndef IMG_REWRITING_HPP
+#define IMG_REWRITING_HPP
+
+#include <mockturtle/mockturtle.hpp>
+#include "../networks/img/img.hpp"
+#include "../networks/img/img_compl_rw.hpp"
+
+namespace also
+{
+  struct img_depth_rewriting_params
+  {
+    /*! \brief Rewriting strategy. */
+    enum strategy_t
+    {
+      /*! \brief DFS rewriting strategy.
+       *
+       * Applies depth rewriting once to all output cones whose drivers have
+       * maximum levels
+       */
+      dfs,
+      /*! \brief Aggressive rewriting strategy.
+       *
+       * Applies depth reduction multiple times until the number of nodes, which
+       * cannot be rewritten, matches the number of nodes, in the current
+       * network; or the new network size is larger than the initial size w.r.t.
+       * to an `overhead`.
+       */
+      aggressive,
+      /*! \brief Selective rewriting strategy.
+       *
+       * Like `aggressive`, but only applies rewriting to nodes on critical paths
+       * and without `overhead`.
+       */
+      selective
+    } strategy = dfs;
+
+    /*! \brief Overhead factor in aggressive rewriting strategy.
+     *
+     * When comparing to the initial size in aggressive depth rewriting, also the
+     * number of dangling nodes are taken into account.
+     */
+    float overhead{2.0f};
+
+    /*! \brief Allow area increase while optimizing depth. */
+    bool allow_area_increase{true};
+  };
+
+  namespace detail
+  {
+    template<class Ntk>
+    class img_depth_rewriting_impl
+    {
+      public:
+        img_depth_rewriting_impl( Ntk& ntk, img_depth_rewriting_params const& ps )
+          : ntk( ntk ), ps( ps )
+        {
+        }
+
+        void run()
+        {
+          switch ( ps.strategy )
+          {
+            case img_depth_rewriting_params::dfs:
+              run_dfs();
+              break;
+
+            case img_depth_rewriting_params::selective:
+              run_selective();
+              break;
+
+            case img_depth_rewriting_params::aggressive:
+              run_aggressive();
+              break;
+
+            default:
+              assert( false );
+              break;
+          }
+        }
+
+      private:
+        void run_dfs()
+        {
+          ntk.foreach_po( [this]( auto po ) {
+              //const auto driver = ntk.get_node( po );
+              //if ( ntk.level( driver ) < ntk.depth() )
+              //return;
+              topo_view topo{ntk, po};
+              topo.foreach_node( [this]( auto n ) {
+                  reduce_depth( n );
+                  return true;
+                  } );
+              } );
+        }
+
+        void run_selective()
+        {
+          uint32_t counter{0};
+          while ( true )
+          {
+            mark_critical_paths();
+
+            topo_view topo{ntk};
+            topo.foreach_node( [this, &counter]( auto n ) {
+                if ( ntk.fanout_size( n ) == 0 || ntk.value( n ) == 0 )
+                return;
+
+                if ( reduce_depth( n ) )
+                {
+                  mark_critical_paths();
+                }
+                else
+                {
+                  ++counter;
+                }
+                } );
+
+            if ( counter > ntk.size() )
+              break;
+          }
+        }
+
+        void run_aggressive()
+        {
+          uint32_t counter{0}, init_size{ntk.size()};
+          while ( true )
+          {
+            topo_view topo{ntk};
+            topo.foreach_node( [this, &counter]( auto n ) {
+                if ( ntk.fanout_size( n ) == 0 )
+                return;
+
+                if ( !reduce_depth( n ) )
+                {
+                ++counter;
+                }
+                } );
+
+            if ( ntk.size() > ps.overhead * init_size )
+              break;
+
+            if ( counter > ntk.size() )
+              break;
+          }
+        }
+        
+        std::array<signal<Ntk>, 2> get_children( node<Ntk> const& n ) const
+        {
+          std::array<signal<Ntk>, 2> children;
+          ntk.foreach_fanin( n, [&children]( auto const& f, auto i ) { children[i] = f; } );
+          return children;
+        }
+
+        void mark_critical_path( node<Ntk> const& n )
+        {
+          if ( ntk.is_pi( n ) || ntk.is_constant( n ) || ntk.value( n ) )
+            return;
+
+          const auto level = ntk.level( n );
+          ntk.set_value( n, 1 );
+          ntk.foreach_fanin( n, [this, level]( auto const& f ) {
+              if ( ntk.level( ntk.get_node( f ) ) == level - 1 )
+              {
+              mark_critical_path( ntk.get_node( f ) );
+              }
+              } );
+        }
+
+        void mark_critical_paths()
+        {
+          ntk.clear_values();
+          ntk.foreach_po( [this]( auto const& f ) {
+              if ( ntk.level( ntk.get_node( f ) ) == ntk.depth() )
+              {
+              mark_critical_path( ntk.get_node( f ) );
+              }
+              } );
+        }
+
+        bool reduce_depth( node<Ntk> const& n )
+        {
+          auto b1 = reduce_depth_rule_one( n );
+
+          return b1;
+        }
+
+        /* a -> ( a -> b ) = a -> b */
+        bool reduce_depth_rule_one( node<Ntk> const& n )
+        {
+          if( ntk.level( n ) == 0 )
+            return false;
+
+          const auto cs = get_children( n );
+
+          if( ntk.level( ntk.get_node( cs[1] ) ) == 0 )
+            return false;
+          
+          /* child must have single fanout, if no area overhead is allowed */
+          if ( !ps.allow_area_increase && ntk.fanout_size( ntk.get_node( cs[1] ) ) != 1 )
+            return false;
+
+          const auto gcs = get_children( ntk.get_node( cs[1] ) );
+
+          if( ntk.get_node( cs[0] ) == ntk.get_node( gcs[0] ) )
+          {
+            auto opt = cs[1];
+            ntk.substitute_node( n, opt );
+            ntk.update_levels();
+            return true;
+          }
+          
+          return true;
+        }
+
+      private:
+        Ntk& ntk;
+        img_depth_rewriting_params const& ps;
+    };
+
+  }; /* namespace detail*/
+
+
+/*! \brief IMG algebraic depth rewriting.
+ *
+ * This algorithm tries to rewrite a network with 2-input
+ * implication gates for depth
+ * optimization using the  identities in
+ * implication logic.  
+ *
+ * **Required network functions:**
+ * - `get_node`
+ * - `level`
+ * - `update_levels`
+ * - `create_imp`
+ * - `substitute_node`
+ * - `foreach_node`
+ * - `foreach_po`
+ * - `foreach_fanin`
+ * - `is_imp`
+ * - `clear_values`
+ * - `set_value`
+ * - `value`
+ * - `fanout_size`
+ *
+   \verbatim embed:rst
+
+   \endverbatim
+ */
+  template<class Ntk>
+  void img_depth_rewriting( Ntk& ntk, img_depth_rewriting_params const& ps = {} )
+  {
+    static_assert( is_network_type_v<Ntk>, "Ntk is not a network type" );
+    static_assert( has_get_node_v<Ntk>, "Ntk does not implement the get_node method" );
+    static_assert( has_level_v<Ntk>, "Ntk does not implement the level method" );
+    static_assert( has_substitute_node_v<Ntk>, "Ntk does not implement the substitute_node method" );
+    static_assert( has_update_levels_v<Ntk>, "Ntk does not implement the update_levels method" );
+    static_assert( has_foreach_node_v<Ntk>, "Ntk does not implement the foreach_node method" );
+    static_assert( has_foreach_po_v<Ntk>, "Ntk does not implement the foreach_po method" );
+    static_assert( has_foreach_fanin_v<Ntk>, "Ntk does not implement the foreach_fanin method" );
+    static_assert( has_clear_values_v<Ntk>, "Ntk does not implement the clear_values method" );
+    static_assert( has_set_value_v<Ntk>, "Ntk does not implement the set_value method" );
+    static_assert( has_value_v<Ntk>, "Ntk does not implement the value method" );
+    static_assert( has_fanout_size_v<Ntk>, "Ntk does not implement the fanout_size method" );
+
+    detail::img_depth_rewriting_impl<Ntk> p( ntk, ps );
+    p.run();
+  }
+
+} /* namespace also */
+
+#endif
