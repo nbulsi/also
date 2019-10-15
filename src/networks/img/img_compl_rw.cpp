@@ -1,7 +1,7 @@
 /* also: Advanced Logic Synthesis and Optimization tool
  * Copyright (C) 2019- Ningbo University, Ningbo, China */
 
-#include "imgrw.hpp"
+#include "img_compl_rw.hpp"
 
 using namespace mockturtle;
 
@@ -131,9 +131,27 @@ namespace also
 
     const auto c = get_children( img, index );
     s << "(";
-    step_to_expression( img, s, img.get_node( c[0] ) );
+    if( img.is_complemented( c[0] ) )
+    {
+      s << "(";
+      step_to_expression( img, s, img.get_node( c[0] ) );
+      s << "->0)";
+    }
+    else
+    {
+      step_to_expression( img, s, img.get_node( c[0] ) );
+    }
     s << "->"; 
-    step_to_expression( img, s, img.get_node( c[1] ) );
+    if( img.is_complemented( c[1] ) )
+    {
+      s << "(";
+      step_to_expression( img, s, img.get_node( c[1] ) );
+      s << "->0)";
+    }
+    else
+    {
+      step_to_expression( img, s, img.get_node( c[1] ) );
+    }
     s << ")";
   }
 

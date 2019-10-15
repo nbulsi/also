@@ -24,10 +24,11 @@
  */
 #include <percy/percy.hpp>
 #include <mockturtle/utils/stopwatch.hpp>
+#include <mockturtle/properties/migcost.hpp>
 
 #include "exact_img.hpp"
 #include "../networks/img/img.hpp"
-#include "../networks/img/imgrw.hpp"
+#include "../networks/img/img_compl_rw.hpp"
 
 using namespace percy; 
 using namespace mockturtle; 
@@ -127,6 +128,7 @@ namespace also
       
       //synthesis 
       int min_num_gates = INT_MAX;
+      int current_num_gates = 0;
       img_network best_img;
 
       while (next_solution(spec, c, solver, encoder) == success) 
@@ -139,19 +141,19 @@ namespace also
 
         auto r = c;
         auto img = img_from_aig_chain( r );
-        //printf( "IMG size: %d\n", img.num_gates() );
 
-        auto img_new = img_rewriting( img );
-        if( img_new.num_gates() < min_num_gates )
+        current_num_gates = img.num_gates() + num_inverters( img );
+
+        if( current_num_gates < min_num_gates )
         {
-          min_num_gates = img_new.num_gates();
-          best_img = img_new;
+          min_num_gates = current_num_gates;
+          best_img = img;
         }
         
         if( verbose )
         {
-          printf( "NEW IMG size: %d\n", img_new.num_gates() );
-          img_to_expression( std::cout, img_new);
+          printf( "NEW IMG size: %d\n", current_num_gates );
+          img_to_expression( std::cout, img );
         }
       }
       

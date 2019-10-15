@@ -23,7 +23,6 @@
 #include "../networks/img/img.hpp"
 #include "../networks/img/img_npn.hpp"
 #include "../networks/img/img_all.hpp"
-#include "../networks/img/imgrw.hpp"
 
 namespace alice
 {
@@ -104,8 +103,6 @@ namespace alice
 
           img_all_resynthesis resyn;
           img = node_resynthesis<img_network>( klut, resyn );
-
-          //img = also::img_rewriting( tmp_img);
 
           depth_view img_depth{img};
           std::cout << "[I/O:" << img.num_pis() << "/" << img.num_pos() << "] IMG gates: " 
