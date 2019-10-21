@@ -217,7 +217,7 @@ public:
 #pragma region Create binary functions
   signal create_imp( signal a, signal b )
   {
-    assert( a.index != 0 && ( a.index != b.index ) );
+    //assert( a.index != 0 && ( a.index != b.index ) );
     /* trivial cases */
     if ( a.index == b.index )
     {

@@ -197,8 +197,9 @@ namespace also
           auto b1 = reduce_depth_rule_one( n );
           auto b2 = reduce_depth_rule_two( n );
           auto b3 = reduce_depth_rule_three( n );
+          auto b4 = reduce_depth_rule_four( n );
 
-          return b1 | b2 | b3;
+          return b1 | b2 | b3 | b4;
         }
 
         /* a -> ( a -> b ) = a -> b */
@@ -220,7 +221,10 @@ namespace also
 
           if( ntk.get_node( cs[0] ) == ntk.get_node( gcs[0] ) )
           {
-            std::cout << " rule one " << std::endl;
+            if( ps.verbose )
+            {
+              std::cout << " rule one " << std::endl;
+            }
             auto opt = cs[1];
             ntk.substitute_node( n, opt );
             ntk.update_levels();
@@ -249,7 +253,10 @@ namespace also
 
           if( ntk.get_node( cs[1] ) == ntk.get_node( gcs[0] ) )
           {
-            std::cout << " rule two" << std::endl;
+            if( ps.verbose )
+            {
+              std::cout << " rule two" << std::endl;
+            }
             auto opt = cs[1];
             ntk.substitute_node( n, opt );
             ntk.update_levels();
@@ -301,6 +308,51 @@ namespace also
             return true;
           }
           
+          return true;
+        }
+
+        /* ( a -> 0 ) -> b = ( b -> 0 ) -> a, depth optimization */
+        bool reduce_depth_rule_four( node<Ntk> const& n )
+        {
+          if( ntk.level( n ) == 0 )
+            return false;
+          
+          const auto cs = get_children( n );
+
+          if( ( ntk.level( ntk.get_node( cs[0] ) ) == 0 ) )
+            return false;
+          
+          if( ( ntk.level( ntk.get_node( cs[1] ) ) == 0 ) )
+            return false;
+
+          if( ntk.get_node( cs[1] ) == 0 )
+            return false;
+          
+          /* child must have single fanout */
+          if ( !ps.allow_area_increase && ntk.fanout_size( ntk.get_node( cs[0] ) ) != 1 )
+            return false;
+          
+          const auto gcs0 = get_children( ntk.get_node( cs[0] ) );
+          
+          if( ntk.get_node( gcs0[1] ) != 0 )
+            return false;
+          
+          /* depth of the grandchild one must be higher than depth
+           * of second child*/
+          if( ntk.level( ntk.get_node( gcs0[0] ) ) <= ntk.level( ntk.get_node( cs[1] ) ) + 1 )
+            return false;
+          
+          if( ps.verbose )
+          {
+            std::cout << " rule four" << std::endl;
+            std::cout << "a: " << ntk.get_node( gcs0[0] ) << " -> " << ntk.get_node( gcs0[1] ) 
+                      << " -> " << ntk.get_node( cs[1] ) << std::endl;
+          }
+
+          auto opt = ntk.create_imp( ntk.create_not( cs[1] ), gcs0[0] );
+          ntk.substitute_node( n, opt );
+          ntk.update_levels();
+
           return true;
         }
 
