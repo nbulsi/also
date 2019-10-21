@@ -201,8 +201,9 @@ namespace also
           auto b3 = reduce_depth_rule_three( n );
           auto b4 = reduce_depth_rule_four( n );
           auto b5 = reduce_depth_rule_five( n );
+          auto b6 = reduce_depth_rule_six( n );
 
-          return b1 | b2 | b3 | b4 | b5;
+          return b1 | b2 | b3 | b4 | b5 | b6;
         }
 
         /* a -> ( a -> b ) = a -> b */
@@ -413,7 +414,53 @@ namespace also
           if( ntk.get_node( gcs[1] ) != ntk.get_node( cs[1] ) )
             return false;
           
+          if( ps.verbose )
+          {
+            std::cout << " rule zero" << std::endl;
+          }
+          
           auto opt = ntk.create_imp( ntk.create_not( gcs[0] ), cs[1] );
+          ntk.substitute_node( n, opt );
+          ntk.update_levels();
+
+          return true;
+        }
+
+        /* ( a -> b ) -> ( b -> c ) = ( b -> c ) */
+        bool reduce_depth_rule_six( node<Ntk> const& n )
+        {
+          if( ntk.level( n ) == 0 )
+            return false;
+          
+          const auto& cs = get_children( n );
+          
+          if( ntk.level( ntk.get_node( cs[0] ) ) == 0 )
+            return false;
+          
+          if( ntk.level( ntk.get_node( cs[1] ) ) == 0 )
+            return false;
+          
+          if ( !ps.allow_area_increase && ntk.fanout_size( ntk.get_node( cs[0] ) ) != 1 )
+            return false;
+          
+          if ( !ps.allow_area_increase && ntk.fanout_size( ntk.get_node( cs[1] ) ) != 1 )
+            return false;
+          
+          const auto& gcs0 = get_children( ntk.get_node( cs[0] ) );
+          const auto& gcs1 = get_children( ntk.get_node( cs[1] ) );
+          
+          if( ntk.get_node( gcs0[1] ) == 0 )
+            return false;
+      
+          if( ntk.get_node( gcs0[1] ) != ntk.get_node( gcs1[0] ) )
+            return false;
+          
+          if( ps.verbose )
+          {
+            std::cout << " rule six" << std::endl;
+          }
+
+          auto opt = cs[1];
           ntk.substitute_node( n, opt );
           ntk.update_levels();
 

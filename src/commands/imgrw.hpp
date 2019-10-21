@@ -80,16 +80,23 @@ namespace alice
           assert( false );
         }
 
-        /* rewriting */
-        depth_view depth_img( img );
-        img_depth_rewriting( depth_img, ps );
-        img = cleanup_dangling( img );
+        stopwatch<>::duration time{0};
+        
+        call_with_stopwatch( time, [&]() 
+            {
+              /* rewriting */
+              depth_view depth_img( img );
+              img_depth_rewriting( depth_img, ps );
+              img = cleanup_dangling( img );
+            } );
 
         /* print information */
         std::cout << "[imgrw] "; 
         also::print_stats( img );
         store<img_network>().extend(); 
         store<img_network>().current() = img;
+        
+        std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
       }
     
     private:
