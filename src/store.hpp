@@ -34,6 +34,7 @@
 
 #include "networks/m5ig/m5ig.hpp"
 #include "networks/img/img.hpp"
+#include "networks/img/img_verilog_reader.hpp"
 
 using namespace mockturtle;
 
@@ -255,6 +256,26 @@ namespace alice
     mockturtle::depth_view depth_mig{mig};
     os << fmt::format( "MIG   i/o = {}/{}   gates = {}   level = {}", 
           mig.num_pis(), mig.num_pos(), mig.num_gates(), depth_mig.depth() );
+    os << "\n";
+  }
+  
+  ALICE_READ_FILE( img_network, verilog, filename, cmd )
+  {
+    img_network img;
+
+    lorina::diagnostic_engine diag;
+    if ( lorina::read_verilog( filename, img_verilog_reader( img ), &diag ) != lorina::return_code::success )
+    {
+      std::cout << "[w] parse error\n";
+    }
+    return img;
+  }
+  
+  ALICE_PRINT_STORE_STATISTICS( img_network, os, img )
+  {
+    mockturtle::depth_view depth_img{img};
+    os << fmt::format( "IMG   i/o = {}/{}   gates = {}   level = {}", 
+          img.num_pis(), img.num_pos(), img.num_gates(), depth_img.depth() );
     os << "\n";
   }
   
