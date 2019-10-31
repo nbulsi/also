@@ -25,7 +25,7 @@ Please execute
 ```bash
 git submodule update --recursive
 ```
-if the third-party libraries is updated.
+if the third-party libraries are updated.
 
 Then, run
 ```bash
