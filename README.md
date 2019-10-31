@@ -21,3 +21,14 @@ You can specify the path of the complier by extending *cmake* as follows:
 cmake -DCMAKE_CXX_COMPILER=/path/to/c++-compiler ..
 ```
 
+Please execute 
+```bash
+git submodule update --recursive
+```
+if the third-party libraries is updated.
+
+Then, run
+```bash
+git pull origin master
+```
+for the main repository updates.
