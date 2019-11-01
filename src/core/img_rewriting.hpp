@@ -195,6 +195,8 @@ namespace also
         bool reduce_depth( node<Ntk> const& n )
         {
           auto b0 = reduce_depth_rule_zero( n );
+          auto b8 = reduce_depth_rule_eight( n );
+          auto b9 = reduce_depth_rule_nine( n );
 
           auto b1 = reduce_depth_rule_one( n );
           auto b2 = reduce_depth_rule_two( n );
@@ -203,9 +205,11 @@ namespace also
           auto b5 = reduce_depth_rule_five( n );
           auto b6 = reduce_depth_rule_six( n );
           auto b7 = reduce_depth_rule_seven( n );
-          auto b8 = reduce_depth_rule_eight( n );
+          auto b10 = reduce_depth_rule_ten( n );
+          auto b11 = reduce_depth_rule_eleven( n );
+          auto b12 = reduce_depth_rule_tweleve( n );
 
-          return b1 | b2 | b3 | b4 | b5 | b6 | b7 | b8;
+          return b1 | b2 | b3 | b4 | b5 | b6 | b7 | b8 | b9 | b10 | b11 | b12;
         }
 
         /* a -> ( a -> b ) = a -> b */
@@ -536,6 +540,154 @@ namespace also
             auto opt = ntk.create_imp( ntk.create_imp( 
                                        ntk.create_not( ggcs[0] ), 
                                        gcs[1] ), cs[1] );
+            
+            ntk.substitute_node( n, opt );
+            ntk.update_levels();
+
+            return true;
+          }
+
+          return false;
+        }
+
+        /*
+         * ( ( c -> ( a -> b ) ) -> b ) = ( ( c -> ( a -> 0 ) ) -> b )
+         * */
+        bool reduce_depth_rule_nine( node<Ntk> const& n )
+        {
+          if( ntk.level( n ) < 3 )
+            return false;
+
+          const auto& cs = get_children( n );
+          
+          if( ntk.get_node( cs[1] ) == 0 )
+            return false;
+
+          if( ntk.level( ntk.get_node( cs[0] ) ) < 2 )
+            return false;
+          
+          const auto& gcs = get_children( ntk.get_node( cs[0] ) );
+          if( ntk.level( ntk.get_node( gcs[1] ) ) == 0 )
+            return false;
+          
+          const auto& ggcs = get_children( ntk.get_node( gcs[1] ) );
+
+          if( ntk.get_node( ggcs[1] ) == ntk.get_node( cs[1] ) )
+          {
+            if( ps.verbose )
+            {
+              std::cout << " rule nine" << std::endl;
+            }
+            auto opt = ntk.create_imp( ntk.create_imp( gcs[0], ntk.create_not( ggcs[0] ) ), cs[1] );
+            
+            ntk.substitute_node( n, opt );
+            ntk.update_levels();
+
+            return true;
+          }
+
+          return false;
+        }
+
+        /*
+         * ( b -> a ) -> ( a -> 0 ) = a -> 0
+         * */
+        bool reduce_depth_rule_ten( node<Ntk> const& n )
+        {
+          if( ntk.level( n ) < 2 )
+            return false;
+
+          const auto& cs = get_children( n );
+          
+          if( ntk.level( ntk.get_node( cs[0] ) ) == 0 )
+            return false;
+          
+          if( ntk.level( ntk.get_node( cs[1] ) ) == 0 )
+            return false;
+
+          const auto& gcs0 = get_children( ntk.get_node( cs[0] ) );
+          const auto& gcs1 = get_children( ntk.get_node( cs[1] ) );
+
+          if( ntk.get_node( gcs0[1] ) == ntk.get_node( gcs1[0] ) && ntk.get_node( gcs1[1] ) == 0 ) 
+          {
+            if( ps.verbose )
+            {
+              std::cout << " rule ten" << std::endl;
+            }
+            auto opt = ntk.create_not( gcs1[0] );
+            
+            ntk.substitute_node( n, opt );
+            ntk.update_levels();
+
+            return true;
+          }
+
+          return false;
+        }
+
+        
+        /*
+         * (a -> b) -> ( a -> 0 ) = a -> ( b -> 0) = b -> ( a -> 0 )
+         * */
+        bool reduce_depth_rule_eleven( node<Ntk> const& n )
+        {
+          if( ntk.level( n ) < 2 )
+            return false;
+
+          const auto& cs = get_children( n );
+          
+          if( ntk.level( ntk.get_node( cs[0] ) ) == 0 )
+            return false;
+          
+          if( ntk.level( ntk.get_node( cs[1] ) ) == 0 )
+            return false;
+
+          const auto& gcs0 = get_children( ntk.get_node( cs[0] ) );
+          const auto& gcs1 = get_children( ntk.get_node( cs[1] ) );
+
+          if( ntk.get_node( gcs0[0] ) == ntk.get_node( gcs1[0] ) && ntk.get_node( gcs1[1] ) == 0 ) 
+          {
+            if( ps.verbose )
+            {
+              std::cout << " rule eleven" << std::endl;
+            }
+
+            auto opt = ntk.level( ntk.get_node( gcs0[0] ) ) > ntk.level( ntk.get_node( gcs0[1] ) ) ?
+                       ntk.create_imp( gcs0[0], ntk.create_not( gcs0[1] ) ) :
+                       ntk.create_imp( gcs0[1], ntk.create_not( gcs0[0] ) );
+            
+            ntk.substitute_node( n, opt );
+            ntk.update_levels();
+
+            return true;
+          }
+
+          return false;
+        }
+        
+        /*
+         * a -> ( b -> 0 ) = b -> ( a -> 0)
+         * */
+        bool reduce_depth_rule_tweleve( node<Ntk> const& n )
+        {
+          if( ntk.level( n ) < 2 )
+            return false;
+
+          const auto& cs = get_children( n );
+          if( ntk.level( ntk.get_node( cs[1] ) ) == 0 )
+            return false;
+
+          const auto& gcs = get_children( ntk.get_node( cs[1] ) );
+
+          if( ntk.get_node( gcs[1] ) == 0 && 
+              ntk.level( ntk.get_node( gcs[0] ) ) > ntk.level( ntk.get_node( cs[0] ) ) )
+          {
+            if( ps.verbose )
+            {
+              std::cout << " rule tweleve" << std::endl;
+            }
+
+            auto opt = ntk.create_imp( gcs[0], ntk.create_not( cs[0] ) );
             
             ntk.substitute_node( n, opt );
             ntk.update_levels();
