@@ -28,6 +28,7 @@ namespace alice
       {
         add_option( "strategy, -s", strategy, "dfs = 0, aggressive = 1, selective = 2" );
         add_flag( "--area_aware", "do not increase area" );
+        add_flag( "--verbose", "verbose output" );
       }
       
       rules validity_rules() const
@@ -62,6 +63,7 @@ namespace alice
 
         /* parameters */
         ps.allow_area_increase = !is_set( "area_aware" );
+        ps.verbose = is_set( "verbose" );
 
         if( strategy == 0 )
         {

@@ -679,12 +679,15 @@ namespace also
 
           const auto& gcs = get_children( ntk.get_node( cs[1] ) );
 
+          if ( !ps.allow_area_increase && ntk.fanout_size( ntk.get_node( cs[1] ) ) != 1 )
+            return false;
+          
           if( ntk.get_node( gcs[1] ) == 0 && 
               ntk.level( ntk.get_node( gcs[0] ) ) > ntk.level( ntk.get_node( cs[0] ) ) )
           {
             if( ps.verbose )
             {
-              std::cout << " rule tweleve" << std::endl;
+              std::cout << " rule tweleve " << " a: " << ntk.get_node( cs[0] ) << " b: " << ntk.get_node( gcs[0] ) << std::endl;
             }
 
             auto opt = ntk.create_imp( gcs[0], ntk.create_not( cs[0] ) );
