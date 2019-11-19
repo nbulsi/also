@@ -241,9 +241,47 @@ namespace also
           /* a -> ( b -> 0 ) = b -> ( a -> 0)*/
           auto b4 = reduce_depth_rule_tweleve( n );
 
-          return b1 | b2 | b3 | b4; 
+          /* ( a -> b ) -> 0 -> c = ( b -> 0 ) -> ( a -> c ) */
+          auto b5 = reduce_depth_rule_seven( n );
+
+          return b1 | b2 | b3 | b4 | b5; 
         }
 
+        /* ( a -> b ) -> 0 -> c = ( b -> 0 ) -> ( a -> c ) */
+        bool reduce_depth_rule_seven( node<Ntk> const& n )
+        {
+          if( ntk.level( n ) < 3 )
+            return false;
+
+          const auto cs = get_children( n );
+
+          if( ntk.level( ntk.get_node( cs[0] ) ) < 2 )
+            return false;
+
+          const auto gcs = get_children( ntk.get_node( cs[0] ) );
+          if( ntk.level( ntk.get_node( gcs[0] ) ) < 1 )
+            return false;
+
+          if( ntk.get_node( gcs[1] ) != 0 )
+            return false;
+
+          const auto ggcs = get_children( ntk.get_node( gcs[0] ) );
+
+          if( ntk.level( ntk.get_node( cs[1] ) ) < ntk.level( ntk.get_node( ggcs[0] ) ) + 1 )
+          {
+            if( ps.verbose )
+            {
+              std::cout << " rule seven " << std::endl;
+            }
+            auto opt = ntk.create_imp( ntk.create_not( ggcs[1] ), ntk.create_imp( ggcs[0], cs[1] ) );
+            ntk.substitute_node( n, opt );
+            ntk.update_levels();
+            return true;
+          }
+
+          return false;
+        }
+        
         /* a -> ( a -> b ) = a -> b */
         bool reduce_depth_rule_one( node<Ntk> const& n )
         {
@@ -398,7 +436,7 @@ namespace also
           return true;
         }
         
-        /* ( a -> 0 ) -> 0 = a */
+        /* ( a -> 0 ) -> 0 = a = ( a -> 0 ) -> a */
         bool reduce_depth_rule_five( node<Ntk> const& n )
         {
           if( ntk.level( n ) == 0 )
@@ -414,7 +452,7 @@ namespace also
 
           const auto& gcs = get_children( ntk.get_node( cs[0] ) );
 
-          if( ntk.get_node( gcs[1] ) != 0 )
+          if( ntk.get_node( gcs[1] ) != 0 && ntk.get_node( gcs[0] ) != ntk.get_node( cs[1] ) )
             return false;
           
           /* child must have single fanout */
