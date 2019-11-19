@@ -499,6 +499,12 @@ namespace also
           if( ntk.level( ntk.get_node( ggcs[0] ) ) <= ntk.level( ntk.get_node( gcs[0] ) ) )
             return false;
           
+          if ( !ps.allow_area_increase && ntk.fanout_size( ntk.get_node( gcs[0] ) ) != 1 )
+            return false;
+          
+          if ( !ps.allow_area_increase && ntk.fanout_size( ntk.get_node( ggcs[0] ) ) != 1 )
+            return false;
+          
           if( ps.verbose )
           {
             std::cout << " rule seven" << std::endl;
