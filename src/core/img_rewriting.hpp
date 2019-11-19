@@ -192,24 +192,54 @@ namespace also
               } );
         }
 
+        bool rewrite_constant( node<Ntk> const& n )
+        {
+          /* ( a -> b ) -> b = ( a -> 0 ) -> b */
+          auto b1 = reduce_depth_rule_zero( n );
+          
+          /* ( ( a -> b ) -> c ) -> b = ( ( a -> 0 ) -> c ) -> b */
+          auto b2 = reduce_depth_rule_eight( n );
+
+          return b1 | b2;
+        }
+
+        bool reduce_size( node<Ntk> const& n )
+        {
+          /* a -> ( a -> b ) = a -> b */
+          auto b1 = reduce_depth_rule_one( n );
+          
+          /* ( a -> b ) -> a = a */
+          auto b2 = reduce_depth_rule_two( n );
+          
+          /* ( b -> 0 ) -> ( a -> 0 ) = a -> b */
+          auto b3 = reduce_depth_rule_three( n );
+          
+          /* ( a -> 0 ) -> 0 = a */
+          auto b4 = reduce_depth_rule_five( n );
+        
+          /* ( a -> b ) -> ( b -> c ) = ( b -> c ) */
+          auto b5 = reduce_depth_rule_six( n );
+
+          return b1 | b2 | b3 | b4 | b5;
+        }
+
         bool reduce_depth( node<Ntk> const& n )
         {
-          auto b0 = reduce_depth_rule_zero( n );
-          auto b8 = reduce_depth_rule_eight( n );
-          auto b9 = reduce_depth_rule_nine( n );
+          /* 1, rewrite some signals into constants */
+          auto b1 = rewrite_constant( n );
 
-          auto b1 = reduce_depth_rule_one( n );
-          auto b2 = reduce_depth_rule_two( n );
-          auto b3 = reduce_depth_rule_three( n );
-          auto b4 = reduce_depth_rule_four( n );
-          auto b5 = reduce_depth_rule_five( n );
-          auto b6 = reduce_depth_rule_six( n );
-          auto b7 = reduce_depth_rule_seven( n );
-          auto b10 = reduce_depth_rule_ten( n );
-          auto b11 = reduce_depth_rule_eleven( n );
-          auto b12 = reduce_depth_rule_tweleve( n );
+          /* 2, size optimization */
+          auto b2 = reduce_size( n );
 
-          return b1 | b2 | b3 | b4 | b5 | b6 | b7 | b8 | b9 | b10 | b11 | b12;
+
+          /* 3, depth optimization */
+          /* ( a -> 0 ) -> b = ( b -> 0 ) -> a, depth optimization */
+          auto b3 = reduce_depth_rule_four( n );
+          
+          /* a -> ( b -> 0 ) = b -> ( a -> 0)*/
+          auto b4 = reduce_depth_rule_tweleve( n );
+
+          return b1 | b2 | b3 | b4; 
         }
 
         /* a -> ( a -> b ) = a -> b */
@@ -349,7 +379,7 @@ namespace also
           
           /* depth of the grandchild one must be higher than depth
            * of second child*/
-          if( ntk.level( ntk.get_node( gcs0[0] ) ) <= ntk.level( ntk.get_node( cs[1] ) ) + 1 )
+          if( ntk.level( ntk.get_node( gcs0[0] ) ) < ntk.level( ntk.get_node( cs[1] ) ) + 1 )
             return false;
           
           if( ps.verbose )
@@ -418,6 +448,10 @@ namespace also
           const auto& gcs = get_children( ntk.get_node( cs[0] ) );
 
           if( ntk.get_node( gcs[1] ) != ntk.get_node( cs[1] ) )
+            return false;
+          
+          /* child must have single fanout */
+          if ( !ps.allow_area_increase && ntk.fanout_size( ntk.get_node( cs[0] ) ) != 1 )
             return false;
           
           if( ps.verbose )
@@ -536,6 +570,12 @@ namespace also
             return false;
 
           const auto& ggcs = get_children( ntk.get_node( gcs[0] ) );
+          
+          if ( !ps.allow_area_increase && ntk.fanout_size( ntk.get_node( cs[0] ) ) != 1 )
+            return false;
+          
+          if ( !ps.allow_area_increase && ntk.fanout_size( ntk.get_node( gcs[0] ) ) != 1 )
+            return false;
 
           if( ntk.get_node( ggcs[1] ) == ntk.get_node( cs[1] ) )
           {
@@ -689,11 +729,12 @@ namespace also
             return false;
           
           if( ntk.get_node( gcs[1] ) == 0 && 
-              ntk.level( ntk.get_node( gcs[0] ) ) > ntk.level( ntk.get_node( cs[0] ) ) )
+              ntk.level( ntk.get_node( gcs[0] ) ) > ntk.level( ntk.get_node( cs[0] ) ) + 1 )
           {
             if( ps.verbose )
             {
-              std::cout << " rule tweleve " << " a: " << ntk.get_node( cs[0] ) << " b: " << ntk.get_node( gcs[0] ) << std::endl;
+              std::cout << " rule tweleve " << " a: " << ntk.get_node( cs[0] ) << " level: " << ntk.level( ntk.get_node( cs[0] ) ) 
+                        << " b: " << ntk.get_node( gcs[0] ) << " level: " << ntk.level( ntk.get_node( gcs[0] ) ) << std::endl;
             }
 
             auto opt = ntk.create_imp( gcs[0], ntk.create_not( cs[0] ) );
