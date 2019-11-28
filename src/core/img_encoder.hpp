@@ -301,6 +301,38 @@ namespace also
       {
         to_expression(o, nr_in + steps.size() );
       }
+
+      //print implication logic expressions for storage, ()
+      //indicates the implication operation
+      void img_to_expression( std::stringstream& ss, const int i )
+      {
+        if( i == 0 )
+        {
+          ss << "0";
+        }
+        else if (i <= nr_in) 
+        {
+          ss << static_cast<char>('a' + i - 1);
+        } 
+        else 
+        {
+          const auto& step = steps[i - nr_in - 1];
+          ss << "(";
+          img_to_expression(ss, step[0]);
+          img_to_expression(ss, step[1]);
+          ss << ")";
+        }
+      }
+      
+      std::string img_to_expression()
+      {
+        std::stringstream ss;
+
+        img_to_expression( ss, nr_in + steps.size() );
+
+        return ss.str();
+      }
+
   };
   
   std::string img_to_string( const spec& spec, const img& img )
@@ -905,12 +937,12 @@ namespace also
     spec.preprocess();
 
     spec.nr_steps = spec.initial_steps;
+      
+    solver.set_time_limit( 60 * 10 ); //60 * 10 seconds
 
     while( true )
     {
       solver.restart();
-
-      solver.set_time_limit( 60 * 60 ); //60 * 60 seconds
 
       if( !encoder.encode( spec ) )
       {
@@ -933,6 +965,7 @@ namespace also
       }
       else
       {
+        std::cout << "[i] timeout" << std::endl;
         return timeout;
       }
 

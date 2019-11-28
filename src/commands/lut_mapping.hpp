@@ -16,6 +16,8 @@
 #include <mockturtle/mockturtle.hpp>
 #include <mockturtle/algorithms/satlut_mapping.hpp>
 
+#include "../core/cut_enumeration/img_cut.hpp"
+
 namespace alice
 {
 
@@ -88,7 +90,8 @@ namespace alice
           else
           {
             ps.cut_enumeration_ps.cut_size = cut_size;
-            lut_mapping<mapping_view<aig_network, true>, true>( mapped_aig, ps );
+            //lut_mapping<mapping_view<aig_network, true>, true, cut_enumeration_cnf_cut>( mapped_aig, ps );
+            lut_mapping<mapping_view<aig_network, true>, true, cut_enumeration_img_cut>( mapped_aig, ps );
           }
 
           /* collapse into k-LUT network */
