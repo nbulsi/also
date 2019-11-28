@@ -97,7 +97,7 @@ namespace alice
               if( res == success )
               {
                 auto expr = img.img_to_expression();
-                outfile << s << std::endl;
+                outfile << expr << std::endl;
               }
               else if( res == timeout )
               {
