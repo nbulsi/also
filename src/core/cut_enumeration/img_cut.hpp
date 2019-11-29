@@ -75,8 +75,8 @@ struct cut_enumeration_update_cut<cut_enumeration_img_cut>
     /******************************************************************
      * Zhufei Chu
      ******************************************************************/
-    std::cout << "node: " << n << " ";
-    std::cout << kitty::to_hex( cuts.truth_table( cut ) ) << std::endl;
+    //std::cout << "node: " << n << " ";
+    //std::cout << kitty::to_hex( cuts.truth_table( cut ) ) << std::endl;
      
     /******************************************************************/
 
@@ -93,7 +93,7 @@ struct cut_enumeration_update_cut<cut_enumeration_img_cut>
     cut->data.delay = 1 + delay;
     cut->data.flow = flow / ntk.fanout_size( n );
 
-    std::cout << "delay: " << cut->data.delay << " area_flow: " << cut->data.flow << std::endl;
+    //std::cout << "delay: " << cut->data.delay << " area_flow: " << cut->data.flow << std::endl;
   }
 };
 
