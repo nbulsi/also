@@ -938,8 +938,6 @@ namespace also
 
     spec.nr_steps = spec.initial_steps;
       
-    solver.set_time_limit( 60 * 10 ); //60 * 10 seconds
-
     while( true )
     {
       solver.restart();

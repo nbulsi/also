@@ -79,9 +79,6 @@ namespace alice
               assert( false );
             }
             
-            also::img img;
-            bsat_wrapper solver;
-            also::img_encoder encoder( solver );
 
             for( const auto& s : myset )
             {
@@ -92,6 +89,13 @@ namespace alice
 
               spec[0] = tt;
 
+              also::img img;
+              bsat_wrapper solver;
+              also::img_encoder encoder( solver );
+
+              //solver.set_time_limit( 60 * 10 );
+              //solver.restart();
+              
               auto res = also::implication_syn_by_img_encoder( spec, img, solver, encoder );
 
               if( res == success )
