@@ -10,8 +10,8 @@
  * @since  0.1
  */
 
-#ifndef IMGRW_HPP
-#define IMGRW_HPP
+#ifndef IMGRW_COMMAND_HPP
+#define IMGRW_COMMAND_HPP
 
 #include "../core/img_rewriting.hpp"
 #include "../core/misc.hpp"
@@ -107,7 +107,6 @@ namespace alice
   };
 
   ALICE_ADD_COMMAND( imgrw, "Rewriting" )
-
 
 }
 

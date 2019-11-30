@@ -31,6 +31,7 @@ namespace alice
         add_flag( "--satlut, -s",  "satlut mapping" );
         add_flag( "--xmg, -x",  "LUT mapping for XMG" );
         add_flag( "--mig, -m",  "LUT mapping for MIG" );
+        add_flag( "--opt, -o",  "Using optimal IMG size for 3-input function as the cost function" );
       }
 
     protected:
@@ -90,8 +91,14 @@ namespace alice
           else
           {
             ps.cut_enumeration_ps.cut_size = cut_size;
-            //lut_mapping<mapping_view<aig_network, true>, true, cut_enumeration_cnf_cut>( mapped_aig, ps );
-            lut_mapping<mapping_view<aig_network, true>, true, cut_enumeration_img_cut>( mapped_aig, ps );
+            if( is_set( "opt" ) )
+            {
+              lut_mapping<mapping_view<aig_network, true>, true, cut_enumeration_img_cut>( mapped_aig, ps );
+            }
+            else
+            {
+              lut_mapping<mapping_view<aig_network, true>, true, cut_enumeration_mf_cut>( mapped_aig, ps );
+            }
           }
 
           /* collapse into k-LUT network */
@@ -105,7 +112,7 @@ namespace alice
       unsigned cut_size = 4u;
   };
 
-  ALICE_ADD_COMMAND( lut_mapping, "Mapping commands" )
+  ALICE_ADD_COMMAND( lut_mapping, "Mapping" )
 }
 
 #endif
