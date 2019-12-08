@@ -387,6 +387,27 @@ namespace also
       /*
        * private functions
        * */
+      int get_sel_var( int step_idx, int j, int k ) const
+      {
+        assert( sel_map.size() != 0 );
+
+        for( const auto& e : sel_map )
+        {
+          auto array = e.second;
+
+          if( array[0] == step_idx )
+          {
+            if( array[1] == j && array[2] == k )
+            {
+              return e.first;
+            }
+          }
+        }
+
+        assert( false && "sel_var is out of reach" );
+        return 0;
+      }
+
       int get_sim_var( const spec& spec, int step_idx, int t ) const
       {
         return sim_offset + ( spec.tt_size + 1 ) * step_idx + t;
@@ -815,6 +836,46 @@ namespace also
 
         return ret;
       }
+      
+      bool create_symvar_clauses(const spec& spec)
+      {
+        for( const auto e: sel_map )
+        {
+          auto svar_idx  = e.first;
+          auto step_idx  = e.second[0];
+          auto first_in  = e.second[1];
+          auto second_in = e.second[2];
+
+          if( first_in < second_in && step_idx != 0 )
+          {
+            int ctr = 0;
+            //std::cout << "svar: " << svar_idx << " i: " << step_idx << " j: " << first_in << " k: " << second_in << std::endl;
+            pLits[ctr++] = pabc::Abc_Var2Lit( svar_idx, 1 );
+
+            for( const auto ep : sel_map )
+            {
+              auto sp = ep.first;
+
+              auto ap = ep.second;
+
+              if( sp < svar_idx )
+              {
+                if( ap[0] < step_idx )
+                {
+                  if( ap[1] == second_in && ap[2] == first_in )
+                  {
+                    //std::cout << "symvar: " << sp << " ijk " << ap[0] << ap[1] << ap[2] << std::endl;
+                    pLits[ctr++] = pabc::Abc_Var2Lit( sp, 1 );
+                    solver->add_clause(pLits, pLits + ctr);
+                    ctr--;
+                  }
+                }
+              }
+            }
+          }
+        }
+        return true;
+      }
 
       void create_main_clauses( const spec& spec )
       {
@@ -822,6 +883,8 @@ namespace also
         {
           (void) create_tt_clauses( spec, t );
         }
+
+        create_symvar_clauses( spec );
       }
 
       void print_solver_state(const spec& spec)
@@ -956,6 +1019,7 @@ namespace also
         std::cout << "[i] expression: ";
         img.to_expression( std::cout );
         return success;
+
       }
       else if( status == failure )
       {
@@ -1226,6 +1290,7 @@ namespace also
     while( next_solution( spec, img, solver, encoder ) == success )
     {
       //img.to_expression( std::cout );
+      encoder.print_solver_state( spec );
       nr_solutions++;
     }
 
