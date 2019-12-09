@@ -1373,6 +1373,37 @@ namespace also
       std::cout << "[i] Fail " << std::endl;
     }
   }
+
+  std::string nbu_cog( const kitty::dynamic_truth_table& tt )
+  {
+    bsat_wrapper solver;
+    spec spec;
+    img img;
+    spec.add_colex_clauses = true;
+    spec.add_symvar_clauses = true;
+
+    auto copy = tt;
+    if( copy.num_vars()  < 2 )
+    {
+      spec[0] = kitty::extend_to( copy, 2 );
+    }
+    else
+    {
+      spec[0] = tt;
+    }
+
+    //solver.set_time_limit( 60 );
+    img_encoder encoder( solver );
+    
+    if ( implication_syn_by_img_encoder( spec, img, solver, encoder ) == success )
+    {
+      return img.img_to_expression();
+    }
+    else
+    {
+      return "TIMEOUT";
+    }
+  }
   
   void nbu_img_cegar_synthesize( const kitty::dynamic_truth_table& tt )
   {

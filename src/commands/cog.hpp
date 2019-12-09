@@ -51,7 +51,7 @@ namespace alice
         {
           if( is_set( "pclassfication" ) )
           {
-            kitty::dynamic_truth_table tt4s( 4 );
+            kitty::dynamic_truth_table tt4s( 3 );
             int count = 0;
 
             std::unordered_set<std::string> myset;
@@ -83,18 +83,19 @@ namespace alice
             for( const auto& s : myset )
             {
               outfile << "0x" << s << " ";
-              kitty::static_truth_table<4> tt;
+              kitty::dynamic_truth_table tt( 3 );
 
               kitty::create_from_hex_string( tt, s );
 
-              spec[0] = tt;
+              outfile << also::nbu_cog( tt ) << std::endl;
+
+              /*spec[0] = tt;
 
               also::img img;
               bsat_wrapper solver;
               also::img_encoder encoder( solver );
 
-              //solver.set_time_limit( 60 * 10 );
-              //solver.restart();
+              solver.set_time_limit( 60 );
               
               auto res = also::implication_syn_by_img_encoder( spec, img, solver, encoder );
 
@@ -110,7 +111,7 @@ namespace alice
               else
               {
                 assert( false );
-              }
+              }*/
             }
             
             outfile.close();
