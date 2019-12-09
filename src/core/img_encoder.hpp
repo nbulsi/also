@@ -507,18 +507,28 @@ namespace also
         {
           return false;
         }
-
-        if( spec.verbosity) 
+        
+        if (spec.add_colex_clauses) 
+        {
+          create_colex_clauses(spec);
+        }
+        
+        if (spec.add_symvar_clauses && !create_symvar_clauses(spec)) 
+        {
+          return false;
+        }
+        
+        if( print_clause )
         {
           show_variable_correspondence( spec );
         }
-        
+
         if( write_cnf_file )
         {
           to_dimacs( f, solver, clauses );
           fclose( f );
         }
-
+        
         return true;
       }
       
@@ -849,13 +859,15 @@ namespace also
           if( first_in < second_in && step_idx != 0 )
           {
             int ctr = 0;
-            //std::cout << "svar: " << svar_idx << " i: " << step_idx << " j: " << first_in << " k: " << second_in << std::endl;
+            if( spec.verbosity > 3 )
+            {
+              std::cout << "svar: " << svar_idx << " i: " << step_idx << " j: " << first_in << " k: " << second_in << std::endl;
+            }
             pLits[ctr++] = pabc::Abc_Var2Lit( svar_idx, 1 );
 
             for( const auto ep : sel_map )
             {
               auto sp = ep.first;
-
               auto ap = ep.second;
 
               if( sp < svar_idx )
@@ -864,7 +876,10 @@ namespace also
                 {
                   if( ap[1] == second_in && ap[2] == first_in )
                   {
-                    //std::cout << "symvar: " << sp << " ijk " << ap[0] << ap[1] << ap[2] << std::endl;
+                    if( spec.verbosity > 3 )
+                    {
+                      std::cout << "symvar: " << sp << " ijk " << ap[0] << ap[1] << ap[2] << std::endl;
+                    }
                     pLits[ctr++] = pabc::Abc_Var2Lit( sp, 1 );
                     solver->add_clause(pLits, pLits + ctr);
                     ctr--;
@@ -874,7 +889,47 @@ namespace also
             }
           }
         }
+
         return true;
+      }
+
+      void create_colex_clauses(const spec& spec )
+      {
+        for( const auto e: sel_map )
+        {
+          auto svar_idx  = e.first;
+          auto step_idx  = e.second[0];
+          auto first_in  = e.second[1];
+          auto second_in = e.second[2];
+          
+          if( spec.verbosity > 3 )
+          {
+            std::cout << "svar: " << svar_idx << " i: " << step_idx << " j: " << first_in << " k: " << second_in << std::endl;
+          }
+          
+          for( const auto ep : sel_map )
+          {
+            auto sp = ep.first;
+            auto ap = ep.second;
+
+            if( ap[0] > step_idx )
+            {
+              int ctr = 0;
+              pLits[ctr++] = pabc::Abc_Var2Lit( svar_idx, 1 );
+
+              if( ap[1] < first_in || ( ap[1] == first_in && ap[2] < second_in ) )
+              {
+                if( spec.verbosity > 3 )
+                {
+                  std::cout << "symvar: " << sp << " ijk " << ap[0] << ap[1] << ap[2] << std::endl;
+                }
+                pLits[ctr++] = pabc::Abc_Var2Lit( sp, 1 );
+                solver->add_clause(pLits, pLits + ctr);
+                ctr--;
+              }
+            }
+          }
+        }
       }
 
       void create_main_clauses( const spec& spec )
@@ -884,7 +939,8 @@ namespace also
           (void) create_tt_clauses( spec, t );
         }
 
-        create_symvar_clauses( spec );
+        //create_symvar_clauses( spec );
+        //create_colex_clauses( spec );
       }
 
       void print_solver_state(const spec& spec)
@@ -998,6 +1054,8 @@ namespace also
   {
     spec.verbosity = 0;
     spec.preprocess();
+    spec.add_colex_clauses = true;
+    spec.add_symvar_clauses = true;
 
     spec.nr_steps = spec.initial_steps;
       
@@ -1040,6 +1098,8 @@ namespace also
   {
     spec.verbosity = 0;
     spec.preprocess();
+    spec.add_colex_clauses = true;
+    spec.add_symvar_clauses = true;
 
     spec.nr_steps = num_steps;
     solver.restart();
@@ -1058,6 +1118,8 @@ namespace also
   {
     spec.verbosity = 0;
     spec.preprocess();
+    spec.add_colex_clauses = true;
+    spec.add_symvar_clauses = true;
     
     spec.nr_steps = spec.initial_steps; 
 
@@ -1120,6 +1182,8 @@ namespace also
     spec spec;
     img img, best_img;
     spec.verbosity = 0;
+    spec.add_colex_clauses = true;
+    spec.add_symvar_clauses = true;
 
     std::cout << "[i] Heuristic synthesize with upper bound of AIG." << std::endl;
 
@@ -1184,6 +1248,8 @@ namespace also
     bsat_wrapper solver;
     spec spec;
     img img;
+    spec.add_colex_clauses = true;
+    spec.add_symvar_clauses = true;
 
     auto copy = tt;
     if( copy.num_vars()  < 2 )
@@ -1212,6 +1278,8 @@ namespace also
     bsat_wrapper solver;
     spec spec;
     img img;
+    spec.add_colex_clauses = true;
+    spec.add_symvar_clauses = true;
 
     auto copy = tt;
     if( copy.num_vars()  < 2 )
@@ -1272,6 +1340,8 @@ namespace also
     img img;
 
     spec.verbosity = 1;
+    spec.add_colex_clauses = true;
+    spec.add_symvar_clauses = true;
 
     auto copy = tt;
     if( copy.num_vars()  < 2 )
@@ -1290,7 +1360,7 @@ namespace also
     while( next_solution( spec, img, solver, encoder ) == success )
     {
       //img.to_expression( std::cout );
-      encoder.print_solver_state( spec );
+      //encoder.print_solver_state( spec );
       nr_solutions++;
     }
 
