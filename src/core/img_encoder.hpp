@@ -892,6 +892,106 @@ namespace also
 
         return true;
       }
+      
+      /*
+       * if variables p and q are symmetric and p < q, make sure p
+       * is used before q
+       * */
+      bool create_symfunc_clauses(const spec& spec )
+      {
+        auto f = spec[spec.synth_func( 0 ) ];
+
+        for( int q = 2; q <= spec.nr_in; q++ )
+        {
+          for( int p = 1; p < q; p++ )
+          {
+            auto symm = true;
+
+            if( !( kitty::swap( f, p - 1, q - 1 ) == f ) )
+            {
+              symm = false;
+            }
+
+            if( !symm )
+            {
+              continue;
+            }
+
+            if( spec.verbosity > 3 )
+            {
+              std::cout << "Function is symmetric in variables " << p - 1 << " and " << q - 1<< std::endl;
+            }
+
+            /* begin find selection variable */
+            for( const auto e: sel_map )
+            {
+              auto svar_idx  = e.first;
+              auto step_idx  = e.second[0];
+              auto first_in  = e.second[1];
+              auto second_in = e.second[2];
+              int ctr = 0;
+
+              if( spec.verbosity > 3 )
+              {
+                std::cout << "svar: " << svar_idx << " i: " << step_idx << " j: " << first_in << " k: " << second_in << std::endl;
+              }
+
+              if( ( second_in == q && first_in != p ) || ( first_in == q && second_in != p ) )
+              {
+                pLits[ctr++] = pabc::Abc_Var2Lit( svar_idx, 1 );
+                //std::cout << " second_in: " << second_in << " first_in: " << first_in << std::endl;
+                for( const auto ep: sel_map )
+                {
+                  auto sp = ep.first;
+                  auto ap = ep.second;
+                  
+                  if( ap[0] <= step_idx ) 
+                  {
+                    if( ap[1] == p || ap[2] == p )
+                    {
+                      pLits[ctr++] = pabc::Abc_Var2Lit( sp, 0 );
+                      
+                      if( spec.verbosity > 3 )
+                      {
+                        std::cout << "symvar: " << sp << " ijk " << ap[0] << ap[1] << ap[2] << std::endl;
+                      }
+                    }
+                  }
+                }
+              }
+              else if( first_in == q && second_in == p )
+              {
+                pLits[ctr++] = pabc::Abc_Var2Lit( svar_idx, 1 );
+                
+                for( const auto ep: sel_map )
+                {
+                  auto sp = ep.first;
+                  auto ap = ep.second;
+                  
+                  if( ap[0] <= step_idx ) 
+                  {
+                    if( ap[1] == p && ap[2] == q )
+                    {
+                      pLits[ctr++] = pabc::Abc_Var2Lit( sp, 0 );
+                      if( spec.verbosity > 3 )
+                      {
+                        std::cout << "symvar: " << sp << " ijk " << ap[0] << ap[1] << ap[2] << std::endl;
+                      }
+                    }
+                  }
+                }
+              }
+              
+              if( ctr > 1 )
+              {
+                solver->add_clause(pLits, pLits + ctr);
+              }
+            }
+          }
+        } // end for loop
+
+        return true;
+      }
 
       void create_colex_clauses(const spec& spec )
       {
@@ -941,6 +1041,7 @@ namespace also
 
         //create_symvar_clauses( spec );
         //create_colex_clauses( spec );
+        create_symfunc_clauses( spec );
       }
 
       void print_solver_state(const spec& spec)
