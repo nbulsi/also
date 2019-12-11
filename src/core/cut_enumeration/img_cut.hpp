@@ -126,31 +126,15 @@ class img_p3_synthesis
     
     std::string p3_s = "0xfe ((((cb)b)a)a)\n0x6a ((ac)((ab)((c(ba))0)))\n0x6b ((b(ca))(((ca)b)((ac)0)))\n0x2f ((ab)(c0))\n0x69 (((ab)((ba)c))((c(ba))((c(ab))0)))\n0x3f (c(b0))\n0x28 ((b(ac))((a((ac)b))0))\n0x2d (((ab)c)((c(ab))0))\n0x19 (((ab)b)((a((ab)c))0))\n0x86 (((a(bc))(((bc)a)((cb)0)))0)\n0x3e ((((ac)c)b)((bc)0))\n0xa8 ((((cb)b)(a0))0)\n0x3c ((bc)((cb)0))\n0xad ((c(a0))(((ab)c)0))\n0x2b (((ba)c)((ab)0))\n0x1e ((c((ab)b))((((ab)b)c)0))\n0x68 ((((b(c0))0)a)((((c0)b)(a((b(c0))0)))0))\n0x8e (((cb)(((bc)a)0))0)\n0x07 (((a(bc))c)0)\n0x1f (c(((ab)b)0))\n0x3d (((ac)b)((bc)0))\n0x06 (((a(b0))(((b0)a)c))0)\n0x02 ((a((c0)b))0)\n0x2e ((bc)((ab)0))\n0x0a ((ac)0)\n0x2a ((ac)((ab)0))\n0x03 (((b0)c)0)\n0x08 ((a(bc))0)\n0x8b (((cb)((ba)0))0)\n0x17 (((c0)b)(((b(c0))a)0))\n0x01 (((b0)((ca)a))0)\n0x09 (((ba)((ab)c))0)\n0x18 (((ab)(cb))((a((ab)c))0))\n0x29 (((ba)((ab)c))((c(ab))0))\n0xbe ((bc)((cb)a))\n0x83 ((a(b(c0)))(((c0)b)0))\n0x0b (((ba)c)0)\n0xab (((c0)b)a)\n0x0e ((((ac)b)c)0)\n0x1a ((c((ab)b))((ac)0))\n0x6e ((bc)((ab)((ba)0)))\n0x7f (a(c(b0)))\n0xae ((bc)a)\n0x2c ((bc)((c(ab))0))\n0x0f (c0)\n0x81 (((cb)((ac)((ba)0)))0)\n0x8f ((a(b0))(c0))\n0x6f (c((ba)((ab)0)))\n0x80 ((c(a(b0)))0)\n0xa9 ((a(((c0)b)0))(((((c0)b)0)a)0))\n0x82 (((cb)((bc)(a0)))0)\n0xbd (((a0)b)((c(a0))((bc)0)))\n0x7e ((ac)((ba)((cb)0)))\n0xee ((b0)a)\n0x97 (((a(c0))b)((b(a(c0)))(((c0)a)0)))\n0xe8 ((((b0)c)(a0))((c(b0))0))\n0x16 ((((c0)a)((a(c0))b))((b((c0)a))0))\n0x88 ((a(b0))0)\n0x1b (((ba)c)(((ba)a)0))\n0x89 (((((b0)c)a)a)((a(b0))0))\n0x98 ((((cb)a)((ab)0))0)\n0x99 (((ab)((ba)0))0)\n0x9a ((((cb)a)((a(cb))0))0)\n0x9b (((a0)b)(((cb)(a0))0))\n0xaf (ca)\n0x9e (((ca)(b0))((ac)(((b0)(ca))0)))\n0x9f (c(((ab)((ba)0))0))\n0xac ((a(c0))((bc)0))\n0xe9 ((b(((ac)c)0))(((ac)((ca)b))0))\n0xbc (((ca)(b0))((cb)0))\n0xbf (b(ca))\n0x96 ((b((ac)((ca)0)))((((ac)((ca)0))b)0))\n0xea ((b(ca))a)\n0x8a ((a((cb)0))0)\n0xeb (((ca)b)((b(ca))a))\n0x87 ((c(a(b0)))(((a(b0))c)0))\n0xef ((b0)(ca))";
 
-    inline std::vector<std::string> split( const std::string& str, const std::string& sep )
-    {
-      std::vector<std::string> result;
-
-      size_t last = 0;
-      size_t next = 0;
-      while ( ( next = str.find( sep, last ) ) != std::string::npos )
-      {
-        result.push_back( str.substr( last, next - last ) );
-        last = next + 1;
-      }
-      result.push_back( str.substr( last ) );
-
-      return result;
-    }
-
     void load_imgs()
     {
       std::vector<std::string> result;
 
-      result = split( p3_s, "\n" );
+      result = also::split( p3_s, "\n" );
       
       for ( auto record : result )
       {
-        auto p = split( record, " " );
+        auto p = also::split( record, " " );
         assert( p.size() == 2u );
         opt_imgs.insert( std::make_pair( p[0], p[1] ) );
       }
