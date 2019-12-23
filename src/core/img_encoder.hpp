@@ -1032,6 +1032,127 @@ namespace also
         }
       }
 
+      /*
+       * create fanout clauses for addressing memristor fanout
+       * conflict problem.
+       *
+       * s_i1, s_j1, can cause working memristor value error
+       * s_12, s_21, can cause working memristor conflicts
+       *
+       * see:
+       *
+       * Wang, Hsin-Pei, Chia-Chun Lin, Chia-Cheng Wu, Yung-Chih Chen, and Chun-Yao Wang. 
+       * "On synthesizing memristor-based logic circuits with minimal operational pulses." 
+       * IEEE Transactions on Very Large Scale Integration (VLSI) Systems 26, no. 12 (2018): 2842-2852.
+       *
+       * */
+      bool create_fanout_clauses( const spec& spec )
+      {
+        for( const auto e: sel_map )
+        {
+          auto svar_idx  = e.first;
+          auto step_idx  = e.second[0];
+          auto first_in  = e.second[1];
+          auto second_in = e.second[2];
+          
+          if( spec.verbosity > 3 )
+          {
+            std::cout << "svar: " << svar_idx << " i: " << step_idx << " j: " << first_in << " k: " << second_in << std::endl;
+          }
+          
+          if( step_idx != 0u ) //begin from the second step
+          {
+            if( second_in != 0u ) //omit inversion function
+            {
+              int ctr = 0;
+              pLits[ctr++] = pabc::Abc_Var2Lit( svar_idx, 1 );
+
+              /* ~s_i1 \/ ~s_j1 */
+              auto svars = get_svar_right_equal( step_idx, first_in, second_in );
+
+              if( svars.size() != 0 )
+              {
+                for( const auto& var : svars )
+                {
+                  pLits[ctr++] = pabc::Abc_Var2Lit( var, 1 );
+                  solver->add_clause(pLits, pLits + ctr);
+                  ctr--;
+                }
+              }
+              
+              /* ~s_12 \/ ~s_21 */
+              auto ss = get_svar_left_right_reverse( step_idx, first_in, second_in );
+
+              if( ss.size() != 0 )
+              {
+                for( const auto& v : ss )
+                {
+                  pLits[ctr++] = pabc::Abc_Var2Lit( v, 1 );
+                  solver->add_clause(pLits, pLits + ctr);
+                  ctr--;
+                }
+              }
+            }
+          }
+        }
+
+        return true;
+      }
+
+      std::vector<int> get_svar_right_equal( int current_step, unsigned left_idx, unsigned right_idx )
+      {
+        std::vector<int> array;
+
+        for( const auto e: sel_map )
+        {
+          auto svar_idx  = e.first;
+          auto step_idx  = e.second[0];
+          auto first_in  = e.second[1];
+          auto second_in = e.second[2];
+
+          if( step_idx < current_step )
+          {
+            if( second_in == right_idx && first_in != left_idx)
+            {
+              array.push_back( svar_idx );
+            }
+          }
+          else
+          {
+            break;
+          }
+        }
+
+        return array;
+      }
+      
+      std::vector<int> get_svar_left_right_reverse( int current_step,  unsigned left_idx, unsigned right_idx )
+      {
+        std::vector<int> array;
+        
+        for( const auto e: sel_map )
+        {
+          auto svar_idx  = e.first;
+          auto step_idx  = e.second[0];
+          auto first_in  = e.second[1];
+          auto second_in = e.second[2];
+
+          if( step_idx < current_step )
+          {
+            if( first_in == right_idx && second_in == left_idx )
+            {
+              array.push_back( svar_idx );
+            }
+          }
+          else
+          {
+            break;
+          }
+        }
+
+        return array;
+      }
+
       void create_main_clauses( const spec& spec )
       {
         for( int t = 0; t < spec.tt_size + 1; t++ )
@@ -1042,6 +1163,7 @@ namespace also
         //create_symvar_clauses( spec );
         //create_colex_clauses( spec );
         create_symfunc_clauses( spec );
+        create_fanout_clauses( spec );
       }
 
       void print_solver_state(const spec& spec)
