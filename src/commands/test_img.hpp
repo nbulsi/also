@@ -40,7 +40,7 @@ namespace alice
           also::img_from_aig_syn( tt, false, bound );
           std::cout << bound << " nodes are required by aig synthesis " << kitty::to_hex( tt ) << std::endl;
                 
-          also::nbu_img_encoder_test( tt );
+          also::nbu_img_encoder_test( tt, false ); //fanout-free synthesis is disabled
 
           kitty::next_inplace( tt );
           count++;

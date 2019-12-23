@@ -54,6 +54,7 @@ namespace alice
         add_flag( "--aig_exact, -a",      "from exact AIG synthesis" );
         add_flag( "--enumerate, -e",      "enumerate all the solutions" );
         add_flag( "--cegar, -c",          "cegar encoding" );
+        add_flag( "--fanout_free, -f",    "synthesis fanout-free implication logic network" );
         add_flag( "--heuristic, -u",      "heuristic algorithm by providing an upper bound obtained by AIG synthesis" );
       }
 
@@ -62,15 +63,20 @@ namespace alice
         return { has_store_element<optimum_network>( env ) };
       }
 
-
     protected:
       void execute()
       {
         bool verb = false;
+        bool enable_fanout_clauses = false;
 
         if( is_set( "verbose" ) )
         {
           verb = true;
+        }
+        
+        if( is_set( "fanout_free" ) )
+        {
+          enable_fanout_clauses = true;
         }
         
         stopwatch<>::duration time{0};
@@ -89,7 +95,7 @@ namespace alice
         {
           call_with_stopwatch( time, [&]() 
             {
-             also::enumerate_img( opt.function );
+             also::enumerate_img( opt.function, enable_fanout_clauses );
             } );
         }
         else
@@ -112,7 +118,7 @@ namespace alice
           {
             call_with_stopwatch( time, [&]() 
                 {
-                also::nbu_img_encoder_test( opt.function );
+                also::nbu_img_encoder_test( opt.function, enable_fanout_clauses );
                 } );
           }
         }

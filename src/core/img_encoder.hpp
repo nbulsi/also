@@ -518,6 +518,11 @@ namespace also
           return false;
         }
         
+        if (spec.add_fanout_clauses && !create_fanout_free_clauses(spec) ) 
+        {
+          return false;
+        }
+        
         if( print_clause )
         {
           show_variable_correspondence( spec );
@@ -1046,8 +1051,10 @@ namespace also
        * IEEE Transactions on Very Large Scale Integration (VLSI) Systems 26, no. 12 (2018): 2842-2852.
        *
        * */
-      bool create_fanout_clauses( const spec& spec )
+      bool create_fanout_free_clauses( const spec& spec )
       {
+        bool ret = true;
+
         for( const auto e: sel_map )
         {
           auto svar_idx  = e.first;
@@ -1075,7 +1082,7 @@ namespace also
                 for( const auto& var : svars )
                 {
                   pLits[ctr++] = pabc::Abc_Var2Lit( var, 1 );
-                  solver->add_clause(pLits, pLits + ctr);
+                  ret &= solver->add_clause(pLits, pLits + ctr);
                   ctr--;
                 }
               }
@@ -1088,7 +1095,7 @@ namespace also
                 for( const auto& v : ss )
                 {
                   pLits[ctr++] = pabc::Abc_Var2Lit( v, 1 );
-                  solver->add_clause(pLits, pLits + ctr);
+                  ret &= solver->add_clause(pLits, pLits + ctr);
                   ctr--;
                 }
               }
@@ -1096,7 +1103,7 @@ namespace also
           }
         }
 
-        return true;
+        return ret;
       }
 
       std::vector<int> get_svar_right_equal( int current_step, unsigned left_idx, unsigned right_idx )
@@ -1160,10 +1167,7 @@ namespace also
           (void) create_tt_clauses( spec, t );
         }
 
-        //create_symvar_clauses( spec );
-        //create_colex_clauses( spec );
         create_symfunc_clauses( spec );
-        create_fanout_clauses( spec );
       }
 
       void print_solver_state(const spec& spec)
@@ -1466,13 +1470,14 @@ namespace also
     return img_to_string( spec, best_img );
   }
   
-  void nbu_img_encoder_test( const kitty::dynamic_truth_table& tt )
+  void nbu_img_encoder_test( const kitty::dynamic_truth_table& tt, const bool& enable_fanout_clauses )
   {
     bsat_wrapper solver;
     spec spec;
     img img;
     spec.add_colex_clauses = true;
     spec.add_symvar_clauses = true;
+    spec.add_fanout_clauses = enable_fanout_clauses;
 
     auto copy = tt;
     if( copy.num_vars()  < 2 )
@@ -1587,7 +1592,7 @@ namespace also
   }
 
   
-  void enumerate_img( const kitty::dynamic_truth_table& tt )
+  void enumerate_img( const kitty::dynamic_truth_table& tt, const bool& enable_fanout_clauses )
   {
     bsat_wrapper solver;
     spec spec;
@@ -1596,6 +1601,7 @@ namespace also
     spec.verbosity = 1;
     spec.add_colex_clauses = true;
     spec.add_symvar_clauses = true;
+    spec.add_fanout_clauses = enable_fanout_clauses;
 
     auto copy = tt;
     if( copy.num_vars()  < 2 )
