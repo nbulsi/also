@@ -1069,11 +1069,24 @@ namespace also
           
           if( step_idx != 0u ) //begin from the second step
           {
+            int ctr = 0;
+            pLits[ctr++] = pabc::Abc_Var2Lit( svar_idx, 1 );
+            
+            /* ~s_i_12 \/ ~s_i'_12 */
+            auto zz = get_svar_left_right_equal( step_idx, first_in, second_in );
+
+            if( zz.size() != 0 )
+            {
+              for( const auto& z : zz )
+              {
+                pLits[ctr++] = pabc::Abc_Var2Lit( z, 1 );
+                ret &= solver->add_clause(pLits, pLits + ctr);
+                ctr--;
+              }
+            }
+            
             if( second_in != 0u ) //omit inversion function
             {
-              int ctr = 0;
-              pLits[ctr++] = pabc::Abc_Var2Lit( svar_idx, 1 );
-
               /* ~s_i1 \/ ~s_j1 */
               auto svars = get_svar_right_equal( step_idx, first_in, second_in );
 
@@ -1087,7 +1100,7 @@ namespace also
                 }
               }
               
-              /* ~s_12 \/ ~s_21 */
+              /* ~s_i_12 \/ ~s_i'_21 */
               auto ss = get_svar_left_right_reverse( step_idx, first_in, second_in );
 
               if( ss.size() != 0 )
@@ -1120,6 +1133,33 @@ namespace also
           if( step_idx < current_step )
           {
             if( second_in == right_idx && first_in != left_idx)
+            {
+              array.push_back( svar_idx );
+            }
+          }
+          else
+          {
+            break;
+          }
+        }
+
+        return array;
+      }
+      
+      std::vector<int> get_svar_left_right_equal( int current_step,  unsigned left_idx, unsigned right_idx )
+      {
+        std::vector<int> array;
+        
+        for( const auto e: sel_map )
+        {
+          auto svar_idx  = e.first;
+          auto step_idx  = e.second[0];
+          auto first_in  = e.second[1];
+          auto second_in = e.second[2];
+
+          if( step_idx < current_step )
+          {
+            if( first_in == left_idx && second_in == right_idx )
             {
               array.push_back( svar_idx );
             }
