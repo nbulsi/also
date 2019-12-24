@@ -39,6 +39,7 @@ namespace alice
         add_option( "filename, -f", filename, "the input txt file name" );
         add_flag(   "--m3ig, -m", "using m3ig as the underlying logic network" );
         add_flag(   "--img, -i",  "using img as the underlying logic network" );
+        add_flag(   "--fanout_free, -f",  "add fanout clauses to realize a fanout-free img" );
         add_flag(   "--pclassfication, -p",  "using p classfication" );
       }
 
@@ -46,6 +47,13 @@ namespace alice
       void execute()
       {
         spec spec;
+
+        bool enable_fanout_clauses = false;
+
+        if( is_set( "fanout_free" ) )
+        {
+          enable_fanout_clauses = true;
+        }
 
         if( is_set( "img" ) )
         {
@@ -87,7 +95,7 @@ namespace alice
 
               kitty::create_from_hex_string( tt, s );
 
-              outfile << also::nbu_cog( tt ) << std::endl;
+              outfile << also::nbu_cog( tt, enable_fanout_clauses ) << std::endl;
             }
             
             outfile.close();

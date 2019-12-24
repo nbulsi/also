@@ -1541,13 +1541,14 @@ namespace also
     }
   }
 
-  std::string nbu_cog( const kitty::dynamic_truth_table& tt )
+  std::string nbu_cog( const kitty::dynamic_truth_table& tt, const bool& enable_fanout_clauses )
   {
     bsat_wrapper solver;
     spec spec;
     img img;
     spec.add_colex_clauses = true;
     spec.add_symvar_clauses = true;
+    spec.add_fanout_clauses = enable_fanout_clauses;
 
     auto copy = tt;
     if( copy.num_vars()  < 2 )
