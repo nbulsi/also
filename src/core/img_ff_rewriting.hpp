@@ -39,7 +39,76 @@ namespace also
         void run()
         {
           std::cout << "Begin fanout-free rewriting" << std::endl;
+
+          std::cout << "#not gates: " << get_num_not_gates() << std::endl;
+          std::cout << "#ff gates: "  << get_num_ff_gates() << std::endl;
         };
+
+      private:
+        std::array<signal<Ntk>, 2> get_children( node<Ntk> const& n ) const
+        {
+          std::array<signal<Ntk>, 2> children;
+          ntk.foreach_fanin( n, [&children]( auto const& f, auto i ) { children[i] = f; } );
+          return children;
+        }
+
+        unsigned get_num_not_gates()
+        {
+          unsigned num = 0u;
+
+          topo_view topo{ntk};
+
+          topo.foreach_node( [&]( auto n ){
+
+              const auto& cs = get_children( n );
+
+              if( ntk.get_node( cs[1] ) == 0 )
+              {
+                num++;
+              }
+              } );
+          
+          return num;
+        }
+        
+        /* get the number of fanout-conflict gates */
+        unsigned get_num_ff_gates()
+        {
+          unsigned num = 0u;
+          unsigned num_ff = 0u; //2 or more fanout are connecting the working memristor
+
+          topo_view topo{ntk};
+          fanout_view fanout_ntk{topo};
+
+          topo.foreach_node( [&]( auto n ){
+              if( ntk.fanout_size( n ) >= 2 )
+              {
+                num++;
+                std::set<node<Ntk>> nodes;
+                fanout_ntk.foreach_fanout( n, [&]( const auto& p ){ std::cout << " " << p; nodes.insert( p ); } );
+                std::cout << std::endl;
+
+                unsigned tmp = 0u;
+                for( const auto& pc : nodes )
+                {
+                  const auto& cs = get_children( pc );
+                  
+                  if( ntk.get_node( cs[1] ) == n )
+                  {
+                    tmp++;
+                  }
+                }
+
+                if( tmp >= 2u )
+                {
+                  num_ff++;
+                  std::cout << " node " << n << " has " << ntk.fanout_size( n ) << " fanouts. " << std::endl;
+                }
+              }
+              } );
+          
+          return num_ff;
+        }
       
       private:
         Ntk& ntk;
