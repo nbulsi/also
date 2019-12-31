@@ -42,6 +42,7 @@ namespace also
 
           std::cout << "#not gates: " << get_num_not_gates() << std::endl;
           std::cout << "#ff gates: "  << get_num_ff_gates() << std::endl;
+          get_cuts();
         };
 
       private:
@@ -80,13 +81,13 @@ namespace also
           topo_view topo{ntk};
           fanout_view fanout_ntk{topo};
 
-          topo.foreach_node( [&]( auto n ){
-              if( ntk.fanout_size( n ) >= 2 )
+          topo.foreach_node( [&]( auto n ) {
+              if( ntk.fanout_size( n ) >= 2 && n != 0 )
               {
                 num++;
                 std::set<node<Ntk>> nodes;
-                fanout_ntk.foreach_fanout( n, [&]( const auto& p ){ std::cout << " " << p; nodes.insert( p ); } );
-                std::cout << std::endl;
+                fanout_ntk.foreach_fanout( n, [&]( const auto& p )
+                     { nodes.insert( p ); } );
 
                 unsigned tmp = 0u;
                 for( const auto& pc : nodes )
@@ -102,17 +103,43 @@ namespace also
                 if( tmp >= 2u )
                 {
                   num_ff++;
-                  std::cout << " node " << n << " has " << ntk.fanout_size( n ) << " fanouts. " << std::endl;
+                  ff_node_map.insert( std::pair<unsigned, std::set<node<Ntk>>>( n, nodes ) );
                 }
               }
               } );
           
-          return num_ff;
+          return ff_node_map.size();
+        }
+
+        void get_cuts()
+        { 
+          cut_enumeration_params ps;
+          ps.cut_size = 3;
+          const auto cuts = cut_enumeration<Ntk, true>( ntk, ps );  
+          const auto to_vector = []( auto const& cut ) {
+            return std::vector<uint32_t>( cut.begin(), cut.end() );
+          };
+
+          const auto t = ntk.node_to_index( 60 );
+
+          std::cout << "There are " << cuts.cuts( t ).size() << " cuts for node 60" << std::endl;
+
+          for( auto i = 0; i < cuts.cuts( t ).size(); i++ )
+          {
+            std::cout << " cut " << i << " tt: " << std::hex << cuts.truth_table( cuts.cuts( t )[i] )._bits[0] << std::endl;
+
+            for( const auto& l : to_vector( cuts.cuts( t )[i] ) )
+            {
+              std::cout << " " << l;
+            }
+            std::cout << std::endl;
+          }
         }
       
       private:
         Ntk& ntk;
         img_ff_rewriting_params const& ps;
+        std::map<unsigned,std::set<node<Ntk>>> ff_node_map;
     };
   }; /* namespace detail*/
   
