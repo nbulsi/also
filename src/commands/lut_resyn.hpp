@@ -23,6 +23,7 @@
 #include "../networks/img/img.hpp"
 #include "../networks/img/img_npn.hpp"
 #include "../networks/img/img_all.hpp"
+#include "../core/aig2xmg.hpp"
 
 namespace alice
 {
@@ -58,8 +59,20 @@ namespace alice
         /* lut resynthesis */
         if( is_set( "xmg" ) )
         {
+          /* make the xmg from aig one-to-one mapping as the
+           * basiline xmg*/
+          assert( store<aig_network>().size() > 0 );
+          aig_network aig = store<aig_network>().current();
+          auto xmg_baseline = also::xmg_from_aig( aig );
+
           xmg_npn_resynthesis resyn;
-          const auto xmg = node_resynthesis<xmg_network>( klut, resyn );
+          auto xmg = node_resynthesis<xmg_network>( klut, resyn );
+
+          /*select the XMG that has fewer number of nodes */
+          if( xmg_baseline.num_gates() < xmg.num_gates() )
+          {
+            xmg = also::xmg_from_aig( aig );
+          }
 
           depth_view xmg_depth{xmg};
           std::cout << "[I/O:" << xmg.num_pis() << "/" << xmg.num_pos() << "] XMG gates: " 

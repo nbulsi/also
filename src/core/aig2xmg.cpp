@@ -3,7 +3,6 @@
 
 #include "aig2xmg.hpp"
 
-using namespace mockturtle;
 
 namespace also
 {
