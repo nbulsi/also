@@ -44,6 +44,7 @@
 #include "commands/test_img.hpp"
 #include "commands/imgrw.hpp"
 #include "commands/imgff.hpp"
+#include "commands/ax.hpp"
 
 ALICE_MAIN( also )
 
