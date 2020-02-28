@@ -42,6 +42,7 @@ namespace alice
         add_flag( "--m5ig, -r", "using m5ig as target logic network" );
         add_flag( "--img, -i",  "using img as target logic network" );
         add_flag( "--new_entry, -n", "adds new store entry" );
+        add_flag( "--enable_direct_mapping, -e", "enable aig to xmg by direct mapping for comparison" );
       }
 
       rules validity_rules() const
@@ -59,19 +60,25 @@ namespace alice
         /* lut resynthesis */
         if( is_set( "xmg" ) )
         {
-          /* make the xmg from aig one-to-one mapping as the
-           * basiline xmg*/
-          assert( store<aig_network>().size() > 0 );
-          aig_network aig = store<aig_network>().current();
-          auto xmg_baseline = also::xmg_from_aig( aig );
-
+          xmg_network xmg;
           xmg_npn_resynthesis resyn;
-          auto xmg = node_resynthesis<xmg_network>( klut, resyn );
-
-          /*select the XMG that has fewer number of nodes */
-          if( xmg_baseline.num_gates() < xmg.num_gates() )
+          xmg = node_resynthesis<xmg_network>( klut, resyn );
+          
+          if( is_set( "enable_direct_mapping" ) )
           {
-            xmg = also::xmg_from_aig( aig );
+            /* make the xmg from aig one-to-one mapping as the
+             * basiline xmg*/
+            assert( store<aig_network>().size() > 0 );
+            aig_network aig = store<aig_network>().current();
+            auto xmg_baseline = also::xmg_from_aig( aig );
+            
+            /*select the XMG that has fewer number of nodes 
+             * naive method currently
+             * */
+            if( xmg_baseline.num_gates() < xmg.num_gates() )
+            {
+              xmg = also::xmg_from_aig( aig );
+            }
           }
 
           depth_view xmg_depth{xmg};
