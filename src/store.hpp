@@ -281,6 +281,21 @@ namespace alice
   
   ALICE_ADD_FILE_TYPE( bench, "BENCH" );
   
+  ALICE_READ_FILE( klut_network, bench, filename, cmd )
+  {
+    klut_network klut;
+    lorina::read_bench( filename, mockturtle::bench_reader( klut ) );
+    return klut;
+  }
+  
+  /*ALICE_PRINT_STORE_STATISTICS( klut_network, os, klut )
+  {
+    mockturtle::depth_view depth_klut{klut};
+    os << fmt::format( "KLUT   i/o = {}/{}   gates = {}   level = {}", 
+          klut.num_pis(), klut.num_pos(), klut.num_gates(), depth_klut.depth() );
+    os << "\n";
+  }*/
+  
   ALICE_WRITE_FILE( xmg_network, bench, xmg, filename, cmd )
   {
      mockturtle::write_bench( xmg, filename );
