@@ -284,6 +284,25 @@ public:
     return create_not( create_or( a, b ) ); 
   }
 
+  signal create_ite( signal const& cond, signal const& fthen, signal const& felse )
+  {
+    auto f1 = create_imp( cond, create_not( fthen ) );
+    auto f2 = create_not( create_imp( felse, cond ) );
+    return create_imp( f1, f2 );
+  }
+
+  signal create_xor3( signal const& a, signal const& b, signal const& c )
+  {
+    auto f1 = create_imp( a, b );
+    auto f2 = create_imp( b, a );
+    auto f3 = create_not( f2 );
+    auto f4 = create_imp( f1, f3 );
+
+    auto f5 = create_imp( c, f4 );
+    auto f6 = create_imp( f4, c );
+    return create_imp( f5, create_not( f6 ) );
+  }
+
 
   //Hsin-Pei et al. On synthesizing Memristor-based logic circuits with minimal
   //operational pulses, TVLSI, 2018

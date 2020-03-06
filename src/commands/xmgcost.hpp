@@ -63,7 +63,7 @@ namespace alice
         mockturtle::depth_view depth_xmg{xmg};
         depth = depth_xmg.depth();
 
-        mockturtle::depth_view depth_xmg2{xmg, true};
+        mockturtle::depth_view depth_xmg2{xmg};
         depth_mixed = depth_xmg2.depth();
         std::tie( depth_maj, depth_inv, depth_xor ) = split_critical_path( depth_xmg2 );
 

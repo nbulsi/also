@@ -180,7 +180,8 @@ struct cut_enumeration_update_cut<cut_enumeration_img_cut>
     /******************************************************************
      * Zhufei Chu
      ******************************************************************/
-    int img_size, img_depth;
+    //int img_size; 
+    int img_depth;
 
     //std::cout << "AIG node: " << n << " ";
     auto tt = cuts.truth_table( cut );
@@ -194,13 +195,13 @@ struct cut_enumeration_update_cut<cut_enumeration_img_cut>
 
     if( func_str == "0xff" || func_str == "0x00" || func_str == "0xaa" )
     {
-      img_size = 0;
+      //img_size = 0;
       img_depth = 0;
     }
     else
     {
       auto p = EvalImg( func_str );
-      img_size = p.first;
+      //img_size = p.first;
       img_depth = p.second;
     }
      
