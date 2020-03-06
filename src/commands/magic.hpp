@@ -14,6 +14,10 @@
 #define MAGIC_HPP
 
 #include <mockturtle/mockturtle.hpp>
+#include <kitty/dynamic_truth_table.hpp>
+#include <kitty/print.hpp>
+
+#include"../networks/nor.hpp"
 
 namespace alice
 {
@@ -34,10 +38,26 @@ namespace alice
     protected:
       void execute()
       {
-        /* derive some XMG */
-         aig_network aig = store<aig_network>().current();
+        /* derive some aig */
+         //assert( store<aig_network>().size() > 0 );
+         //aig_network aig = store<aig_network>().current();
         
-         std::cout << "TODO: Mapping Boolean functions to MAGIC NOR array." << std::endl;
+         //std::cout << "TODO: Mapping Boolean functions to MAGIC NOR array." << std::endl;
+
+
+         /* Target NOR_network*/
+			   nor_network nor;
+
+         auto a = nor.create_pi();
+         auto b = nor.create_pi();
+
+         auto c = nor.create_nor( a, b );
+
+         auto f = nor.create_po( c );
+           /* Show the level and I/O numbers of optimized AIG_network for the latter comparison with the NOR_network*/
+			   depth_view nor_depth{ nor };
+			   std::cout << "[I/O:" << nor.num_pis() << "/" << nor.num_pos() << "] nor gates: "
+				 << nor.num_gates() << " nor depth: " << nor_depth.depth() << std::endl;
       }
     
     private:
