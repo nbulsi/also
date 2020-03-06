@@ -216,7 +216,8 @@ struct cut_enumeration_update_cut<cut_enumeration_xmg_cut>
     /******************************************************************
      * Zhufei Chu
      ******************************************************************/
-    int xmg_size, xmg_depth;
+    //int xmg_size = 0 ; 
+    int xmg_depth = 0;
 
     //std::cout << "AIG node: " << n << " ";
     auto tt = cuts.truth_table( cut );
@@ -230,13 +231,13 @@ struct cut_enumeration_update_cut<cut_enumeration_xmg_cut>
 
     if( func_str == "0x0000" )
     {
-      xmg_size = 0;
+      //xmg_size = 0;
       xmg_depth = 0;
     }
     else
     {
       auto p = Evalxmg( func_str );
-      xmg_size = p.first;
+      //xmg_size = p.first;
       xmg_depth = p.second;
     }
      

@@ -14,8 +14,9 @@
 #define XMGRS_HPP
 
 #include <mockturtle/mockturtle.hpp>
+#include <mockturtle/algorithms/xmg_resub.hpp>
+#include <mockturtle/networks/xmg.hpp>
 
-#include "../core/xmg_resub.hpp"
 #include "../core/misc.hpp"
 
 namespace alice
@@ -40,10 +41,11 @@ namespace alice
         /* derive some XMG */
          xmg_network xmg = store<xmg_network>().current();
         
-         using view_t = depth_view<fanout_view<xmg_network>>;
-         fanout_view<xmg_network> fanout_view{xmg};
-         view_t resub_view{fanout_view};
-         xmg_resubstitution( resub_view, ps, &st );
+         //using view_t = depth_view<fanout_view<xmg_network>>;
+         //fanout_view<xmg_network> fanout_view{xmg};
+         //view_t resub_view{fanout_view};
+         //xmg_resubstitution( resub_view, ps, &st );
+         xmg_resubstitution( xmg, ps, &st );
          xmg = cleanup_dangling( xmg );
 
          std::cout << "[xmgrs] "; 

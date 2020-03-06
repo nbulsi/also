@@ -81,6 +81,7 @@ namespace alice
           /* parameters */
           ps_xmg.allow_area_increase = !is_set( "area_aware" );
           ps_xmg.apply_xor3_to_xor2  =  is_set( "xor3_flattan" );
+          ps_mig.allow_area_increase = !is_set( "area_aware" );
 
           if( strategy == 0 )
           {
@@ -105,6 +106,7 @@ namespace alice
 
           depth_view depth_xmg( xmg );
           xmg_depth_rewriting( depth_xmg, ps_xmg );
+          mig_algebraic_depth_rewriting( depth_xmg, ps_mig );
           xmg = cleanup_dangling( xmg );
           
         }
