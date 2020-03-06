@@ -39,35 +39,25 @@ namespace alice
       void execute()
       {
         /* derive some aig */
-         assert( store<aig_network>().size() > 0 );
-         aig_network aig = store<aig_network>().current();
+         //assert( store<aig_network>().size() > 0 );
+         //aig_network aig = store<aig_network>().current();
         
-         std::cout << "TODO: Mapping Boolean functions to MAGIC NOR array." << std::endl;
+         //std::cout << "TODO: Mapping Boolean functions to MAGIC NOR array." << std::endl;
 
-           /* Show the level and I/O numbers of optimized AIG_network for the latter comparison with the NOR_network*/
-			   depth_view aig_depth{ aig };
-			   std::cout << "[I/O:" << aig.num_pis() << "/" << aig.num_pos() << "] AIG gates: "
-				 << aig.num_gates() << " AIG depth: " << aig_depth.depth() << std::endl;
 
          /* Target NOR_network*/
 			   nor_network nor;
-          /* Ensure the topo logic order of aig_network */
-			    topo_view topo{ aig };
 
-          aig.foreach_gate([this](auto n)
-			    {
-			    	if (aig.fanout_size(n) == 0 || aig.value(n) == 0)
-					    return;
-            else if (aig.is_pi(n))
-				    {
-					    return nor.create_pi();
-				    }
+         auto a = nor.create_pi();
+         auto b = nor.create_pi();
 
-				    else if (aig.is_po())
-				    {
-					    return nor.create_po();
-				    }
-          });
+         auto c = nor.create_nor( a, b );
+
+         auto f = nor.create_po( c );
+           /* Show the level and I/O numbers of optimized AIG_network for the latter comparison with the NOR_network*/
+			   depth_view nor_depth{ nor };
+			   std::cout << "[I/O:" << nor.num_pis() << "/" << nor.num_pos() << "] nor gates: "
+				 << nor.num_gates() << " nor depth: " << nor_depth.depth() << std::endl;
       }
     
     private:
