@@ -7,6 +7,7 @@
  * @brief Mapping Boolean function to Magic NOR array
  *
  * @author Zhufei Chu
+ * @author Xiaojing Zha, Ningbo University
  * @since  0.1
  */
 
@@ -30,20 +31,14 @@ namespace alice
         add_flag( "-v,--verbose", "show statistics" );
       }
       
-      rules validity_rules() const
+      /*rules validity_rules() const
       {
         return { has_store_element<aig_network>( env ) };
-      }
+      }*/
 
     protected:
       void execute()
       {
-        /* derive some aig */
-         //assert( store<aig_network>().size() > 0 );
-         //aig_network aig = store<aig_network>().current();
-        
-         //std::cout << "TODO: Mapping Boolean functions to MAGIC NOR array." << std::endl;
-
 
          /* Target NOR_network*/
 			   nor_network nor;
