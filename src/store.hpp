@@ -85,6 +85,20 @@ namespace alice
     return fmt::format( "{} nodes", element.size() );
   }
   
+  /* xag */
+  ALICE_ADD_STORE( xag_network, "xag", "g", "xag", "xags" )
+
+  ALICE_PRINT_STORE( xag_network, os, element )
+  {
+    os << fmt::format( " xag i/o = {}/{} gates = {} ", element.num_pis(), element.num_pos(), element.num_gates() );
+    os << "\n";
+  }
+  
+  ALICE_DESCRIBE_STORE( xag_network, element )
+  {
+    return fmt::format( "{} nodes", element.size() );
+  }
+  
   /* m5ig */
   ALICE_ADD_STORE( m5ig_network, "m5ig", "r", "m5ig", "m5igs" )
 
@@ -288,14 +302,6 @@ namespace alice
     return klut;
   }
   
-  /*ALICE_PRINT_STORE_STATISTICS( klut_network, os, klut )
-  {
-    mockturtle::depth_view depth_klut{klut};
-    os << fmt::format( "KLUT   i/o = {}/{}   gates = {}   level = {}", 
-          klut.num_pis(), klut.num_pos(), klut.num_gates(), depth_klut.depth() );
-    os << "\n";
-  }*/
-  
   ALICE_WRITE_FILE( xmg_network, bench, xmg, filename, cmd )
   {
      mockturtle::write_bench( xmg, filename );
@@ -319,6 +325,11 @@ namespace alice
   ALICE_WRITE_FILE( img_network, bench, img, filename, cmd )
   {
      mockturtle::write_bench( img, filename );
+  }
+  
+  ALICE_WRITE_FILE( xag_network, bench, xag, filename, cmd )
+  {
+     mockturtle::write_bench( xag, filename );
   }
 
   /********************************************************************

@@ -17,6 +17,7 @@
 
 #include "../networks/m5ig/m5ig_npn.hpp"
 #include "../networks/img/img_npn.hpp"
+#include "../networks/aoig/xag_lut_npn.hpp"
 #include "../core/misc.hpp"
 
 namespace alice
@@ -30,6 +31,7 @@ namespace alice
         add_flag( "--m5ig_npn,-r", "cut rewriting based on m5ig_npn" );
         add_flag( "--m3ig_npn,-m", "cut rewriting based on m3ig_npn" );
         add_flag( "--img_npn,-i", "cut rewriting based on img" );
+        add_flag( "--xag_npn,-g", "cut rewriting based on xag_npn" );
       }
       
       template<class Ntk>
@@ -111,6 +113,23 @@ namespace alice
 
           store<mig_network>().extend(); 
           store<mig_network>().current() = mig;
+        }
+        else if( is_set( "xag_npn" ) )
+        {
+          xag_network xag = store<xag_network>().current();
+
+          print_stats( xag );
+
+          /*aoig_npn_resynthesis resyn;
+          cut_rewriting_params ps;
+          ps.cut_enumeration_ps.cut_size = 4u;
+          cut_rewriting( aoig, resyn, ps );
+          aoig = cleanup_dangling( aoig );
+
+          print_stats( aoig );
+
+          store<aoig_network>().extend(); 
+          store<aoig_network>().current() = aoig;*/
         }
         else if( is_set( "img_npn" ) )
         {

@@ -22,6 +22,7 @@
 #include "../networks/m5ig/exact_online_m5ig.hpp"
 #include "../networks/img/img.hpp"
 #include "../networks/img/img_npn.hpp"
+#include "../networks/aoig/xag_lut_npn.hpp"
 #include "../networks/img/img_all.hpp"
 #include "../core/aig2xmg.hpp"
 
@@ -41,6 +42,7 @@ namespace alice
         add_flag( "--test_m5ig", "using m5ig as target logic network, exact_m5ig online" );
         add_flag( "--m5ig, -r", "using m5ig as target logic network" );
         add_flag( "--img, -i",  "using img as target logic network" );
+        add_flag( "--xag, -g",  "using xag as target logic network" );
         add_flag( "--new_entry, -n", "adds new store entry" );
         add_flag( "--enable_direct_mapping, -e", "enable aig to xmg by direct mapping for comparison" );
       }
@@ -190,6 +192,22 @@ namespace alice
           depth_view m5ig_depth{m5ig};
           std::cout << "[I/O:" << m5ig.num_pis() << "/" << m5ig.num_pos() << "] M5IG gates: " 
                     << m5ig.num_gates() << " M5IG depth: " << m5ig_depth.depth() << std::endl;
+        }
+        else if( is_set( "xag" ) )
+        {
+          xag_npn_lut_resynthesis resyn;
+          const auto xag = node_resynthesis<xag_network>( klut, resyn );
+
+          depth_view xag_depth{xag};
+          std::cout << "[I/O:" << xag.num_pis() << "/" << xag.num_pos() << "] xag gates: " 
+                    << xag.num_gates() << " xag depth: " << xag_depth.depth() << std::endl;
+          
+          /* add to store */
+          if( !is_set( "notnew" ) )
+          {
+            store<xag_network>().extend(); 
+            store<xag_network>().current() = xag;
+          }
         }
         else
         {
