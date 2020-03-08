@@ -27,6 +27,7 @@
 #include "../core/m5ig_helper.hpp"
 #include "../core/m3ig_helper.hpp"
 #include "../core/misc.hpp"
+#include "../core/exact_aoig.hpp"
 
 namespace alice
 {
@@ -39,6 +40,7 @@ namespace alice
         add_option( "filename, -f", filename, "the input txt file name" );
         add_flag(   "--m3ig, -m", "using m3ig as the underlying logic network" );
         add_flag(   "--img, -i",  "using img as the underlying logic network" );
+        add_flag(   "--aoig, -a",  "using aoig as the underlying logic network" );
         add_flag(   "--fanout_free, -g",  "add fanout clauses to realize a fanout-free img" );
         add_flag(   "--pclassfication, -p",  "using p classfication" );
       }
@@ -148,6 +150,52 @@ namespace alice
 
             outfile.close();
           }
+        }
+        else if( is_set( "aoig" ) )
+        {
+            kitty::dynamic_truth_table tt4s( 4 );
+            int count = 0;
+
+            std::unordered_set<std::string> myset;
+            
+            /* enumerate all 4-input Boolean function */
+            do
+            {
+              count++;
+
+              auto res = kitty::exact_npn_canonization( tt4s );
+              
+              myset.insert( kitty::to_hex( std::get<0>( res ) ) );
+
+              kitty::next_inplace( tt4s );
+            }while( !kitty::is_const0( tt4s ) );
+
+            std::cout << "There are " << count << " functions. " << " The distinct representive tt size: " << myset.size() << std::endl;
+            
+            std::ofstream outfile;
+            outfile.open( "opt_aoig.txt" );
+
+            if( !outfile ) 
+            {
+              std::cout << " Cannot open file " << std::endl;
+              assert( false );
+            }
+            
+
+            for( const auto& s : myset )
+            {
+              outfile << "0x" << s << " ";
+              kitty::dynamic_truth_table tt( 4 );
+
+              kitty::create_from_hex_string( tt, s );
+
+              also::tt2aoig( tt );
+
+              //outfile << also::nbu_cog( tt, enable_fanout_clauses ) << std::endl;
+              outfile << "s" << std::endl;
+            }
+            
+            outfile.close();
         }
         else
         {
