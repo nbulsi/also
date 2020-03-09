@@ -59,11 +59,14 @@ namespace alice
 
         num_gates = xmg.num_gates();
         num_inv = mockturtle::num_inverters( xmg );
-
-        mockturtle::depth_view depth_xmg{xmg};
+        
+        depth_view_params ps;
+        ps.count_complements = false;
+        mockturtle::depth_view depth_xmg{xmg,ps};
         depth = depth_xmg.depth();
 
-        mockturtle::depth_view depth_xmg2{xmg};
+        ps.count_complements = true;
+        mockturtle::depth_view depth_xmg2{xmg,ps};
         depth_mixed = depth_xmg2.depth();
         std::tie( depth_maj, depth_inv, depth_xor ) = split_critical_path( depth_xmg2 );
 
@@ -106,7 +109,7 @@ namespace alice
               {
                 level++;
               }
-
+                
               if ( level == ntk.depth() )
               {
                 if ( ntk.is_complemented( f ) )
@@ -119,6 +122,7 @@ namespace alice
 
               return true;
               } );
+
 
           while ( !ntk.is_constant( cp_node ) && !ntk.is_pi( cp_node ) )
           {
