@@ -3,16 +3,8 @@
    \file aoig.hpp
    \brief aoig logic network implementation
  */
-#include "../traits.hpp"
-#include "../utils/algorithm.hpp"
-#include "../utils/truth_table_cache.hpp"
-#include "detail/foreach.hpp"
-#include "events.hpp"
-#include "storage.hpp"
-#include <ez/direct_iterator.hpp>
-#include <kitty/constructors.hpp>
-#include <kitty/dynamic_truth_table.hpp>
-#include <memory>
+#include <mockturtle/mockturtle.hpp>
+#include <kitty/kitty.hpp>
 
 namespace mockturtle
 {
@@ -284,7 +276,7 @@ namespace mockturtle
 			return _create_node(children, _storage->data.cache.insert(function));
 		}
 
-		signal clone_node(klut_network const& other, node const& source, std::vector<signal> const& children)
+		signal clone_node(aoig_network const& other, node const& source, std::vector<signal> const& children)
 		{
 			assert(!children.empty());
 			const auto tt = other._storage->data.cache[other._storage->nodes[source].data[1].h1];
@@ -395,6 +387,12 @@ namespace mockturtle
 		{
 			return f;
 		}
+    
+    bool is_complemented( signal const& f ) const
+    {
+      (void)f;
+      return false;
+    }
 
 		signal make_signal(node const& n) const
 		{
@@ -638,7 +636,7 @@ namespace mockturtle
 #pragma endregion
 
 	public:
-		std::shared_ptr<klut_storage> _storage;
+		std::shared_ptr<aoig_storage> _storage;
 		std::shared_ptr<network_events<base_type>> _events;
 	};
 
