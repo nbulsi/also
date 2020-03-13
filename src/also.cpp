@@ -45,6 +45,8 @@
 #include "commands/imgrw.hpp"
 #include "commands/imgff.hpp"
 #include "commands/ax.hpp"
+#include "commands/xagrs.hpp"
+#include "commands/xagopt.hpp"
 
 ALICE_MAIN( also )
 
