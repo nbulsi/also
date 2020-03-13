@@ -331,6 +331,11 @@ namespace alice
   {
      mockturtle::write_bench( xag, filename );
   }
+  
+  ALICE_WRITE_FILE( klut_network, bench, klut, filename, cmd )
+  {
+     mockturtle::write_bench( klut, filename );
+  }
 
   /********************************************************************
    * Convert from aig to mig                                          *
