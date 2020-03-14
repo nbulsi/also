@@ -14,6 +14,7 @@
 #define XMGRW_COMMAND_HPP
 
 #include <mockturtle/mockturtle.hpp>
+#include <mockturtle/algorithms/equivalence_checking.hpp>
 
 #include "../core/xmg_rewriting.hpp"
 #include "../core/misc.hpp"
@@ -98,17 +99,29 @@ namespace alice
           else if( strategy == 3 )
           {
             ps_xmg.strategy = xmg_depth_rewriting_params::qca;
+            ps_mig.strategy = mig_algebraic_depth_rewriting_params::dfs;
           }
           else
           {
             assert( false );
           }
 
-          depth_view depth_xmg( xmg );
-          xmg_depth_rewriting( depth_xmg, ps_xmg );
-          mig_algebraic_depth_rewriting( depth_xmg, ps_mig );
+          xmg_network xmg1, xmg2;
+          xmg1 = xmg;
+          
+          depth_view depth_xmg1( xmg );
+          mig_algebraic_depth_rewriting( depth_xmg1, ps_mig );
           xmg = cleanup_dangling( xmg );
           
+          depth_view depth_xmg2( xmg );
+          xmg_depth_rewriting( depth_xmg2, ps_xmg );
+          xmg = cleanup_dangling( xmg );
+          xmg2 = xmg;
+         
+          const auto miter_xmg = *miter<xmg_network>( xmg1, xmg2 ); 
+          equivalence_checking_stats eq_st;
+          const auto result = equivalence_checking( miter_xmg, {}, &eq_st );
+          assert( *result );
         }
 
         std::cout << "[xmgrw] "; 

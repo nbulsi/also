@@ -40,16 +40,28 @@ namespace alice
       {
         /* derive some XMG */
          xmg_network xmg = store<xmg_network>().current();
+
+         xmg_network xmg1, xmg2;
+         xmg1 = xmg;
         
-         //using view_t = depth_view<fanout_view<xmg_network>>;
-         //fanout_view<xmg_network> fanout_view{xmg};
-         //view_t resub_view{fanout_view};
-         //xmg_resubstitution( resub_view, ps, &st );
-         xmg_resubstitution( xmg, ps, &st );
+         using view_t = depth_view<fanout_view<xmg_network>>;
+         fanout_view<xmg_network> fanout_view{xmg};
+         view_t resub_view{fanout_view};
+         xmg_resubstitution( resub_view, ps, &st );
+         //xmg_resubstitution( xmg, ps, &st );
          xmg = cleanup_dangling( xmg );
+
+         xmg2 = xmg;
 
          std::cout << "[xmgrs] "; 
          also::print_stats( xmg ); 
+         
+         const auto miter_xmg = *miter<xmg_network>( xmg1, xmg2 ); 
+         equivalence_checking_stats eq_st;
+         const auto result = equivalence_checking( miter_xmg, {}, &eq_st );
+         std::cout << "result: " << *result << std::endl;
+         assert( *result );
+
 
          store<xmg_network>().extend(); 
          store<xmg_network>().current() = xmg;
