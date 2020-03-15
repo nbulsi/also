@@ -27,8 +27,8 @@ namespace alice
     public:
       explicit xmgrw_command( const environment::ptr& env ) : command( env, "Performs algebraic XMG rewriting" )
       {
-        add_option( "strategy, -s", strategy, "dfs = 0, aggressive = 1, selective = 2, qca = 3" );
-        add_flag( "--area_aware", "do not increase area" );
+        add_option( "strategy, -s", strategy, "qca = 0, aggressive = 1, selective = 2, dfs = 3" );
+        add_flag( "--area_aware, -a", "do not increase area" );
         add_flag( "--xor3_flattan", "flattan xor3 to 2 xor2s" );
         add_flag( "--only_maj", "apply mig_algebraic_depth_rewriting method" );
         add_flag( "--cec,-c", "apply equivalence checking in rewriting" );
@@ -87,19 +87,22 @@ namespace alice
 
           if( strategy == 0 )
           {
-            ps_xmg.strategy = xmg_depth_rewriting_params::dfs;
+            ps_xmg.strategy = xmg_depth_rewriting_params::qca;
+            ps_mig.strategy = mig_algebraic_depth_rewriting_params::dfs;
           }
           else if( strategy == 1 )
           {
             ps_xmg.strategy = xmg_depth_rewriting_params::aggressive;
+            ps_mig.strategy = mig_algebraic_depth_rewriting_params::aggressive;
           }
           else if( strategy == 2 )
           {
             ps_xmg.strategy = xmg_depth_rewriting_params::selective;
+            ps_mig.strategy = mig_algebraic_depth_rewriting_params::selective;
           }
           else if( strategy == 3 )
           {
-            ps_xmg.strategy = xmg_depth_rewriting_params::qca;
+            ps_xmg.strategy = xmg_depth_rewriting_params::dfs;
             ps_mig.strategy = mig_algebraic_depth_rewriting_params::dfs;
           }
           else
@@ -110,6 +113,7 @@ namespace alice
           xmg_network xmg1, xmg2;
           xmg1 = xmg;
           
+          /* mig_algebraic_depth_rewriting is suitable for ntk that has majority nodes */
           depth_view depth_xmg1( xmg );
           mig_algebraic_depth_rewriting( depth_xmg1, ps_mig );
           xmg = cleanup_dangling( xmg );
