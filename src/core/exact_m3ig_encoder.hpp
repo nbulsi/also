@@ -1562,6 +1562,91 @@ namespace also
       return success;
    }
    
+   /* cegar synthesis for approximate computing 
+    * Given a n-bit truth table, and the allowed error rate, say
+    * 10%, then the synthesized tt is acceptable for n * (1 - 10%)
+    * * n correct outputs.
+    * */
+   synth_result mig_three_cegar_approximate_synthesize( spec& spec, mig3& mig3, solver_wrapper& solver, mig_three_encoder& encoder, float error_rate )
+   {
+      spec.preprocess();
+
+      int error_thres = ( spec.tt_size + 1 ) * error_rate; 
+      std::cout << " tt_size: " << spec.tt_size + 1 
+                << " error_thres: " << error_thres << std::endl;
+      
+      // The special case when the Boolean chain to be synthesized
+      // consists entirely of trivial functions.
+      if (spec.nr_triv == spec.get_nr_out()) 
+      {
+        spec.nr_steps = 0;
+        mig3.reset(spec.get_nr_in(), spec.get_nr_out(), 0);
+        for (int h = 0; h < spec.get_nr_out(); h++) 
+        {
+          mig3.set_output(h, (spec.triv_func(h) << 1) +
+              ((spec.out_inv >> h) & 1));
+        }
+        return success;
+      }
+
+      spec.nr_steps = spec.initial_steps; 
+
+      while( true )
+      {
+        solver.restart();
+
+        if( !encoder.cegar_encode( spec ) )
+        {
+          spec.nr_steps++;
+          continue;
+        }
+
+        while( true )
+        {
+          const auto status = solver.solve( spec.conflict_limit );
+
+          if( status == success )
+          {
+            encoder.extract_mig3( spec, mig3 );
+            auto sim_tt = mig3.simulate()[0];
+            auto xor_tt = sim_tt ^ ( spec[0] );
+            auto first_one = kitty::find_first_one_bit( xor_tt );
+
+            auto num_diff = kitty::count_ones( xor_tt );
+
+            std::cout << "step: " << spec.nr_steps << " errors: " << num_diff << std::endl;
+
+            if( num_diff <= error_thres )
+            {
+              return success;
+            }
+
+            if( !encoder.create_tt_clauses( spec, first_one - 1 ) )
+            {
+              spec.nr_steps++;
+              break;
+            }
+          }
+          else if( status == failure )
+          {
+            spec.nr_steps++;
+            if( spec.nr_steps == 10 )
+            {
+              break;
+            }
+            break;
+          }
+          else
+          {
+            return timeout;
+          }
+        }
+
+      }
+
+      return success;
+   }
+   
    synth_result next_solution( spec& spec, mig3& mig3, solver_wrapper& solver, mig_three_encoder& encoder )
      {
        //spec.verbosity = 3;
