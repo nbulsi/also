@@ -31,6 +31,7 @@ namespace alice
         add_flag( "--area_aware", "do not increase area" );
         add_flag( "--xor3_flattan", "flattan xor3 to 2 xor2s" );
         add_flag( "--only_maj", "apply mig_algebraic_depth_rewriting method" );
+        add_flag( "--cec,-c", "apply equivalence checking in rewriting" );
       }
       
       rules validity_rules() const
@@ -118,10 +119,14 @@ namespace alice
           xmg = cleanup_dangling( xmg );
           xmg2 = xmg;
          
-          const auto miter_xmg = *miter<xmg_network>( xmg1, xmg2 ); 
-          equivalence_checking_stats eq_st;
-          const auto result = equivalence_checking( miter_xmg, {}, &eq_st );
-          assert( *result );
+          if( is_set( "cec" ) )
+          {
+            /* equivalence checking */
+            const auto miter_xmg = *miter<xmg_network>( xmg1, xmg2 ); 
+            equivalence_checking_stats eq_st;
+            const auto result = equivalence_checking( miter_xmg, {}, &eq_st );
+            assert( *result );
+          }
         }
 
         std::cout << "[xmgrw] "; 
