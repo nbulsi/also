@@ -565,8 +565,8 @@ private:
       return false;
 
     /* depth of last child must be (significantly) higher than depth of second child */
-    //if ( ntk.level( ntk.get_node( ocs[2] ) ) <= ntk.level( ntk.get_node( ocs[1] ) ) + 1 )
-    //  return false;
+    if ( ntk.level( ntk.get_node( ocs[2] ) ) <= ntk.level( ntk.get_node( ocs[1] ) ) + 1 )
+        return false;
 
     /* child must have single fanout, if no area overhead is allowed */
     if( !ps.allow_area_increase )

@@ -28,6 +28,7 @@ namespace alice
       explicit xmgrs_command( const environment::ptr& env ) : command( env, "Performs XMG resubsitution" )
       {
         add_flag( "-v,--verbose", ps.verbose, "show statistics" );
+        add_flag( "--cec,-c", "apply equivalence checking in resubstitution" );
       }
       
       rules validity_rules() const
@@ -40,16 +41,28 @@ namespace alice
       {
         /* derive some XMG */
          xmg_network xmg = store<xmg_network>().current();
+
+         xmg_network xmg1, xmg2;
+         xmg1 = xmg;
         
-         //using view_t = depth_view<fanout_view<xmg_network>>;
-         //fanout_view<xmg_network> fanout_view{xmg};
-         //view_t resub_view{fanout_view};
-         //xmg_resubstitution( resub_view, ps, &st );
-         xmg_resubstitution( xmg, ps, &st );
+         using view_t = depth_view<fanout_view<xmg_network>>;
+         fanout_view<xmg_network> fanout_view{xmg};
+         view_t resub_view{fanout_view};
+         xmg_resubstitution( resub_view, ps, &st );
          xmg = cleanup_dangling( xmg );
+
+         xmg2 = xmg;
 
          std::cout << "[xmgrs] "; 
          also::print_stats( xmg ); 
+         
+         if( is_set( "cec" ) )
+         {
+           const auto miter_xmg = *miter<xmg_network>( xmg1, xmg2 ); 
+           equivalence_checking_stats eq_st;
+           const auto result = equivalence_checking( miter_xmg, {}, &eq_st );
+           assert( *result );
+         }
 
          store<xmg_network>().extend(); 
          store<xmg_network>().current() = xmg;

@@ -292,11 +292,11 @@ public:
    /* order inputs */
     if ( a.index == b.index )
     {
-      if(a.complement == b.complement==0)//current state of a is a,only when a.complement=1 means current state of a is !a
+      if( ( a.complement == b.complement ) && ( a.complement == 0 ) )//current state of a is a,only when a.complement=1 means current state of a is !a
       {
            return !a;
       }
-      else if(a.complement == b.complement==1)
+      else if( ( a.complement == b.complement ) && ( a.complement == 1 ) )
       {
            return a;
       }
@@ -307,19 +307,19 @@ public:
     }
     else if( a.index == 0 )
     {
-      if(a.complement==1)
+      if(a.complement == 1)
       {
            return get_constant( false )  ;
       }
       else
       {
-           if(b.complement==0)
+           if( b.complement == 0 )
            {
-                 return !b;
+             return !b;
            }
            else
            {
-                 return b;
+             return b;
            }
       }
     }
