@@ -1614,7 +1614,7 @@ namespace also
 
             auto num_diff = kitty::count_ones( xor_tt );
 
-            std::cout << "step: " << spec.nr_steps << " errors: " << num_diff << std::endl;
+            std::cout << "[i] step: " << spec.nr_steps << " #errors: " << num_diff << std::endl;
 
             if( num_diff <= error_thres )
             {
@@ -1641,6 +1641,8 @@ namespace also
             return timeout;
           }
         }
+        
+        std::cout << std::endl;
 
       }
 

@@ -36,6 +36,8 @@ namespace alice
         add_flag( "--parallel, -p",               "parallel fence-based synthesize" );
         add_flag( "--para_cegar_fence, -b",       "parallel cegar fence-based synthesize" );
         add_flag( "--cegar_fence, -a",            "cegar fence-based synthesize" );
+        add_flag( "--approximate, -x",            "approximate computing" );
+        add_option( "--error_rate, -r", error_rate, "set the error rate for approximate synthesis" );
       }
 
       rules validity_rules() const
@@ -45,6 +47,7 @@ namespace alice
 
       private:
       int verbosity = 0;
+      float error_rate = 0.1;
 
     private:
 
@@ -282,6 +285,18 @@ namespace alice
           call_with_stopwatch( time, [&]() 
               { 
                 nbu_mig_five_encoder_cegar_test( copy );
+              } );
+        }
+        else if( is_set( "approximate" ) )
+        {
+          bsat_wrapper solver;
+          also::mig_five_encoder encoder( solver );
+          call_with_stopwatch( time, [&]() 
+              { 
+                if ( also::mig_five_cegar_approximate_synthesize( spec, mig5, solver, encoder, error_rate ) == success )
+                {
+                  print_all_expr( spec, mig5 );
+                }
               } );
         }
         else if( is_set( "fence" ) )
