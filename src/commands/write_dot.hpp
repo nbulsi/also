@@ -28,6 +28,7 @@ namespace alice
         add_flag( "--aig_network,-a", "write aig_network into dot files" );
         add_flag( "--mig_network,-m", "write mig_network into dot files" );
         add_flag( "--img_network,-i", "write img_network into dot files" );
+        add_flag( "--klut_network,-l", "write klut_network into dot files" );
         add_option( "--filename, -f", filename, "The path to store dot file, default: /tmp/test.dot" );
       }
       
@@ -57,6 +58,12 @@ namespace alice
           img_network img = store<img_network>().current();
 
           write_dot( img, filename );
+        }
+        else if( is_set( "klut_network" ) )
+        {
+          klut_network klut = store<klut_network>().current();
+
+          write_dot( klut, filename );
         }
         else
         {
