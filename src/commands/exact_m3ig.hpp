@@ -32,12 +32,14 @@ namespace alice
       {
         add_flag( "--verbose, -v",           "print the information" );
         add_flag( "--cegar, -c",             "cegar encoding" );
+        add_flag( "--approximate, -x",       "approximate computing" );
         add_flag( "--enumerate, -e",         "enumerate all the solutions" );
         add_flag( "--fence, -f",             "fence-based synthesize" );
         add_flag( "--cegar_fence, -a",       "cegar fence-based synthesize" );
         add_flag( "--parallel, -p",          "parallel nocegar fence-based synthesize" );
         add_flag( "--para_cegar_fence, -b",  "parallel cegar fence-based synthesize" );
         add_option( "--init_steps, -s", num_steps, "reset the initial steps for synthesize" );
+        add_option( "--error_rate, -r", error_rate, "set the error rate for approximate synthesis" );
       }
 
       rules validity_rules() const
@@ -47,6 +49,7 @@ namespace alice
 
       private:
       int num_steps = 1;
+      float error_rate = 0.1;
 
       std::string print_expr( const also::mig3& mig3, const int& step_idx )
       {
@@ -180,6 +183,18 @@ namespace alice
           call_with_stopwatch( time, [&]() 
               { 
                 if ( also::mig_three_cegar_synthesize( spec, mig3, solver, encoder ) == success )
+                {
+                  print_all_expr( spec, mig3 );
+                }
+              } );
+        }
+        else if( is_set( "approximate" ) )
+        {
+          bsat_wrapper solver;
+          also::mig_three_encoder encoder( solver );
+          call_with_stopwatch( time, [&]() 
+              { 
+                if ( also::mig_three_cegar_approximate_synthesize( spec, mig3, solver, encoder, error_rate ) == success )
                 {
                   print_all_expr( spec, mig3 );
                 }
