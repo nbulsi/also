@@ -32,6 +32,7 @@ namespace alice
         add_flag( "--satlut, -s",  "satlut mapping" );
         add_flag( "--xmg, -x",  "LUT mapping for XMG" );
         add_flag( "--mig, -m",  "LUT mapping for MIG" );
+        add_flag( "--img, -i",  "LUT mapping for IMG" );
         add_flag( "--opt_img, -o",  "Using optimal IMG size for 3-input function as the cost function" );
         add_flag( "--opt_xmg, -p",  "Using optimal XMG size/depth for 4-input function as the cost function" );
       }
@@ -54,6 +55,21 @@ namespace alice
           /* collapse into k-LUT network */
           auto klut = *collapse_mapped_network<klut_network>( mapped_xmg );
           klut = cleanup_dangling( klut );
+          store<klut_network>().extend(); 
+          store<klut_network>().current() = klut;
+        }
+        else if( is_set( "img" ) )
+        {
+          /* derive some img */
+          assert( store<img_network>().size() > 0 );
+          img_network img = store<img_network>().current();
+
+          mapping_view<img_network, true> mapped_img{img};
+          ps.cut_enumeration_ps.cut_size = cut_size;
+          lut_mapping<mapping_view<img_network, true>, true>( mapped_img, ps );
+          
+          /* collapse into k-LUT network */
+          const auto klut = *collapse_mapped_network<klut_network>( mapped_img );
           store<klut_network>().extend(); 
           store<klut_network>().current() = klut;
         }
