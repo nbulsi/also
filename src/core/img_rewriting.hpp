@@ -97,9 +97,9 @@ namespace also
         void run_dfs()
         {
           ntk.foreach_po( [this]( auto po ) {
-              //const auto driver = ntk.get_node( po );
-              //if ( ntk.level( driver ) < ntk.depth() )
-              //return;
+              const auto driver = ntk.get_node( po );
+              if ( ntk.level( driver ) < ntk.depth() )
+              return;
               topo_view topo{ntk, po};
               topo.foreach_node( [this]( auto n ) {
                   reduce_depth( n );

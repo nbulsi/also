@@ -120,7 +120,7 @@ namespace also
             return std::vector<uint32_t>( cut.begin(), cut.end() );
           };
 
-          const auto t = ntk.node_to_index( 60 );
+          /*const auto t = ntk.node_to_index( 60 );
 
           std::cout << "There are " << cuts.cuts( t ).size() << " cuts for node 60" << std::endl;
 
@@ -133,7 +133,7 @@ namespace also
               std::cout << " " << l;
             }
             std::cout << std::endl;
-          }
+          }*/
         }
       
       private:

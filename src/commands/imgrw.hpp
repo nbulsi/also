@@ -27,7 +27,7 @@ namespace alice
       explicit imgrw_command( const environment::ptr& env ) : command( env, "Performs algebraic IMG rewriting" )
       {
         add_option( "strategy, -s", strategy, "dfs = 0, aggressive = 1, selective = 2" );
-        add_flag( "--area_aware", "do not increase area" );
+        add_flag( "--area_aware,-a", "do not increase area" );
         add_flag( "--verbose", "verbose output" );
       }
       
