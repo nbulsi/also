@@ -55,8 +55,8 @@ namespace also
     topo_view topo{img};
     fanout_view fanout_img{topo};
 
-    topo.foreach_node( [&]( auto n ) {
-        if( img.fanout_size( n ) >= 2 && n != 0 )
+    fanout_img.foreach_node( [&]( auto n ) {
+        if( fanout_img.fanout_size( n ) >= 2 && n != 0 )
         {
         num++;
         std::set<node<img_network>> nodes;
@@ -83,6 +83,14 @@ namespace also
     } );
     
     return m;
+  }
+
+  void init_img_refs( img_network& img )
+  {
+    img.clear_values();
+    img.foreach_node( [&]( auto const& n ) {
+        img.set_value( n, img.fanout_size( n ) );
+        } );
   }
 
 
