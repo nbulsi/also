@@ -13,6 +13,8 @@
 #ifndef IMG_UTILS_HPP
 #define IMG_UTILS_HPP
 
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 #include "img.hpp"
 
 namespace also
@@ -59,7 +61,10 @@ namespace also
         if( fanout_img.fanout_size( n ) >= 2 && n != 0 )
         {
         num++;
+        
         std::set<node<img_network>> nodes;
+        std::set<node<img_network>> working_mem_nodes;
+        
         fanout_img.foreach_fanout( n, [&]( const auto& p )
             { nodes.insert( p ); } );
 
@@ -71,18 +76,84 @@ namespace also
         if( img.get_node( cs[1] ) == n )
         {
         tmp++;
+        working_mem_nodes.insert( pc );
         }
         }
 
         if( tmp >= 2u )
         {
           num_fc++;
-          m.insert( std::pair<unsigned, std::set<node<img_network>>>( n, nodes ) );
+          m.insert( std::pair<unsigned, std::set<node<img_network>>>( n, working_mem_nodes ) );
         }
         }
     } );
     
     return m;
+  }
+
+  bool is_interlock_pairs( img_network const& img, node<img_network> const& a, node<img_network> const& b )
+  {
+    if( img.is_pi( a ) || img.is_constant( a ) ) return false;
+    if( img.is_pi( b ) || img.is_constant( b ) ) return false;
+
+    const auto ca = img_get_children( img, a );
+    const auto cb = img_get_children( img, b );
+
+    if( ( img.get_node( ca[0] ) == img.get_node( cb[1] ) ) && ( img.get_node( ca[1] ) == img.get_node( cb[0] ) ) )
+    {
+      return true;
+    }
+    else
+    {
+      //std::cout << fmt::format( "node {} children : {} and {}\n", a, img.get_node( ca[0] ), img.get_node( ca[1] ) );
+      //std::cout << fmt::format( "node {} children : {} and {}\n", b, img.get_node( cb[0] ), img.get_node( cb[1] ) );
+      return false;
+    }
+  }
+
+  std::set<node<img_network>> get_fanout_set( img_network const& img, node<img_network> const& n )
+  {
+    assert( n != 0 );
+    topo_view topo{img};
+    fanout_view fanout_img{topo};
+        
+    std::set<node<img_network>> nodes;
+        
+    fanout_img.foreach_fanout( n, [&]( const auto& p )
+            { nodes.insert( p ); } );
+
+    return nodes;
+  }
+
+  std::set<std::array<node<img_network>, 2>> get_interlock_pairs( img_network const& img )
+  {
+    topo_view topo{img};
+    fanout_view fanout_img{topo};
+
+    std::set<std::array<node<img_network>, 2>> pairs;
+
+    fanout_img.foreach_node( [&]( auto n ) {
+        if( fanout_img.fanout_size( n ) >= 2 && n != 0 )
+        {
+         const auto& sets = get_fanout_set( img, n );
+
+         for( const auto& e1 : sets )
+         {
+          for( const auto& e2 : sets )
+          {
+            if( ( e1 != e2 ) && ( e1 < e2 ) && is_interlock_pairs( img, e1, e2 ) )
+            {
+              std::array<node<img_network>, 2> array;
+              array[0] = e1;
+              array[1] = e2;
+              pairs.insert( array );
+            }
+          }
+         }
+        }
+    } );
+
+    return pairs;
   }
 
   void init_img_refs( img_network& img )

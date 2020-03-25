@@ -14,6 +14,8 @@
 #define IMG_FC_HPP
 
 #include <mockturtle/mockturtle.hpp>
+#include <mockturtle/utils/cuts.hpp>
+#include <mockturtle/algorithms/cut_enumeration.hpp>
 #include <fmt/format.h>
 
 #include "../networks/img/img.hpp"
@@ -30,10 +32,13 @@ namespace also
   namespace detail
   {
 
-    class img_mffc_impl
+    /*
+     * img node mffc view
+     * */
+    class img_mffc_details
     {
       public:
-        img_mffc_impl( img_network& img, node<img_network> n )
+        img_mffc_details( img_network& img, node<img_network> n )
           : img( img ), n( n )
         {
           init_img_refs( img );
@@ -58,8 +63,9 @@ namespace also
     class img_fc_rewriting_impl
     {
       public:
-        img_fc_rewriting_impl( img_network& img, img_fc_rewriting_params const& ps )
-          : img( img ), ps( ps ), img_depth( depth_view<img_network> {img} )
+        img_fc_rewriting_impl( img_network& img, img_fc_rewriting_params const& ps, cut_enumeration_params const& cut_ps )
+          : img( img ), ps( ps ), cut_ps( cut_ps), 
+            img_depth( depth_view<img_network> {img} ), cuts( cut_enumeration<img_network, true>( img, cut_ps ) )
         {
         }
         
@@ -69,7 +75,7 @@ namespace also
           std::cout << "IMG_FC_REWRITING" << std::endl;
           std::cout << "#invs: " << img_num_inverters( img ) << std::endl; 
           std::cout << "#fcs:  " << img_fc_node_map( img ).size() << std::endl; 
-          
+#if 0 
           auto m = img_fc_node_map( img );
           print_fc_node_map( m );
 
@@ -78,7 +84,7 @@ namespace also
               //if ( ntk.level( driver ) < ntk.depth() )
               //return;
               
-              img_mffc_impl p( img, img.get_node( po ) );
+              img_mffc_details p( img, img.get_node( po ) );
               p.print_mffc_info();
 
               topo_view topo{img, po};
@@ -89,9 +95,34 @@ namespace also
               } );
 
            img.foreach_gate( [this]( auto n ) { 
-               img_mffc_impl p( img, n );
+               img_mffc_details p( img, n );
                p.print_mffc_info();
+
+               //print_cut_info( n );
               } );
+           
+#endif
+           img.foreach_node( [&]( auto node ) {
+               auto t = img.node_to_index( node );
+               std::cout << cuts.cuts( t ) << "\n";
+               for( auto i = 0; i < cuts.cuts( t ).size(); i++ )
+               {
+                std::cout << " cut " << i << " tt: " << get_cut_tt( t, i ) << " #leaves: " << get_cut_leaves( t, i ).size() << std::endl;
+
+                /* cut view*/
+                cut_view<img_network> dcut( img, get_cut_leaves( t, i ), img.make_signal( node ) );
+
+                dcut.foreach_node( [&]( auto const& n2) 
+                    {
+                      std::cout << " node: " << n2;
+                    }
+                    );
+                std::cout << "\n";
+
+               }
+               } );
+
+           auto pairs = get_interlock_pairs( img );
               
         }
 
@@ -150,18 +181,38 @@ namespace also
           }
         }
 
+        inline std::string get_cut_tt( node<img_network> const& n, unsigned const& cut_index )
+        {
+          assert( cut_index < cuts.cuts( n ).size() );
+          return kitty::to_hex( cuts.truth_table( cuts.cuts( n )[cut_index] ) );
+        }
+
+        inline std::vector<node<img_network>> get_cut_leaves( node<img_network> const& n, unsigned const& cut_index )
+        {
+          std::vector<node<img_network>> leaves;
+
+          for( auto leaf_index : cuts.cuts( n )[cut_index] )
+          {
+            leaves.push_back( img.index_to_node( leaf_index ) );
+          }
+
+          return leaves;
+        }
+
       private:
         img_network& img;
         img_fc_rewriting_params const& ps;
+        cut_enumeration_params const& cut_ps;
         depth_view<img_network> img_depth;
+        network_cuts<img_network, true, empty_cut_data> cuts;
     };
 
   } /* namespace detail*/
 
   /* public function */
-  void img_fc_rewriting( img_network& img, img_fc_rewriting_params const& ps = {} )
+  void img_fc_rewriting( img_network& img, img_fc_rewriting_params const& ps = {}, cut_enumeration_params const& cut_ps = {} )
   {
-    detail::img_fc_rewriting_impl p( img, ps );
+    detail::img_fc_rewriting_impl p( img, ps, cut_ps );
     p.run();
   }
 
