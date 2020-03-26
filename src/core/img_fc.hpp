@@ -32,13 +32,16 @@ namespace also
   namespace detail
   {
 
+    using node_t   = node<img_network>;
+    using signal_t = signal<img_network>;
+    
     /*
      * img node mffc view
      * */
     class img_mffc_details
     {
       public:
-        img_mffc_details( img_network& img, node<img_network> n )
+        img_mffc_details( img_network& img, node_t n )
           : img( img ), n( n )
         {
           init_img_refs( img );
@@ -57,7 +60,7 @@ namespace also
 
       private:
         img_network& img;
-        node<img_network> n;
+        node_t n;
     };
 
     class img_fc_rewriting_impl
@@ -75,67 +78,31 @@ namespace also
           std::cout << "IMG_FC_REWRITING" << std::endl;
           std::cout << "#invs: " << img_num_inverters( img ) << std::endl; 
           std::cout << "#fcs:  " << img_fc_node_map( img ).size() << std::endl; 
-#if 0 
           auto m = img_fc_node_map( img );
           print_fc_node_map( m );
 
           img.foreach_po( [this]( auto po ) {
-              //const auto driver = ntk.get_node( po );
-              //if ( ntk.level( driver ) < ntk.depth() )
-              //return;
-              
-              img_mffc_details p( img, img.get_node( po ) );
-              p.print_mffc_info();
-
               topo_view topo{img, po};
               topo.foreach_node( [this]( auto n ) {
                   rewrite_constant( n );
-                  return true;
                   } );
               } );
 
-           img.foreach_gate( [this]( auto n ) { 
-               img_mffc_details p( img, n );
-               p.print_mffc_info();
-
-               //print_cut_info( n );
-              } );
-           
-#endif
-           img.foreach_node( [&]( auto node ) {
-               auto t = img.node_to_index( node );
-               std::cout << cuts.cuts( t ) << "\n";
-               for( auto i = 0; i < cuts.cuts( t ).size(); i++ )
-               {
-                std::cout << " cut " << i << " tt: " << get_cut_tt( t, i ) << " #leaves: " << get_cut_leaves( t, i ).size() << std::endl;
-
-                /* cut view*/
-                cut_view<img_network> dcut( img, get_cut_leaves( t, i ), img.make_signal( node ) );
-
-                dcut.foreach_node( [&]( auto const& n2) 
-                    {
-                      std::cout << " node: " << n2;
-                    }
-                    );
-                std::cout << "\n";
-
-               }
-               } );
-
            auto pairs = get_interlock_pairs( img );
-              
         }
 
       private:
-        bool rewrite_constant( node<img_network> const& n )
+        bool rewrite_constant( node_t const& n )
         {
           auto b0 = rule_zero( n );
+          auto b1 = rule_one( n );
+          auto b2 = rule_two( n );
 
-          return b0;
+          return b0 | b1 | b2;
         }
 
         /* ( a -> b ) -> b = ( a -> 0 ) -> b = ( b -> 0 ) -> a */
-        bool rule_zero( node<img_network> const& n )
+        bool rule_zero( node_t const& n )
         {
           if( img_depth.level( n ) == 0 )
             return false;
@@ -159,7 +126,8 @@ namespace also
           
           if( ps.verbose )
           {
-            std::cout << " rule zero" << std::endl;
+            std::cout << fmt::format( " root node {}, a = {}, b = {} satisfy rule zero.\n", 
+                                        n, img.get_node( gcs[0] ), img.get_node( cs[1] ) );
           }
           
           auto opt = img.create_imp( img.create_not( gcs[0] ), cs[1] );
@@ -169,9 +137,97 @@ namespace also
           return true;
         }
 
-        void print_fc_node_map( std::map<unsigned, std::set<node<img_network>>> const& m )
+        /* ( ( b -> ( a -> c) ) -> c ) = ( ( b -> ( a -> 0 ) ) -> c )*/
+        bool rule_one( node_t const& n )
         {
-          auto print = [](const node<img_network>& n) { std::cout << " " << n; };
+          if( img_depth.level( n ) < 3 )
+            return false;
+
+          const auto& cs = img_get_children( img, n );
+
+          if( img_depth.level( img.get_node( cs[0] ) ) < 2 )
+            return false;
+
+          if( img.get_node( cs[1] ) == 0 )
+            return false;
+
+          const auto& gcs = img_get_children( img, img.get_node( cs[0] ) );
+          
+          if( img_depth.level( img.get_node( gcs[1] ) ) < 1 )
+            return false;
+
+          const auto& ggcs = img_get_children( img, img.get_node( gcs[1] ) );
+
+          if( img.get_node( ggcs[1] ) != img.get_node( cs[1] ) )
+            return false;
+          
+          /* child must have single fanout */
+          if ( !ps.allow_area_increase && img.fanout_size( img.get_node( cs[0] ) ) != 1 )
+            return false;
+          
+          if ( !ps.allow_area_increase && img.fanout_size( img.get_node( gcs[1] ) ) != 1 )
+            return false;
+          
+          if( ps.verbose )
+          {
+            std::cout << fmt::format( " root node {}, a = {}, b = {}, c = {} satisfy rule two. \n", 
+                                       n, img.get_node( ggcs[0] ), img.get_node( gcs[0]), img.get_node( cs[1] ) );
+          }
+          
+          auto opt = img.create_imp( img.create_imp( gcs[0], img.create_not( ggcs[0] ) ), cs[1] );
+          img.substitute_node( n, opt );
+          img_depth.update_levels();
+
+          return true;
+        }
+        
+        /* ( ( ( a -> c ) -> b ) -> c ) = ( ( ( a -> 0 ) -> b ) -> c ) */
+        bool rule_two( node_t const& n )
+        {
+          if( img_depth.level( n ) < 3 )
+            return false;
+
+          const auto& cs = img_get_children( img, n );
+
+          if( img_depth.level( img.get_node( cs[0] ) ) < 2 )
+            return false;
+
+          if( img.get_node( cs[1] ) == 0 )
+            return false;
+
+          const auto& gcs = img_get_children( img, img.get_node( cs[0] ) );
+          
+          if( img_depth.level( img.get_node( gcs[0] ) ) < 1 )
+            return false;
+
+          const auto& ggcs = img_get_children( img, img.get_node( gcs[0] ) );
+
+          if( img.get_node( ggcs[1] ) != img.get_node( cs[1] ) )
+            return false;
+          
+          /* child must have single fanout */
+          if ( !ps.allow_area_increase && img.fanout_size( img.get_node( cs[0] ) ) != 1 )
+            return false;
+          
+          if ( !ps.allow_area_increase && img.fanout_size( img.get_node( gcs[0] ) ) != 1 )
+            return false;
+          
+          if( ps.verbose )
+          {
+            std::cout << fmt::format( " root node {}, a = {}, b = {}, c = {} satisfy rule two. \n", 
+                                       n, img.get_node( ggcs[0] ), img.get_node( gcs[1]), img.get_node( cs[1] ) );
+          }
+          
+          auto opt = img.create_imp( img.create_imp( img.create_not( ggcs[0] ), gcs[1] ), cs[1] );
+          img.substitute_node( n, opt );
+          img_depth.update_levels();
+
+          return true;
+        }
+
+        void print_fc_node_map( std::map<unsigned, std::set<node_t>> const& m )
+        {
+          auto print = [](const node_t& n) { std::cout << " " << n; };
           
           for( const auto& mc : m )
           {
@@ -181,15 +237,15 @@ namespace also
           }
         }
 
-        inline std::string get_cut_tt( node<img_network> const& n, unsigned const& cut_index )
+        inline std::string get_cut_tt( node_t const& n, unsigned const& cut_index )
         {
           assert( cut_index < cuts.cuts( n ).size() );
           return kitty::to_hex( cuts.truth_table( cuts.cuts( n )[cut_index] ) );
         }
 
-        inline std::vector<node<img_network>> get_cut_leaves( node<img_network> const& n, unsigned const& cut_index )
+        inline std::vector<node_t> get_cut_leaves( node_t const& n, unsigned const& cut_index )
         {
-          std::vector<node<img_network>> leaves;
+          std::vector<node_t> leaves;
 
           for( auto leaf_index : cuts.cuts( n )[cut_index] )
           {
@@ -197,6 +253,29 @@ namespace also
           }
 
           return leaves;
+        }
+
+        void print_cut_info()
+        {
+           img.foreach_node( [&]( auto node ) {
+               auto t = img.node_to_index( node );
+               std::cout << cuts.cuts( t ) << "\n";
+               for( auto i = 0; i < cuts.cuts( t ).size(); i++ )
+               {
+                std::cout << " cut " << i << " tt: " << get_cut_tt( t, i ) << " #leaves: " << get_cut_leaves( t, i ).size() << std::endl;
+
+                /* cut view*/
+                cut_view<img_network> dcut( img, get_cut_leaves( t, i ), img.make_signal( node ) );
+
+                dcut.foreach_node( [&]( auto const& n2) 
+                    {
+                      std::cout << " node: " << n2;
+                    }
+                    );
+                std::cout << "\n";
+
+               }
+               } );
         }
 
       private:

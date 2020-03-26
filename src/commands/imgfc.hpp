@@ -48,7 +48,7 @@ namespace alice
             {
               depth_view depth_img( img );
               cut_ps.cut_size = 3u;
-              also::img_fc_rewriting( depth_img, ps );
+              also::img_fc_rewriting( depth_img, ps, cut_ps );
               img = cleanup_dangling( img );
             } );
 
