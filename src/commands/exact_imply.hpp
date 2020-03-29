@@ -56,6 +56,7 @@ namespace alice
         add_flag( "--cegar, -c",          "cegar encoding" );
         add_flag( "--fanout_free, -f",    "synthesis fanout-free implication logic network" );
         add_flag( "--heuristic, -u",      "heuristic algorithm by providing an upper bound obtained by AIG synthesis" );
+        add_option("--pi_index, -d", pi_index, "set primary input that not allowed to appear in the working memristor, default = 1 (a)" );
       }
 
       rules validity_rules() const
@@ -68,6 +69,7 @@ namespace alice
       {
         bool verb = false;
         bool enable_fanout_clauses = false;
+        bool enable_spec_fanout_clauses = false;
 
         if( is_set( "verbose" ) )
         {
@@ -77,6 +79,11 @@ namespace alice
         if( is_set( "fanout_free" ) )
         {
           enable_fanout_clauses = true;
+        }
+
+        if( is_set( "pi_index" ) )
+        {
+          enable_spec_fanout_clauses = true;
         }
         
         stopwatch<>::duration time{0};
@@ -95,7 +102,7 @@ namespace alice
         {
           call_with_stopwatch( time, [&]() 
             {
-             also::enumerate_img( opt.function, enable_fanout_clauses );
+             also::enumerate_img( opt.function, enable_fanout_clauses, enable_spec_fanout_clauses, pi_index );
             } );
         }
         else
@@ -118,13 +125,16 @@ namespace alice
           {
             call_with_stopwatch( time, [&]() 
                 {
-                also::nbu_img_encoder_test( opt.function, enable_fanout_clauses );
+                also::nbu_img_encoder_test( opt.function, enable_fanout_clauses, enable_spec_fanout_clauses, pi_index );
                 } );
           }
         }
         
         std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
       }
+
+      private:
+      unsigned pi_index = 1u;
 
   };
 

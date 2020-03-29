@@ -78,8 +78,11 @@ namespace also
           std::cout << "IMG_FC_REWRITING" << std::endl;
           std::cout << "#invs: " << img_num_inverters( img ) << std::endl; 
           std::cout << "#fcs:  " << img_fc_node_map( img ).size() << std::endl; 
+
           auto m = img_fc_node_map( img );
           print_fc_node_map( m );
+
+          print_cut_info( img.index_to_node( 80 ) );
 
           img.foreach_po( [this]( auto po ) {
               topo_view topo{img, po};
@@ -97,8 +100,9 @@ namespace also
           auto b0 = rule_zero( n );
           auto b1 = rule_one( n );
           auto b2 = rule_two( n );
+          auto b3 = rule_three( n );
 
-          return b0 | b1 | b2;
+          return b0 | b1 | b2 | b3;
         }
 
         /* ( a -> b ) -> b = ( a -> 0 ) -> b = ( b -> 0 ) -> a */
@@ -224,6 +228,50 @@ namespace also
 
           return true;
         }
+        
+        /*  ( ( a -> b ) -> ( c -> b ) ) =  ( ( a -> 0 ) -> ( c -> b ) ) */
+        bool rule_three( node_t const& n )
+        {
+          if( img_depth.level( n ) < 2 )
+            return false;
+
+          const auto& cs = img_get_children( img, n );
+
+          if( img_depth.level( img.get_node( cs[0] ) ) < 1 )
+            return false;
+          
+          if( img_depth.level( img.get_node( cs[1] ) ) < 1 )
+            return false;
+
+          const auto& gcs1 = img_get_children( img, img.get_node( cs[0] ) );
+          const auto& gcs2 = img_get_children( img, img.get_node( cs[1] ) );
+
+          if( img.get_node( gcs1[1] ) == 0 ||
+              img.get_node( gcs2[1] ) == 0 )
+            return false;
+          
+          if( img.get_node( gcs1[1] ) != img.get_node( gcs2[1] ) )
+            return false;
+          
+          /* child must have single fanout */
+          if ( !ps.allow_area_increase && img.fanout_size( img.get_node( cs[0] ) ) != 1 )
+            return false;
+          
+          if ( !ps.allow_area_increase && img.fanout_size( img.get_node( cs[1] ) ) != 1 )
+            return false;
+          
+          if( ps.verbose )
+          {
+            std::cout << fmt::format( " root node {}, a = {}, b = {}, c = {} satisfy rule three. \n", 
+                                       n, img.get_node( gcs1[0] ), img.get_node( gcs1[1]), img.get_node( gcs2[0] ) );
+          }
+          
+          auto opt = img.create_imp( img.create_not( gcs1[0] ), img.create_imp( gcs2[0], gcs2[1] ) );
+          img.substitute_node( n, opt );
+          img_depth.update_levels();
+
+          return true;
+        }
 
         void print_fc_node_map( std::map<unsigned, std::set<node_t>> const& m )
         {
@@ -255,27 +303,32 @@ namespace also
           return leaves;
         }
 
+        void print_cut_info( node_t const& n )
+        {
+          auto t = img.node_to_index( n );
+          std::cout << cuts.cuts( t ) << "\n";
+          for( auto i = 0; i < cuts.cuts( t ).size(); i++ )
+          {
+            std::cout << " cut " << i << " tt: " << get_cut_tt( t, i ) << " #leaves: " << get_cut_leaves( t, i ).size() << std::endl;
+
+            /* cut view*/
+            cut_view<img_network> dcut( img, get_cut_leaves( t, i ), img.make_signal( n ) );
+
+            dcut.foreach_node( [&]( auto const& n2) 
+                {
+                std::cout << " node: " << n2;
+                }
+                );
+            std::cout << "\n";
+          }
+        }
+
         void print_cut_info()
         {
            img.foreach_node( [&]( auto node ) {
-               auto t = img.node_to_index( node );
-               std::cout << cuts.cuts( t ) << "\n";
-               for( auto i = 0; i < cuts.cuts( t ).size(); i++ )
-               {
-                std::cout << " cut " << i << " tt: " << get_cut_tt( t, i ) << " #leaves: " << get_cut_leaves( t, i ).size() << std::endl;
-
-                /* cut view*/
-                cut_view<img_network> dcut( img, get_cut_leaves( t, i ), img.make_signal( node ) );
-
-                dcut.foreach_node( [&]( auto const& n2) 
-                    {
-                      std::cout << " node: " << n2;
-                    }
-                    );
-                std::cout << "\n";
-
+              print_cut_info( node );
                }
-               } );
+                );
         }
 
       private:

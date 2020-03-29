@@ -522,7 +522,12 @@ namespace also
         {
           return false;
         }
-        
+
+        if(spec.add_spec_fanout_clauses && !create_signal_not_appear_right_clauses( spec ) )
+        {
+          return false;
+        }
+
         if( print_clause )
         {
           show_variable_correspondence( spec );
@@ -1119,6 +1124,58 @@ namespace also
         return ret;
       }
 
+      /*
+       * Add constraints to not allow a signal appeared in the
+       * right (working memristor), the signal is primary input
+       * */
+      bool create_signal_not_appear_right_clauses( const spec& spec )
+      {
+        bool ret = true;
+
+        auto zz = get_svar_right_equal_spec_signal( spec, spec.pi_index );
+
+        if( zz.size() != 0 )
+        {
+          int ctr = 0;
+          for( const auto& z : zz )
+          {
+            pLits[ctr++] = pabc::Abc_Var2Lit( z, 1 );
+            ret &= solver->add_clause(pLits, pLits + ctr);
+            ctr--;
+          }
+        }
+
+        return ret;
+      }
+
+      std::vector<int> get_svar_right_equal_spec_signal( const spec& spec, unsigned signal_idx )
+      {
+        assert( signal_idx > 0 );
+        assert( signal_idx <= nr_in );
+        
+        std::vector<int> array;
+        
+        for( const auto e: sel_map )
+        {
+          auto svar_idx  = e.first;
+          auto step_idx  = e.second[0];
+          auto first_in  = e.second[1];
+          auto second_in = e.second[2];
+          
+          if( second_in == signal_idx )
+          {
+            if( spec.verbosity > 3 )
+            {
+              std::cout << "svar: " << svar_idx << " i: " << step_idx << " j: " << first_in << " k: " << second_in << std::endl;
+              std::cout << "svar: " << svar_idx << " is selected." << std::endl;
+            }
+            array.push_back( svar_idx );
+          }
+        }
+
+        return array;
+      }
+
       std::vector<int> get_svar_right_equal( int current_step, unsigned left_idx, unsigned right_idx )
       {
         std::vector<int> array;
@@ -1283,7 +1340,7 @@ namespace also
 
         //printf("[i] %d nodes are required\n", spec.nr_steps );
 
-        //assert( chain.satisfies_spec( spec ) );
+        assert( chain.satisfies_spec( spec ) );
       }
       
       //block solution
@@ -1510,7 +1567,9 @@ namespace also
     return img_to_string( spec, best_img );
   }
   
-  void nbu_img_encoder_test( const kitty::dynamic_truth_table& tt, const bool& enable_fanout_clauses )
+  void nbu_img_encoder_test( const kitty::dynamic_truth_table& tt, const bool& enable_fanout_clauses = false,
+                                                                   const bool& enable_spec_fanout_clauses = false,
+                                                                   const unsigned& pi_index = 1 )
   {
     bsat_wrapper solver;
     spec spec;
@@ -1518,6 +1577,8 @@ namespace also
     spec.add_colex_clauses = true;
     spec.add_symvar_clauses = true;
     spec.add_fanout_clauses = enable_fanout_clauses;
+    spec.add_spec_fanout_clauses = enable_spec_fanout_clauses;
+    spec.pi_index = pi_index;
 
     auto copy = tt;
     if( copy.num_vars()  < 2 )
@@ -1633,7 +1694,9 @@ namespace also
   }
 
   
-  void enumerate_img( const kitty::dynamic_truth_table& tt, const bool& enable_fanout_clauses )
+  void enumerate_img( const kitty::dynamic_truth_table& tt, const bool& enable_fanout_clauses,
+                                                            const bool& enable_spec_fanout_clauses,
+                                                            const unsigned& pi_index )
   {
     bsat_wrapper solver;
     spec spec;
@@ -1643,6 +1706,8 @@ namespace also
     spec.add_colex_clauses = true;
     spec.add_symvar_clauses = true;
     spec.add_fanout_clauses = enable_fanout_clauses;
+    spec.add_spec_fanout_clauses = enable_spec_fanout_clauses;
+    spec.pi_index = pi_index;
 
     auto copy = tt;
     if( copy.num_vars()  < 2 )
