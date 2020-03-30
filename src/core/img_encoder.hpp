@@ -1376,7 +1376,6 @@ namespace also
    ******************************************************************************/
   synth_result implication_syn_by_img_encoder( spec& spec, img& img, solver_wrapper& solver, img_encoder& encoder )
   {
-    spec.verbosity = 0;
     spec.preprocess();
     spec.add_colex_clauses = true;
     spec.add_symvar_clauses = true;
@@ -1398,8 +1397,12 @@ namespace also
       if( status == success )
       {
         encoder.extract_img( spec, img );
-        std::cout << "[i] expression: ";
-        img.to_expression( std::cout );
+        
+        if( spec.verbosity )
+        {
+          std::cout << "[i] expression: ";
+          img.to_expression( std::cout );
+        }
         return success;
 
       }
@@ -1574,6 +1577,7 @@ namespace also
     bsat_wrapper solver;
     spec spec;
     img img;
+    spec.verbosity = 1;
     spec.add_colex_clauses = true;
     spec.add_symvar_clauses = true;
     spec.add_fanout_clauses = enable_fanout_clauses;
@@ -1602,14 +1606,18 @@ namespace also
     }
   }
 
-  std::string nbu_cog( const kitty::dynamic_truth_table& tt, const bool& enable_fanout_clauses )
+  std::string nbu_cog( const kitty::dynamic_truth_table& tt, const bool& enable_fanout_clauses = false, 
+                                                             const bool& enable_spec_fanout_clauses = false,
+                                                             const unsigned& pi_index = 1 )
   {
     bsat_wrapper solver;
     spec spec;
     img img;
-    spec.add_colex_clauses = true;
+    spec.add_colex_clauses  = true;
     spec.add_symvar_clauses = true;
     spec.add_fanout_clauses = enable_fanout_clauses;
+    spec.add_spec_fanout_clauses = enable_spec_fanout_clauses;
+    spec.pi_index = pi_index;
 
     auto copy = tt;
     if( copy.num_vars()  < 2 )

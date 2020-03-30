@@ -82,7 +82,8 @@ namespace also
           auto m = img_fc_node_map( img );
           print_fc_node_map( m );
 
-          print_cut_info( img.index_to_node( 80 ) );
+          //print_cut_info( img.index_to_node( 80 ) );
+          print_cut_info();
 
           img.foreach_po( [this]( auto po ) {
               topo_view topo{img, po};
@@ -291,6 +292,11 @@ namespace also
           return kitty::to_hex( cuts.truth_table( cuts.cuts( n )[cut_index] ) );
         }
 
+        inline std::string tt_to_img( node_t const& n, unsigned const& cut_index )
+        {
+          return nbu_cog( cuts.truth_table( cuts.cuts( n )[cut_index] ), true );
+        }
+
         inline std::vector<node_t> get_cut_leaves( node_t const& n, unsigned const& cut_index )
         {
           std::vector<node_t> leaves;
@@ -309,7 +315,9 @@ namespace also
           std::cout << cuts.cuts( t ) << "\n";
           for( auto i = 0; i < cuts.cuts( t ).size(); i++ )
           {
-            std::cout << " cut " << i << " tt: " << get_cut_tt( t, i ) << " #leaves: " << get_cut_leaves( t, i ).size() << std::endl;
+            std::cout << " cut " << i << " tt: " << get_cut_tt( t, i ) 
+                      << " img: " << tt_to_img( t, i )
+                      << " #leaves: " << get_cut_leaves( t, i ).size() << std::endl;
 
             /* cut view*/
             cut_view<img_network> dcut( img, get_cut_leaves( t, i ), img.make_signal( n ) );
