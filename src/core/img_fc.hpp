@@ -85,14 +85,17 @@ namespace also
           //print_cut_info( img.index_to_node( 80 ) );
           print_cut_info();
 
-          img.foreach_po( [this]( auto po ) {
+          rewrite_cut( 12, 3 );
+          rewrite_cut( 18, 3 );
+
+          /*img.foreach_po( [this]( auto po ) {
               topo_view topo{img, po};
               topo.foreach_node( [this]( auto n ) {
                   rewrite_constant( n );
                   } );
               } );
 
-           auto pairs = get_interlock_pairs( img );
+           auto pairs = get_interlock_pairs( img );*/
         }
 
       private:
@@ -309,6 +312,66 @@ namespace also
           return leaves;
         }
 
+        /*
+         * create signal by exact_imply synthesis
+         * */
+        signal_t create_img_from_str( std::string const& s, std::vector<node_t> const&  leaves )
+        {
+          std::vector<signal_t> pis;
+
+          pis.push_back( img.get_constant( false ) );
+          for( const auto& l : leaves )
+          {
+            pis.push_back( img.make_signal( l ) );
+          }
+
+          std::stack<signal_t> inputs;
+
+          for ( auto i = 0ul; i < s.size(); i++ )
+          {
+            if( s[i] == '(' )
+            {
+              continue;
+            }
+            else if( s[i] >= 'a' && s[i] <= 'c' )
+            {
+              inputs.push( pis[ s[i] - 'a' + 1] );
+            }
+            else if( s[i] == '0' )
+            {
+              inputs.push( pis[0] );
+            }
+            else if( s[i] == ')' )
+            {
+              auto x1 = inputs.top();
+              inputs.pop();
+              
+              auto x2 = inputs.top();
+              inputs.pop();
+              
+              if( img.get_node( x1 ) == 0 )
+              {
+                inputs.push( img.create_not( x2 ) );
+              }
+              else
+              {
+                inputs.push( img.create_imp( x2, x1 ) );
+              }
+            }
+          }
+
+          assert( inputs.size() == 1u );
+          return inputs.top();
+        }
+
+        void rewrite_cut( node_t const& n, unsigned const& cut_index )
+        {
+          auto opt = create_img_from_str( tt_to_img( n, cut_index), 
+                                          get_cut_leaves( n, cut_index ) );
+          img.substitute_node( n, opt );
+          img_depth.update_levels();
+        }
+
         void print_cut_info( node_t const& n )
         {
           auto t = img.node_to_index( n );
@@ -333,8 +396,9 @@ namespace also
 
         void print_cut_info()
         {
-           img.foreach_node( [&]( auto node ) {
-              print_cut_info( node );
+           img.foreach_node( [&]( auto node ) 
+               {
+                 print_cut_info( node );
                }
                 );
         }
