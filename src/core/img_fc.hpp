@@ -76,17 +76,34 @@ namespace also
         void run()
         {
           std::cout << "IMG_FC_REWRITING" << std::endl;
-          std::cout << "#invs: " << img_num_inverters( img ) << std::endl; 
-          std::cout << "#fcs:  " << img_fc_node_map( img ).size() << std::endl; 
+          //std::cout << "#invs: " << img_num_inverters( img ) << std::endl; 
+          //std::cout << "#fcs:  " << img_fc_node_map( img ).size() << std::endl; 
 
+          /* interlock conflict pairs */
+          auto pairs = get_interlock_pairs( img );
+
+          /* begin rewrite interlock conflict pairs */ 
+          for( auto const& p : pairs )
+          {
+            auto cand = find_node_candidates( p[0], p[1] );
+            
+            if( ps.verbose )
+            {
+              std::cout << fmt::format( "{} and {} are conflict pairs\n", p[0], p[1] ); 
+              std::cout << "cand: " << cand << std::endl;
+            }
+
+          }
+
+          /* fanout pairs */
           auto m = img_fc_node_map( img );
           print_fc_node_map( m );
 
           //print_cut_info( img.index_to_node( 80 ) );
-          print_cut_info();
+          //print_cut_info();
 
-          rewrite_cut( 12, 3 );
-          rewrite_cut( 18, 3 );
+          //rewrite_cut( 14, 1 );
+          //rewrite_cut( 18, 3 );
 
           /*img.foreach_po( [this]( auto po ) {
               topo_view topo{img, po};
@@ -96,9 +113,59 @@ namespace also
               } );
 
            auto pairs = get_interlock_pairs( img );*/
+
         }
 
       private:
+        img_network create_test_img()
+        {
+          img_network test;
+
+          auto a = test.create_pi();
+          auto b = test.create_pi();
+
+          auto f1 = test.create_imp( a, b );
+          auto f2 = test.create_imp( b, a );
+          auto f3 = test.create_imp( f1, f2 );
+
+          test.create_po( f3 );
+          return test;
+        }
+
+        inline node_t find_node_candidates( node_t const& n1, node_t const& n2 )
+        {
+          auto pa = get_fanout_set( img, n1 ); 
+          auto pb = get_fanout_set( img, n2 );
+          
+          /* get the intersection */
+          std::set<node_t> intersect;
+          std::set_intersection( pa.begin(), pa.end(), pb.begin(), pb.end(),
+                                 std::inserter( intersect, intersect.begin() ) );
+
+          /* if common parent node exist, return, 
+           * otherwise, find a parent node that has single fanout and return */
+          if( !intersect.empty() ) 
+          {
+            return *intersect.begin();
+          }
+          else
+          {
+            auto fanouts = ( img_depth.level( n1 ) > img_depth.level( n2 ) ? pa : pb );
+
+            for( auto const& f : fanouts )
+            {
+              if( img.fanout_size( f ) == 1u )
+              {
+                intersect.insert( f );
+                break;
+              }
+            }
+          }
+
+          assert( !intersect.empty() );
+          return *intersect.begin();
+        }
+
         bool rewrite_constant( node_t const& n )
         {
           auto b0 = rule_zero( n );

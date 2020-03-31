@@ -125,12 +125,13 @@ namespace also
     return nodes;
   }
 
-  std::set<std::array<node<img_network>, 2>> get_interlock_pairs( img_network const& img )
+  using array_t = std::array<node<img_network>, 2>;
+  std::set<array_t> get_interlock_pairs( img_network const& img )
   {
     topo_view topo{img};
     fanout_view fanout_img{topo};
 
-    std::set<std::array<node<img_network>, 2>> pairs;
+    std::set<array_t> pairs;
 
     fanout_img.foreach_node( [&]( auto n ) {
         if( fanout_img.fanout_size( n ) >= 2 && n != 0 )
@@ -143,7 +144,7 @@ namespace also
           {
             if( ( e1 != e2 ) && ( e1 < e2 ) && is_interlock_pairs( img, e1, e2 ) )
             {
-              std::array<node<img_network>, 2> array;
+              array_t array;
               array[0] = e1;
               array[1] = e2;
               pairs.insert( array );
