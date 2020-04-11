@@ -15,6 +15,7 @@
 
 #include <mockturtle/mockturtle.hpp>
 #include <mockturtle/algorithms/node_resynthesis/xmg_npn.hpp>
+#include <mockturtle/algorithms/node_resynthesis/xmg3_npn.hpp>
 
 #include "../networks/m5ig/m5ig.hpp"
 #include "../networks/m5ig/m5ig_npn.hpp"
@@ -38,6 +39,7 @@ namespace alice
         add_option( "cut_size, -k", cut_size, "set the cut size from 2 to 8, default = 4" );
         add_flag( "--verbose, -v", "print the information" );
         add_flag( "--xmg, -x", "using xmg as target logic network" );
+        add_flag( "--xmg3, -m", "using xmg3 as target logic network" );
         add_flag( "--test_m3ig", "using m3ig as target logic network, exact_m3ig online" );
         add_flag( "--test_m5ig", "using m5ig as target logic network, exact_m5ig online" );
         add_flag( "--m5ig, -r", "using m5ig as target logic network" );
@@ -65,6 +67,7 @@ namespace alice
           xmg_network xmg;
           xmg_npn_resynthesis resyn;
           xmg = node_resynthesis<xmg_network>( klut, resyn );
+          depth_view xmg_depth1{xmg};
           
           if( is_set( "enable_direct_mapping" ) )
           {
@@ -73,19 +76,60 @@ namespace alice
             assert( store<aig_network>().size() > 0 );
             aig_network aig = store<aig_network>().current();
             auto xmg_baseline = also::xmg_from_aig( aig );
+
+            depth_view xmg_depth2{xmg_baseline};
+
+            std::cout << "depth 1: " << xmg_depth1.depth() 
+                      << "depth 2: " << xmg_depth2.depth()
+                      << std::endl;
             
             /*select the XMG that has fewer number of nodes 
              * naive method currently
              * */
-            if( xmg_baseline.num_gates() < xmg.num_gates() )
+            if( xmg_depth2.depth() < xmg_depth1.depth() )
             {
               xmg = also::xmg_from_aig( aig );
             }
           }
 
           depth_view xmg_depth{xmg};
+          
           std::cout << "[I/O:" << xmg.num_pis() << "/" << xmg.num_pos() << "] XMG gates: " 
                     << xmg.num_gates() << " XMG depth: " << xmg_depth.depth() << std::endl;
+
+          /* add to store */
+          if( is_set( "new_entry" ) )
+          {
+            store<xmg_network>().extend(); 
+            store<xmg_network>().current() = xmg;
+          }
+        }
+#if 0        
+        else if( is_set( "enable_direct_mapping" ) )
+        {
+          /* make the xmg from aig one-to-one mapping as the
+           * basiline xmg*/
+          assert( store<aig_network>().size() > 0 );
+          aig_network aig = store<aig_network>().current();
+          auto xmg = also::xmg_from_aig( aig );
+          
+          /* add to store */
+          if( is_set( "new_entry" ) )
+          {
+            store<xmg_network>().extend(); 
+            store<xmg_network>().current() = xmg;
+          }
+        }
+#endif
+        else if( is_set( "xmg3" ) )
+        {
+          xmg_network xmg;
+          xmg3_npn_resynthesis<xmg_network> resyn;
+          xmg = node_resynthesis<xmg_network>( klut, resyn );
+          
+          depth_view xmg_depth{xmg};
+          std::cout << "[I/O:" << xmg.num_pis() << "/" << xmg.num_pos() << "] XMG3 gates: " 
+                    << xmg.num_gates() << " XMG3 depth: " << xmg_depth.depth() << std::endl;
 
           /* add to store */
           if( is_set( "new_entry" ) )
