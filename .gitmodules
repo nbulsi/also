@@ -4,6 +4,3 @@
 [submodule "lib/mockturtle"]
 	path = lib/mockturtle
 	url = https://github.com/zfchu/mockturtle
-[submodule "lib/benchmarks"]
-	path = lib/benchmarks
-	url = https://github.com/nbulsi/benchmarks
