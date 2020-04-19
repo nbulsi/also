@@ -170,5 +170,21 @@ namespace also
       std::cout << fmt::format( "ntk   i/o = {}/{}   gates = {}   level = {}\n", 
           ntk.num_pis(), ntk.num_pos(), ntk.num_gates(), depth_ntk.depth() );
     }
+    
+    template<class Ntk>
+    bool is_po_driver(const Ntk& net, const node<Ntk> &n ) 
+    {
+      bool match = false;
+      net.foreach_po([&](const auto& s) 
+      {
+          if (net.get_node(s) == n) 
+          {
+            match = true;
+            return false;
+          }
+          return true;
+      });
+      return match;
+    }
 }
 

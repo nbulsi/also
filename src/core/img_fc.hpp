@@ -21,11 +21,13 @@
 #include "../networks/img/img.hpp"
 #include "../networks/img/img_utils.hpp"
 
+#include "misc.hpp"
+
 namespace also
 {
   struct img_fc_rewriting_params
   {
-    bool verbose{true};
+    bool verbose{false};
     bool allow_area_increase{true};
   };
 
@@ -82,18 +84,28 @@ namespace also
           /* interlock conflict pairs */
           auto pairs = get_interlock_pairs( img );
 
+          std::cout << " conflict pairs: " << pairs.size() << std::endl;
+
           /* begin rewrite interlock conflict pairs */ 
           for( auto const& p : pairs )
           {
             auto cand = find_node_candidates( p[0], p[1] );
-            
+
             if( ps.verbose )
             {
               std::cout << fmt::format( "{} and {} are conflict pairs\n", p[0], p[1] ); 
               std::cout << "cand: " << cand << std::endl;
             }
 
+            if( !rewrite_conflict_pairs( cand, p[0], p[1] ) )
+            {
+              std::cout << fmt::format( "rewriting {} and {} conflict pairs failed\n", p[0], p[1] ); 
+              assert( false );
+            }
+            /* rewrite the cut */
           }
+            
+          //print_cut_info();
 
           /* fanout pairs */
           auto m = img_fc_node_map( img );
@@ -117,6 +129,109 @@ namespace also
         }
 
       private:
+        bool is_element_in( std::vector<node_t> const& v, node_t const& key )
+        {
+          if( v.empty() ) return false;
+          return std::count(v.begin(), v.end(), key) ? true : false;
+        }
+        
+        unsigned get_element_index( std::vector<node_t> const& v, node_t const& key )
+        {
+          auto itr = std::find( v.begin(), v.end(), key );
+
+          if( itr != v.cend() )
+          {
+            /* a = 1, b = 2, .... */
+            return std::distance( v.begin(), itr ) + 1;
+          }
+
+          assert( false && "elements are not in the list" );
+          return 0;
+        }
+
+        bool rewrite_conflict_pairs( node_t const& cand, node_t const& p0, node_t const& p1 )
+        {
+          unsigned index = 0u;
+          auto c  = img_get_children( img, p0 );
+          auto c0 = img.get_node( c[0] );
+          auto c1 = img.get_node( c[1] );
+
+          /* enumerate all cuts, in a cut view,
+           * p0 and/or p1 are/is internal gates, c0 and/or c1
+           * are/is primary input 
+           * */
+          if( ps.verbose )
+          {
+            std::cout << fmt::format( "find cuts of node {} to solve conflict pairs: {} and {}, the children inputs are {} and {}\n",
+                                      cand, p0, p1, c0, c1 );
+          }
+          
+          auto t = img.node_to_index( cand );
+          /* cut enumeration */
+          for( auto i = 0; i < cuts.cuts( t ).size(); i++ )
+          {
+            /* cut view*/
+            cut_view<img_network> dcut( img, get_cut_leaves( t, i ), img.make_signal( cand ) );
+
+            std::vector<node_t> pis;
+            std::vector<node_t> gates;
+
+            dcut.foreach_pi(   [&]( auto const& n2) { pis.push_back( n2 ); } );
+            dcut.foreach_gate( [&]( auto const& n2) { gates.push_back( n2 ); } );
+
+            if( ps.verbose )
+            {
+              std::cout << " cut " << i << " tt: " << get_cut_tt( t, i ) 
+                        << " img: " << tt_to_img( t, i )
+                        << " #leaves: " << get_cut_leaves( t, i ).size() << std::endl;
+              std::cout << fmt::format( "There are {} pis, {} internal nodes in the cut\n", dcut.num_pis(), dcut.num_gates() );
+              show_array( pis );
+              show_array( gates );
+            }
+
+            /* conditions */
+            /* 1, at least one children inputs are in pis */
+            /* 2, at least one conflict pair nodes are in gates */
+            if( is_element_in( pis, c0) && is_element_in( pis, c1 ) )
+            {
+              if( is_element_in( gates, p0 ) || is_element_in( gates, p1 ) ) 
+              { 
+                rewrite_cut( cand, i );
+                return true;
+              }
+            }
+            else if( is_element_in( pis, c0 ) )
+            {
+              auto pi_index = get_element_index( pis, c0 );
+              
+              if( ps.verbose )
+              {
+                std::cout << fmt::format( "Partial rewriting: the index of {} is {}\n", c0, pi_index );
+              }
+              
+              rewrite_cut( cand, i, pi_index );
+              return true;
+            }
+            else if( is_element_in( pis, c1 ) )
+            {
+              auto pi_index = get_element_index( pis, c1 );
+              if( ps.verbose )
+              {
+                std::cout << fmt::format( "Partial rewriting: the index of {} is {}\n", c1, pi_index );
+              }
+
+              rewrite_cut( cand, i, pi_index );
+              return true;
+            }
+            else
+            {
+              continue;
+            }
+          }
+
+          return false;
+        }
+
         img_network create_test_img()
         {
           img_network test;
@@ -137,6 +252,14 @@ namespace also
           auto pa = get_fanout_set( img, n1 ); 
           auto pb = get_fanout_set( img, n2 );
           
+          /* corner case that both n1 and n2 are primary outputs
+           * without fanouts */
+          if( is_po_driver( img, n1) && is_po_driver( img, n2 ) 
+              && pa.empty() && pb.empty() )
+          {
+            return n1;
+          }
+          
           /* get the intersection */
           std::set<node_t> intersect;
           std::set_intersection( pa.begin(), pa.end(), pb.begin(), pb.end(),
@@ -150,15 +273,38 @@ namespace also
           }
           else
           {
-            auto fanouts = ( img_depth.level( n1 ) > img_depth.level( n2 ) ? pa : pb );
+            auto fanouts_a = ( img_depth.level( n1 ) > img_depth.level( n2 ) ? pa : pb );
+            auto fanouts_b = ( img_depth.level( n1 ) > img_depth.level( n2 ) ? pb : pa );
 
-            for( auto const& f : fanouts )
+            for( auto const& f : fanouts_a )
             {
               if( img.fanout_size( f ) == 1u )
               {
                 intersect.insert( f );
                 break;
               }
+            }
+
+            if( intersect.empty() )
+            {
+              for( auto const& f : fanouts_b )
+              {
+                if( img.fanout_size( f ) == 1u )
+                {
+                  intersect.insert( f );
+                  break;
+                }
+              }
+            }
+
+            if( intersect.empty() && !pa.empty() )
+            {
+              intersect.insert( *pa.begin() );
+            }
+            
+            if( intersect.empty() && !pb.empty() )
+            {
+              intersect.insert( *pb.begin() );
             }
           }
 
@@ -366,6 +512,11 @@ namespace also
         {
           return nbu_cog( cuts.truth_table( cuts.cuts( n )[cut_index] ), true );
         }
+        
+        inline std::string tt_to_img( node_t const& n, unsigned const& cut_index, unsigned const& pi_index )
+        {
+          return nbu_cog( cuts.truth_table( cuts.cuts( n )[cut_index] ), true, true, pi_index );
+        }
 
         inline std::vector<node_t> get_cut_leaves( node_t const& n, unsigned const& cut_index )
         {
@@ -438,6 +589,14 @@ namespace also
           img.substitute_node( n, opt );
           img_depth.update_levels();
         }
+        
+        void rewrite_cut( node_t const& n, unsigned const& cut_index, unsigned const& pi_index )
+        {
+          auto opt = create_img_from_str( tt_to_img( n, cut_index, pi_index ), 
+                                          get_cut_leaves( n, cut_index ) );
+          img.substitute_node( n, opt );
+          img_depth.update_levels();
+        }
 
         void print_cut_info( node_t const& n )
         {
@@ -473,7 +632,7 @@ namespace also
       private:
         img_network& img;
         img_fc_rewriting_params const& ps;
-        cut_enumeration_params const& cut_ps;
+        cut_enumeration_params  const& cut_ps;
         depth_view<img_network> img_depth;
         network_cuts<img_network, true, empty_cut_data> cuts;
     };
