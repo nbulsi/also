@@ -27,7 +27,7 @@ namespace also
 {
   struct img_fc_rewriting_params
   {
-    bool verbose{false};
+    bool verbose{true};
     bool allow_area_increase{true};
   };
 
@@ -81,6 +81,7 @@ namespace also
           //std::cout << "#invs: " << img_num_inverters( img ) << std::endl; 
           //std::cout << "#fcs:  " << img_fc_node_map( img ).size() << std::endl; 
 
+          get_reconvergent_node( 2 );
           /* interlock conflict pairs */
           auto pairs = get_interlock_pairs( img );
 
@@ -129,6 +130,51 @@ namespace also
         }
 
       private:
+        std::optional<node_t> get_reconvergent_node( node_t const& n )
+        {
+          /* set all nodes are not visited */
+          img.clear_visited();
+
+          std::stack<node_t> cand_nodes;
+
+          auto fout = get_fanout_set( img, n );
+          if( !fout.empty() )
+          {
+            for( auto const& e : fout )
+            {
+              dfs_util( e, cand_nodes );
+            }
+          }
+
+          if( !cand_nodes.empty() )
+          {
+            return cand_nodes.top();
+          }
+          else
+          {
+            return std::nullopt;
+          }
+        }
+
+        void dfs_util( node_t const& n, std::stack<node_t>& s )
+        {
+          img.set_visited( n, 1 ); 
+
+          auto fout = get_fanout_set( img, n );
+          for( auto const& e : fout )
+          {
+            if( img.visited( e ) != 1 )
+            {
+              dfs_util( e, s );
+            }
+            else
+            {
+              s.push( e );
+            }
+          }
+        }
+
+
         bool is_element_in( std::vector<node_t> const& v, node_t const& key )
         {
           if( v.empty() ) return false;
@@ -249,6 +295,21 @@ namespace also
 
         inline node_t find_node_candidates( node_t const& n1, node_t const& n2 )
         {
+          auto c  = img_get_children( img, n1 );
+          auto c0 = img.get_node( c[0] );
+          auto c1 = img.get_node( c[1] );
+
+          auto cand = get_reconvergent_node( c0 );
+          if( cand != std::nullopt )
+          {
+            return *cand;
+          }
+          else
+          {
+            return c0;
+          }
+
+#if 0 
           auto pa = get_fanout_set( img, n1 ); 
           auto pb = get_fanout_set( img, n2 );
           
@@ -310,6 +371,7 @@ namespace also
 
           assert( !intersect.empty() );
           return *intersect.begin();
+#endif
         }
 
         bool rewrite_constant( node_t const& n )
