@@ -24,7 +24,8 @@ namespace alice
     public:
       explicit imgfc_command( const environment::ptr& env ) : command( env, "construct fanout-free IMG" )
       {
-        add_flag( "--verbose", "verbose output" );
+        add_option( "cut_size, -k", cut_size, "set the cut size, default = 3" );
+        add_flag( "--verbose,-v", "verbose output" );
       }
       
       rules validity_rules() const
@@ -47,7 +48,8 @@ namespace alice
         call_with_stopwatch( time, [&]() 
             {
               depth_view depth_img( img );
-              cut_ps.cut_size = 3u;
+              cut_ps.cut_size = cut_size;
+              ps.verbose = is_set( "verbose" );
               also::img_fc_rewriting( depth_img, ps, cut_ps );
               img = cleanup_dangling( img );
             } );
@@ -64,6 +66,7 @@ namespace alice
     private:
       img_fc_rewriting_params ps;
       cut_enumeration_params  cut_ps;
+      unsigned cut_size = 3u;
   };
 
   ALICE_ADD_COMMAND( imgfc, "Rewriting" )

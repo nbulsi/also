@@ -81,11 +81,9 @@ namespace also
           //std::cout << "#invs: " << img_num_inverters( img ) << std::endl; 
           //std::cout << "#fcs:  " << img_fc_node_map( img ).size() << std::endl; 
 
-          get_reconvergent_node( 2 );
           /* interlock conflict pairs */
           auto pairs = get_interlock_pairs( img );
-
-          std::cout << " conflict pairs: " << pairs.size() << std::endl;
+          std::cout << "[i] # conflict pairs [before]: " << pairs.size() << std::endl;
 
           /* begin rewrite interlock conflict pairs */ 
           for( auto const& p : pairs )
@@ -103,14 +101,17 @@ namespace also
               std::cout << fmt::format( "rewriting {} and {} conflict pairs failed\n", p[0], p[1] ); 
               assert( false );
             }
-            /* rewrite the cut */
           }
             
+          /* rewrite the cut */
+          run_rewrite();
+          
           //print_cut_info();
 
           /* fanout pairs */
           auto m = img_fc_node_map( img );
           print_fc_node_map( m );
+          
 
           //print_cut_info( img.index_to_node( 80 ) );
           //print_cut_info();
@@ -130,25 +131,29 @@ namespace also
         }
 
       private:
-        std::optional<node_t> get_reconvergent_node( node_t const& n )
+        std::optional<node_t> get_reconvergent_node( node_t const& n, node_t const& n1, node_t const& n2 )
         {
           /* set all nodes are not visited */
           img.clear_visited();
 
-          std::stack<node_t> cand_nodes;
+          std::vector<node_t> cand_nodes;
 
           auto fout = get_fanout_set( img, n );
           if( !fout.empty() )
           {
             for( auto const& e : fout )
             {
-              dfs_util( e, cand_nodes );
+              if( e == n1 || e == n2 )
+              {
+                dfs_util( e, cand_nodes );
+              }
             }
           }
 
           if( !cand_nodes.empty() )
           {
-            return cand_nodes.top();
+            auto r = std::min_element( cand_nodes.begin(), cand_nodes.end() );
+            return *r;
           }
           else
           {
@@ -156,7 +161,7 @@ namespace also
           }
         }
 
-        void dfs_util( node_t const& n, std::stack<node_t>& s )
+        void dfs_util( node_t const& n, std::vector<node_t>& s )
         {
           img.set_visited( n, 1 ); 
 
@@ -169,7 +174,7 @@ namespace also
             }
             else
             {
-              s.push( e );
+              s.push_back( e );
             }
           }
         }
@@ -238,15 +243,16 @@ namespace also
             /* conditions */
             /* 1, at least one children inputs are in pis */
             /* 2, at least one conflict pair nodes are in gates */
+            //[TODO] research the conditions
             if( is_element_in( pis, c0) && is_element_in( pis, c1 ) )
             {
               if( is_element_in( gates, p0 ) || is_element_in( gates, p1 ) ) 
               { 
-                rewrite_cut( cand, i );
+                rwdb_full.push_back( std::make_pair( cand, i ) );
                 return true;
               }
             }
-            else if( is_element_in( pis, c0 ) )
+            /*else if( is_element_in( pis, c0 ) )
             {
               auto pi_index = get_element_index( pis, c0 );
               
@@ -255,7 +261,7 @@ namespace also
                 std::cout << fmt::format( "Partial rewriting: the index of {} is {}\n", c0, pi_index );
               }
               
-              rewrite_cut( cand, i, pi_index );
+              rwdb_partial.push_back( std::make_tuple( cand, i, pi_index ) );
               return true;
             }
             else if( is_element_in( pis, c1 ) )
@@ -266,9 +272,9 @@ namespace also
                 std::cout << fmt::format( "Partial rewriting: the index of {} is {}\n", c1, pi_index );
               }
 
-              rewrite_cut( cand, i, pi_index );
+              rwdb_partial.push_back( std::make_tuple( cand, i, pi_index ) );
               return true;
-            }
+            }*/
             else
             {
               continue;
@@ -276,6 +282,21 @@ namespace also
           }
 
           return false;
+        }
+
+        void run_rewrite()
+        {
+          for( auto const& data : rwdb_full )
+          {
+            rewrite_cut( data.first, data.second );
+          }
+
+          for( auto const& data : rwdb_partial )
+          {
+            rewrite_cut( std::get<0>( data ), 
+                         std::get<1>( data ),
+                         std::get<2>( data ) );
+          }
         }
 
         img_network create_test_img()
@@ -299,7 +320,7 @@ namespace also
           auto c0 = img.get_node( c[0] );
           auto c1 = img.get_node( c[1] );
 
-          auto cand = get_reconvergent_node( c0 );
+          auto cand = get_reconvergent_node( c0, n1, n2 );
           if( cand != std::nullopt )
           {
             return *cand;
@@ -613,7 +634,7 @@ namespace also
             {
               continue;
             }
-            else if( s[i] >= 'a' && s[i] <= 'c' )
+            else if( s[i] >= 'a' )
             {
               inputs.push( pis[ s[i] - 'a' + 1] );
             }
@@ -697,6 +718,11 @@ namespace also
         cut_enumeration_params  const& cut_ps;
         depth_view<img_network> img_depth;
         network_cuts<img_network, true, empty_cut_data> cuts;
+        /* record rewriting data */
+        using mypair  = std::pair<node_t, unsigned>;
+        using mytuple = std::tuple<node_t, unsigned, unsigned>;
+        std::vector<mypair>  rwdb_full;
+        std::vector<mytuple> rwdb_partial;
     };
 
   } /* namespace detail*/
