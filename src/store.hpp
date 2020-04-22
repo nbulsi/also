@@ -292,6 +292,62 @@ namespace alice
           img.num_pis(), img.num_pos(), img.num_gates(), depth_img.depth() );
     os << "\n";
   }
+
+  /* show img in dot */
+  template<>
+  bool can_show<img_network>( std::string& extension, command& cmd )
+  {
+    extension = "dot";
+    return true;
+  }
+  template<>
+  void show<img_network>( std::ostream& os, const img_network& element, const command& cmd )
+  {
+    write_dot( element, "/tmp/test.dot" );
+    std::system( "dot -Tpng /tmp/test.dot -o test.png" );
+  }
+  
+  /* show xmg in dot */
+  template<>
+  bool can_show<xmg_network>( std::string& extension, command& cmd )
+  {
+    extension = "dot";
+    return true;
+  }
+  template<>
+  void show<xmg_network>( std::ostream& os, const xmg_network& element, const command& cmd )
+  {
+    write_dot( element, "/tmp/test.dot" );
+    std::system( "dot -Tpng /tmp/test.dot -o test.png" );
+  }
+  
+  /* show mig in dot */
+  template<>
+  bool can_show<mig_network>( std::string& extension, command& cmd )
+  {
+    extension = "dot";
+    return true;
+  }
+  template<>
+  void show<mig_network>( std::ostream& os, const mig_network& element, const command& cmd )
+  {
+    write_dot( element, "/tmp/test.dot" );
+    std::system( "dot -Tpng /tmp/test.dot -o test.png" );
+  }
+  
+  /* show klut in dot */
+  template<>
+  bool can_show<klut_network>( std::string& extension, command& cmd )
+  {
+    extension = "dot";
+    return true;
+  }
+  template<>
+  void show<klut_network>( std::ostream& os, const klut_network& element, const command& cmd )
+  {
+    write_dot( element, "/tmp/test.dot" );
+    std::system( "dot -Tpng /tmp/test.dot -o test.png" );
+  }
   
   ALICE_ADD_FILE_TYPE( bench, "BENCH" );
   
