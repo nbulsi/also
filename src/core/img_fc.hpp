@@ -29,6 +29,7 @@ namespace also
   {
     bool verbose{true};
     bool allow_area_increase{true};
+    unsigned min_cand_cut_size{1u};
   };
 
   namespace detail
@@ -74,8 +75,86 @@ namespace also
         {
         }
         
+        void run_all_nodes_strategy()
+        {
+          std::cout << "IMG_FC_REWRITING" << std::endl;
+          
+          /* init */
+          auto interlock_pairs = get_interlock_pairs( img );
+          for( auto const& p : interlock_pairs )
+          {
+            pairs.push_back( std::make_pair( p, false ) );
+          }
 
-        void run()
+          conflicts = img_fc_node_map( img );
+
+          img.foreach_node( [&]( auto const& n, auto index ) 
+              {
+              std::cout << "Traverse node: " << n << std::endl;
+              if ( index >= cuts.nodes_size() || img.is_constant( n ) || img.is_pi( n ) )
+              return;
+              
+              auto t = img.node_to_index( n );
+              /* cut enumeration */
+              for( auto i = 0; i < cuts.cuts( t ).size(); i++ )
+              {
+              /* cut view*/
+              cut_view<img_network> dcut( img, get_cut_leaves( t, i ), img.make_signal( n ) );
+
+              std::vector<node_t> pis;
+              std::vector<node_t> gates;
+              std::vector<node_t> nodes;
+
+              dcut.foreach_pi(   [&]( auto const& n2) { pis.push_back( n2 ); } );
+              dcut.foreach_gate( [&]( auto const& n2) { gates.push_back( n2 ); } );
+              dcut.foreach_node( [&]( auto const& n2) { nodes.push_back( n2 ); } );
+
+              /* skip trivial cases */
+              if( gates.size() < 2u )
+                continue;
+
+              if( ps.verbose )
+              {
+                /*std::cout << " cut " << i << " tt: " << get_cut_tt( t, i ) 
+                  << " img: " << tt_to_img( t, i )
+                  << " #leaves: " << get_cut_leaves( t, i ).size() << std::endl;
+                std::cout << fmt::format( "There are {} pis, {} internal nodes in the cut.\n", 
+                                           dcut.num_pis(), dcut.num_gates() );
+                show_array( pis );
+                show_array( gates );
+                show_array( nodes );*/
+              }
+
+              /* search the interlock pairs and rewriting */
+              for( auto & p : pairs )
+              {
+                auto p0 = p.first[0];
+                auto p1 = p.first[1];
+                auto solved = p.second;
+                auto c  = img_get_children( img, p0 );
+                auto c0 = img.get_node( c[0] );
+                auto c1 = img.get_node( c[1] );
+
+                if( is_element_in( nodes, c0 ) && is_element_in( nodes, c1 ) 
+                    && is_element_in( nodes, p0 ) && is_element_in( nodes, p1 ) && !solved )
+                {
+                  rwdb_full.push_back( std::make_pair( n, i ) );
+                  show_array( nodes ); 
+                  std::cout << fmt::format( "Rewrite node {} cuts {} to solve pairs {} and {}\n", 
+                                             n, i, p0, p1 );
+                  p.second = true;
+                  break;
+                }
+
+              }
+
+              } } );
+          
+          /* rewrite the cut */
+          run_rewrite();
+        }
+
+        void run_candidate_strategy()
         {
           std::cout << "IMG_FC_REWRITING" << std::endl;
           //std::cout << "#invs: " << img_num_inverters( img ) << std::endl; 
@@ -119,15 +198,12 @@ namespace also
           //rewrite_cut( 14, 1 );
           //rewrite_cut( 18, 3 );
 
-          /*img.foreach_po( [this]( auto po ) {
+          img.foreach_po( [this]( auto po ) {
               topo_view topo{img, po};
               topo.foreach_node( [this]( auto n ) {
                   rewrite_constant( n );
                   } );
               } );
-
-           auto pairs = get_interlock_pairs( img );*/
-
         }
 
       private:
@@ -226,9 +302,11 @@ namespace also
 
             std::vector<node_t> pis;
             std::vector<node_t> gates;
+            std::vector<node_t> nodes;
 
             dcut.foreach_pi(   [&]( auto const& n2) { pis.push_back( n2 ); } );
             dcut.foreach_gate( [&]( auto const& n2) { gates.push_back( n2 ); } );
+            dcut.foreach_node( [&]( auto const& n2) { nodes.push_back( n2 ); } );
 
             if( ps.verbose )
             {
@@ -236,15 +314,22 @@ namespace also
                         << " img: " << tt_to_img( t, i )
                         << " #leaves: " << get_cut_leaves( t, i ).size() << std::endl;
               std::cout << fmt::format( "There are {} pis, {} internal nodes in the cut\n", dcut.num_pis(), dcut.num_gates() );
-              show_array( pis );
-              show_array( gates );
+              //show_array( pis );
+              //show_array( gates );
+              show_array( nodes );
             }
 
             /* conditions */
             /* 1, at least one children inputs are in pis */
             /* 2, at least one conflict pair nodes are in gates */
             //[TODO] research the conditions
-            if( is_element_in( pis, c0) && is_element_in( pis, c1 ) )
+            if( is_element_in( nodes, c0 ) && is_element_in( nodes, c1 ) 
+                && is_element_in( nodes, p0 ) && is_element_in( nodes, p1 ) )
+            {
+                rwdb_full.push_back( std::make_pair( cand, i ) );
+                return true;
+            }
+            /*if( is_element_in( pis, c0) && is_element_in( pis, c1 ) )
             {
               if( is_element_in( gates, p0 ) || is_element_in( gates, p1 ) ) 
               { 
@@ -252,7 +337,7 @@ namespace also
                 return true;
               }
             }
-            /*else if( is_element_in( pis, c0 ) )
+            else if( is_element_in( pis, c0 ) )
             {
               auto pi_index = get_element_index( pis, c0 );
               
@@ -723,6 +808,14 @@ namespace also
         using mytuple = std::tuple<node_t, unsigned, unsigned>;
         std::vector<mypair>  rwdb_full;
         std::vector<mytuple> rwdb_partial;
+
+        /* interlock pairs */
+        using myarray = std::array<node_t,2>;
+        //std::set<myarray> pairs;
+        std::vector<std::pair<myarray, bool>> pairs;
+
+        /* fanout conflicts */
+        std::map<unsigned, std::set<node_t>> conflicts;
     };
 
   } /* namespace detail*/
@@ -731,7 +824,8 @@ namespace also
   void img_fc_rewriting( img_network& img, img_fc_rewriting_params const& ps = {}, cut_enumeration_params const& cut_ps = {} )
   {
     detail::img_fc_rewriting_impl p( img, ps, cut_ps );
-    p.run();
+    //p.run_candidate_strategy();
+    p.run_all_nodes_strategy();
   }
 
 } /* namespace also */
