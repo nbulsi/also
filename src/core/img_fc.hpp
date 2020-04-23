@@ -77,8 +77,6 @@ namespace also
         
         void run_all_nodes_strategy()
         {
-          std::cout << "IMG_FC_REWRITING" << std::endl;
-          
           /* init */
           auto interlock_pairs = get_interlock_pairs( img );
           for( auto const& p : interlock_pairs )
@@ -88,9 +86,13 @@ namespace also
 
           conflicts = img_fc_node_map( img );
 
+          std::cout << fmt::format( "[i] #interlock pairs: {}, #fanouts_conflict: {}\n", num_interlock_pairs(), conflicts.size() );
+
+          if( num_interlock_pairs() == 0u )
+            return;
+
           img.foreach_node( [&]( auto const& n, auto index ) 
               {
-              std::cout << "Traverse node: " << n << std::endl;
               if ( index >= cuts.nodes_size() || img.is_constant( n ) || img.is_pi( n ) )
               return;
               
@@ -152,6 +154,8 @@ namespace also
           
           /* rewrite the cut */
           run_rewrite();
+          
+          std::cout << fmt::format( "[i] # unsolved interlock pairs: {}\n", num_interlock_pairs() );
         }
 
         void run_candidate_strategy()
@@ -207,6 +211,17 @@ namespace also
         }
 
       private:
+        unsigned num_interlock_pairs()
+        {
+          unsigned count = 0u;
+
+          for( auto const& p : pairs )
+          {
+            count += ( p.second ? 0 : 1 );
+          }
+          return count;
+        }
+
         std::optional<node_t> get_reconvergent_node( node_t const& n, node_t const& n1, node_t const& n2 )
         {
           /* set all nodes are not visited */
