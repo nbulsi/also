@@ -20,6 +20,7 @@
 
 #include "../networks/img/img.hpp"
 #include "../networks/img/img_utils.hpp"
+#include "../networks/img/cost_functions.hpp"
 
 #include "misc.hpp"
 
@@ -88,6 +89,8 @@ namespace also
 
           std::cout << fmt::format( "[i] #interlock pairs: {}, #fanouts_conflict: {}\n", num_interlock_pairs(), conflicts.size() );
 
+          std::cout << fmt::format( "[i] costs: {}\n", fc_cost( img ) );
+
           if( num_interlock_pairs() == 0u )
             return;
 
@@ -151,6 +154,8 @@ namespace also
               }
 
               } } );
+
+             /* search the fanout pairs and rewriting */
           
           /* rewrite the cut */
           run_rewrite();

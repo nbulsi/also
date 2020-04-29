@@ -7,6 +7,7 @@
 #include <sstream>
 
 using namespace percy;
+using namespace mockturtle;
 
 namespace also
 {
