@@ -39,8 +39,16 @@
 #include "commands/xmgcost.hpp"
 #include "commands/magic.hpp"
 #include "commands/write_dot.hpp"
-#include "commands/compute_opt_mig.hpp"
+#include "commands/cog.hpp"
 #include "commands/test_tt.hpp"
-
+#include "commands/test_img.hpp"
+#include "commands/imgrw.hpp"
+#include "commands/imgff.hpp"
+#include "commands/ax.hpp"
+#include "commands/xagrs.hpp"
+#include "commands/xagopt.hpp"
+//#include "commands/xagrw.hpp"
+#include "commands/nniinv.hpp"
+//#include"commands/test_xagrw.hpp"
 ALICE_MAIN( also )
 
