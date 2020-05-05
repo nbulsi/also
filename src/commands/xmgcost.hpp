@@ -62,11 +62,11 @@ namespace alice
         
         depth_view_params ps;
         ps.count_complements = false;
-        mockturtle::depth_view depth_xmg{xmg,ps};
+        mockturtle::depth_view depth_xmg{xmg, {}, ps};
         depth = depth_xmg.depth();
 
         ps.count_complements = true;
-        mockturtle::depth_view depth_xmg2{xmg,ps};
+        mockturtle::depth_view depth_xmg2{xmg,{}, ps};
         depth_mixed = depth_xmg2.depth();
         std::tie( depth_maj, depth_inv, depth_xor ) = split_critical_path( depth_xmg2 );
 

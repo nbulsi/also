@@ -26,12 +26,10 @@
 #include <mockturtle/utils/stopwatch.hpp>
 #include <mockturtle/properties/migcost.hpp>
 
-#include "exact_img.hpp"
 #include "../networks/img/img.hpp"
 #include "../networks/img/img_compl_rw.hpp"
 
 using namespace percy; 
-using namespace mockturtle; 
 
 namespace also
 {

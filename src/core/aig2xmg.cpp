@@ -1,8 +1,10 @@
 /* also: Advanced Logic Synthesis and Optimization tool
  * Copyright (C) 2019- Ningbo University, Ningbo, China */
 
+#include <mockturtle/views/topo_view.hpp>
 #include "aig2xmg.hpp"
 
+using namespace mockturtle;
 
 namespace also
 {

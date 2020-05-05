@@ -55,7 +55,7 @@ class img_p3_synthesis
   img_network create_img_from_str( const std::string&  img_expr )
   {
     img_network img;
-    also::img_depth_rewriting_params ps;
+    img_depth_rewriting_params ps;
     std::string str = img_expr;
 
     std::vector<img_network::signal> signals;
@@ -106,7 +106,7 @@ class img_p3_synthesis
     /* rewriting */
     ps.allow_area_increase = false;
     depth_view depth_img( img );
-    also::img_depth_rewriting( depth_img, ps );
+    img_depth_rewriting( depth_img, ps );
     return cleanup_dangling( img );
   }
 

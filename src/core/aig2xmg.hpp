@@ -13,12 +13,13 @@
 #ifndef AIG2XMG_HPP
 #define AIG2XMG_HPP
 
-#include <mockturtle/mockturtle.hpp>
-using namespace mockturtle;
+#include <mockturtle/utils/node_map.hpp>
+#include <mockturtle/networks/xmg.hpp>
+#include <mockturtle/networks/aig.hpp>
 
 namespace also
 {
-  xmg_network xmg_from_aig( const aig_network& aig );
+  mockturtle::xmg_network xmg_from_aig( const mockturtle::aig_network& aig );
 }
 
 #endif

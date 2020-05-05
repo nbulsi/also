@@ -18,11 +18,11 @@
 #include "../../core/exact_m5ig_encoder.hpp"
 #include "../../core/m5ig_helper.hpp"
 
-namespace also
+namespace mockturtle
 {
   struct exact_m5ig_resynthesis_params
   {
-    using cache_map_t = std::unordered_map<kitty::dynamic_truth_table, mig5, kitty::hash<kitty::dynamic_truth_table>>;
+    using cache_map_t = std::unordered_map<kitty::dynamic_truth_table, also::mig5, kitty::hash<kitty::dynamic_truth_table>>;
     using cache_t = std::shared_ptr<cache_map_t>;
 
     cache_t cache;
@@ -75,7 +75,7 @@ namespace also
               with_dont_cares = true;
             }
 
-            auto c = [&]() -> std::optional<mig5> {
+            auto c = [&]() -> std::optional<also::mig5> {
               if ( !with_dont_cares && _ps.cache )
               {
                 const auto it = _ps.cache->find( function );
@@ -85,7 +85,7 @@ namespace also
                 }
               }
 
-              mig5 c;
+              also::mig5 c;
               if ( const auto result = parallel_mig_five_fence_synthesize( spec, c ); result != percy::success )
               {
                 return std::nullopt;

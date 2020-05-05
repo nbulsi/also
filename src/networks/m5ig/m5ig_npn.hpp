@@ -44,6 +44,7 @@
 #include <mockturtle/mockturtle.hpp>
 
 #include "m5ig.hpp"
+#include "m5ig_cleanup.hpp"
 #include "../core/misc.hpp"
 
 namespace mockturtle
@@ -84,7 +85,7 @@ public:
                    kitty::dynamic_truth_table const& function, 
                    LeavesIterator begin, 
                    LeavesIterator end, 
-                   Fn&& fn )
+                   Fn&& fn ) const
   {
     assert( function.num_vars() <= 4 );
     const auto fe = kitty::extend_to( function, 4 );
@@ -117,7 +118,7 @@ public:
     for ( auto const& po : it->second )
     {
       topo_view topo{db, po};
-      auto f = cleanup_dangling( topo, m5ig, pis_perm.begin(), pis_perm.end() ).front();
+      auto f = m5ig_cleanup_dangling( topo, m5ig, pis_perm.begin(), pis_perm.end() ).front();
 
       if ( !fn( ( ( phase >> 4 ) & 1 ) ? !f : f ) )
       {
@@ -179,7 +180,6 @@ private:
       c = substrs[2][2] - '0';
       d = substrs[2][3] - '0';
       e = substrs[2][4] - '0';
-
 #if 0
       std::cout << " a: " << a << " sig[a]: " << sig[a].index << std::endl
                 << " b: " << b << " sig[b]: " << sig[b].index << std::endl
