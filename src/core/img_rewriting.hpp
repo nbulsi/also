@@ -14,11 +14,12 @@
 #ifndef IMG_REWRITING_HPP
 #define IMG_REWRITING_HPP
 
+#include <array>
 #include <mockturtle/mockturtle.hpp>
 #include "../networks/img/img.hpp"
 #include "../networks/img/img_compl_rw.hpp"
 
-namespace also
+namespace mockturtle
 {
   struct img_depth_rewriting_params
   {

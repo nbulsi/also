@@ -2,8 +2,8 @@
  * Copyright (C) 2019- Ningbo University, Ningbo, China */
 
 #include "img_compl_rw.hpp"
-
-using namespace mockturtle;
+#include <mockturtle/views/topo_view.hpp>
+#include <mockturtle/algorithms/cleanup.hpp>
 
 namespace also
 {
@@ -69,7 +69,6 @@ namespace also
         auto opt = img.create_imp( a, b );
 
         img.substitute_node( n, opt );
-        img.update();
         return true;
       }
 

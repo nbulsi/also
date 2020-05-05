@@ -145,7 +145,8 @@ namespace alice
           if( cut_size <= 4 )
           {
             m5ig_npn_resynthesis resyn;
-            m5ig = node_resynthesis<m5ig_network>( klut, resyn );
+            node_resynthesis( m5ig, klut, resyn );
+            //m5ig = node_resynthesis<m5ig_network>( klut, resyn );
 
             depth_view m5ig_depth{m5ig};
             std::cout << "[I/O:" << m5ig.num_pis() << "/" << m5ig.num_pos() << "] M5IG gates: " 
@@ -199,7 +200,7 @@ namespace alice
 
           std::vector<mig_network::signal> pis = {a, b, c, d, e, f};
 
-          also::exact_mig_resynthesis<mig_network> resyn;
+          exact_mig_resynthesis<mig_network> resyn;
           resyn( mig, maj, pis.begin(), pis.end(), [&]( auto const& f ) { 
               mig.create_po( f );
               } );
@@ -228,7 +229,7 @@ namespace alice
 
           std::vector<m5ig_network::signal> pis = {a, b, c, d, e, f};
 
-          also::exact_m5ig_resynthesis<m5ig_network> resyn;
+          exact_m5ig_resynthesis<m5ig_network> resyn;
           resyn( m5ig, maj, pis.begin(), pis.end(), [&]( auto const& f ) { 
               m5ig.create_po( f );
               } );
