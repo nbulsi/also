@@ -1560,7 +1560,7 @@ namespace also
       spec[0] = tt;
     }
 
-    solver.set_time_limit( 60 ); //60s time limit for synthesize each function
+    //solver.set_time_limit( 60 ); //60s time limit for synthesize each function
     img_encoder encoder( solver );
     
     if ( implication_syn_by_img_encoder( spec, img, solver, encoder ) == success )
