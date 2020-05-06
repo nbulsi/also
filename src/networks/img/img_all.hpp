@@ -44,6 +44,7 @@
 #include <mockturtle/mockturtle.hpp>
 
 #include "img.hpp"
+#include "../general_cleanup.hpp"
 #include "../core/misc.hpp"
 
 namespace mockturtle
@@ -84,7 +85,7 @@ public:
                    kitty::dynamic_truth_table const& function, 
                    LeavesIterator begin, 
                    LeavesIterator end, 
-                   Fn&& fn )
+                   Fn&& fn ) const
   {
     assert( function.num_vars() <= 3 );
     const auto fe = kitty::extend_to( function, 3 );
@@ -99,7 +100,7 @@ public:
     for ( auto const& po : it->second )
     {
       topo_view topo{db, po};
-      auto f = cleanup_dangling( topo, img, pis.begin(), pis.end() ).front();
+      auto f = general_cleanup_dangling( topo, img, pis.begin(), pis.end() ).front();
 
       if ( !fn( f ) ) 
       {

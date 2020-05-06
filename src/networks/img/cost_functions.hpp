@@ -19,19 +19,18 @@
 
 namespace also 
 {
-  using Ntk    = img_network; 
-  using node_t = node<Ntk>;
 
+  template<class Ntk>
   struct img_fc_cost
   {
-    uint32_t operator()( Ntk const& ntk, node_t const& n ) const
+    uint32_t operator()( Ntk const& ntk, node<Ntk> const& n ) const
     {
       fanout_view img{ntk};
 
       if( ntk.fanout_size( n ) >= 2 )
       {
         auto nodes = get_fanout_set( ntk, n );
-        std::set<node_t> working_mem_nodes;
+        std::set<node<Ntk>> working_mem_nodes;
         
         /* record the number of fanouts that point to working
          * memristors */
@@ -79,11 +78,11 @@ namespace also
       return 0u;
     }
   };
-
-  uint32_t fc_cost( Ntk const& ntk )
+  
+  uint32_t fc_cost( img_network const& ntk )
   {
     uint32_t total{0u};
-    img_fc_cost cost_fn{};
+    img_fc_cost<img_network> cost_fn{};
 
     ntk.foreach_node( [&]( auto const& n )
         { 

@@ -24,8 +24,8 @@
  */
 
 /*!
-  \file cleanup.hpp
-  \brief Cleans up m5ig networks
+  \file general_cleanup.hpp
+  \brief Cleans up m5ig/img networks etc.
 
   \author Zhufei Chu
 */
@@ -42,13 +42,11 @@
 #include <mockturtle/utils/node_map.hpp>
 #include <mockturtle/views/topo_view.hpp>
 
-#include "m5ig.hpp"
-
 namespace mockturtle
 {
 
 template<typename NtkSource, typename NtkDest, typename LeavesIterator>
-std::vector<signal<NtkDest>> m5ig_cleanup_dangling( NtkSource const& ntk, NtkDest& dest, LeavesIterator begin, LeavesIterator end )
+std::vector<signal<NtkDest>> general_cleanup_dangling( NtkSource const& ntk, NtkDest& dest, LeavesIterator begin, LeavesIterator end )
 {
   (void)end;
 

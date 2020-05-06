@@ -51,7 +51,7 @@ namespace mockturtle
 {
 
 /*! \brief Hash function for AIGs (from ABC) */
-template<class Node>
+/*template<class Node>
 struct img_hash
 {
   uint64_t operator()( Node const& n ) const
@@ -63,7 +63,7 @@ struct img_hash
     seed += n.children[1].weight * 353;
     return seed;
   }
-};
+};*/
 
 struct img_storage_data
 {
@@ -84,8 +84,9 @@ struct img_storage_data
   `data[1].h1`: Visited flag
 */
 using img_storage = storage<regular_node<2, 2, 1>,
-                            img_storage_data,
-                            img_hash<regular_node<2, 2, 1>>>;
+                            img_storage_data>;
+                            
+                            //img_hash<regular_node<2, 2, 1>>>;
 
 class img_network
 {
@@ -253,6 +254,12 @@ public:
 
   bool is_ci( node const& n ) const
   {
+    /*
+    return n <= _storage->data.num_pis;
+    std::cout << " node " << n << std::endl;
+    std::cout << "child0: " << _storage->nodes[n].children[0].data << std::endl;
+    std::cout << "child1: " << _storage->nodes[n].children[1].data << std::endl;
+    std::cout << "size: " << _storage->nodes.size() << " #pis: " << _storage->data.num_pis << std::endl;*/
     return _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data;
   }
 

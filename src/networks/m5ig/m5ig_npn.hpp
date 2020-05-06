@@ -44,7 +44,7 @@
 #include <mockturtle/mockturtle.hpp>
 
 #include "m5ig.hpp"
-#include "m5ig_cleanup.hpp"
+#include "../general_cleanup.hpp"
 #include "../core/misc.hpp"
 
 namespace mockturtle
@@ -118,7 +118,7 @@ public:
     for ( auto const& po : it->second )
     {
       topo_view topo{db, po};
-      auto f = m5ig_cleanup_dangling( topo, m5ig, pis_perm.begin(), pis_perm.end() ).front();
+      auto f = general_cleanup_dangling( topo, m5ig, pis_perm.begin(), pis_perm.end() ).front();
 
       if ( !fn( ( ( phase >> 4 ) & 1 ) ? !f : f ) )
       {
