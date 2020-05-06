@@ -10,12 +10,10 @@
  * @since  0.1
  */
 
-#ifndef IMGRW_HPP
-#define IMGRW_HPP
+#ifndef IMG_COMPL_RW_HPP
+#define IMG_COMPL_RW_HPP
 
 #include "img.hpp"
-#include <mockturtle/mockturtle.hpp>
-
 using namespace mockturtle;
 
 namespace also

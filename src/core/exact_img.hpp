@@ -39,9 +39,7 @@
 
 namespace also
 {
-
   void img_from_aig_syn( const kitty::dynamic_truth_table& tt, const bool& verbose, int& min_gates );
-
 }
 
 #endif

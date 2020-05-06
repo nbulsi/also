@@ -90,7 +90,7 @@ namespace alice
           //ps.progress = true;
           ps.allow_zero_gain = false;
           ps.cut_enumeration_ps.cut_size = 4u;
-          cut_rewriting( m5ig, resyn, ps );
+          m5ig = cut_rewriting( m5ig, resyn, ps );
           m5ig = cleanup_dangling( m5ig );
 
           print_stats( m5ig );
@@ -107,7 +107,7 @@ namespace alice
           mig_npn_resynthesis resyn;
           cut_rewriting_params ps;
           ps.cut_enumeration_ps.cut_size = 4u;
-          cut_rewriting( mig, resyn, ps );
+          mig = cut_rewriting( mig, resyn, ps );
           mig = cleanup_dangling( mig );
 
           print_stats( mig );
@@ -124,7 +124,7 @@ namespace alice
           xag_npn_lut_resynthesis resyn;
           cut_rewriting_params ps;
           ps.cut_enumeration_ps.cut_size = 4u;
-          cut_rewriting( xag, resyn, ps );
+          xag = cut_rewriting( xag, resyn, ps );
           xag = cleanup_dangling( xag );
 
           print_stats( xag );
