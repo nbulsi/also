@@ -2,7 +2,7 @@
  * Copyright (C) 2020- Ningbo University, Ningbo, China */
 
 /**
- * @file miginv.hpp
+ * @file xmginv.hpp
  *
  * @brief TODO
  *
@@ -10,16 +10,16 @@
  * @since  0.1
  */
 
-#ifndef NNI_INV_HPP
-#define NNI_INV_HPP
+#ifndef NNICOST_HPP
+#define NNICOST_HPP
 
 #include <mockturtle/mockturtle.hpp>
-#include <mockturtle/networks/mig.hpp>
+#include <mockturtle/networks/xmg.hpp>
 
 namespace also
 {
 
-  void mig_inv_optimization( mig_network& mig );
+  void xmg2nni_inv_optimization( xmg_network& xmg );
 
 }
 

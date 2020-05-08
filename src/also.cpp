@@ -47,8 +47,7 @@
 #include "commands/ax.hpp"
 #include "commands/xagrs.hpp"
 #include "commands/xagopt.hpp"
-//#include "commands/xagrw.hpp"
-#include "commands/nniinv.hpp"
-//#include"commands/test_xagrw.hpp"
+#include "commands/nnirw.hpp"
+#include "commands/nnicost.hpp"
 ALICE_MAIN( also )
 

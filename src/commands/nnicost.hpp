@@ -4,34 +4,34 @@
 /**
  * @file nniinv.hpp
  *
- * @brief inversion optimization of MIGs
+ * @brief inversion optimization of XMGs
  *
  * @author hmtian
  * @since  0.1
  */
 
-#ifndef NNIINV_HPP
-#define NNIINV_HPP
+#ifndef NNI_COST_HPP
+#define NNI_COST_HPP
 
 #include <mockturtle/mockturtle.hpp>
 #include <mockturtle/utils/stopwatch.hpp>
-#include "../core/nni_inv.hpp"
+#include "../core/nni_cost.hpp"
 
 namespace alice
 {
 
-  class nniinv_command: public command
+  class nnicost_command: public command
   {
     public:
-      explicit nniinv_command( const environment::ptr& env ) 
-               : command( env, "inversion optimization of mig" )
+      explicit nnicost_command( const environment::ptr& env ) 
+               : command( env, "show the cost og XMG after optimizing using nni gate" )
       {
         add_flag( "--verbose, -v", "print the information" );
       }
 
       rules validity_rules() const
       {
-        return { has_store_element<mig_network>( env ) };
+        return { has_store_element<xmg_network>( env ) };
       }
 
 
@@ -39,17 +39,17 @@ namespace alice
       void execute()
       {
         /* derive some MIG */
-         mig_network mig = store<mig_network>().current();
+         xmg_network xmg = store<xmg_network>().current();
          
          stopwatch<>::duration time{0};
-         call_with_stopwatch( time, [&]() { also::mig_inv_optimization( mig ); } );
+         call_with_stopwatch( time, [&]() { also::xmg2nni_inv_optimization( xmg ); } );
 
          std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
       }
 
   };
 
-  ALICE_ADD_COMMAND( nniinv, "Optimization" )
+  ALICE_ADD_COMMAND( nnicost, "Optimization" )
 
 }
 
