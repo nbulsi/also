@@ -16,6 +16,7 @@
 #include <mockturtle/mockturtle.hpp>
 #include <mockturtle/utils/stopwatch.hpp>
 #include "../core/xmg_inv.hpp"
+#include "../core/nni_inv.hpp"
 
 namespace alice
 {
@@ -42,7 +43,10 @@ namespace alice
          xmg_network xmg = store<xmg_network>().current();
          
          stopwatch<>::duration time{0};
-         call_with_stopwatch( time, [&]() { also::xmg_inv_optimization( xmg ); } );
+         call_with_stopwatch( time, [&]() { also::xmg_inv_optimization( xmg ); 
+             } );
+         
+         also::nni_opt( xmg );
 
          std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
       }
