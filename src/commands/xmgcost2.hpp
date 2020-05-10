@@ -14,6 +14,8 @@
 #define XMGCOST2_HPP
 
 #include <mockturtle/mockturtle.hpp>
+#include <mockturtle/utils/stopwatch.hpp>
+#include "../core/nni_inv.hpp"
 
 namespace alice
 {
@@ -28,14 +30,18 @@ namespace alice
 
       rules validity_rules() const
       {
-        return{ has_store_element<klut_network>( env ) };
+        return{ has_store_element<xmg_network>( env ) };
       }
 
       protected:
       void execute()
       {
-        klut_network klut = store<klut_network>().current();
+        xmg_network xmg = store<xmg_network>().current();
         
+        stopwatch<>::duration time{0};
+        auto klut = also::nni_opt( xmg );
+        
+        call_with_stopwatch( time, [&]() {
         /* compute num_maj and num_xor */
         klut.foreach_gate( [&]( auto n ) 
             {
@@ -95,7 +101,10 @@ namespace alice
         env->out() << fmt::format( "[i] QCA (area)        = {:.2f} um^2\n"
             "[i] QCA (delay)       = {:.2f} ns\n"
             "[i] QCA (energy)      = {:.2f} E-21 J\n",
-                                 qca_area, qca_delay, qca_energy );
+                                 qca_area, qca_delay, qca_energy ); 
+        } );
+         
+        std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
       }
 
       private:
