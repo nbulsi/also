@@ -5,7 +5,13 @@
 #include <set>
 #include <mockturtle/properties/migcost.hpp>
 #include <mockturtle/networks/xmg.hpp>
+#include <mockturtle/networks/klut.hpp>
 #include <mockturtle/views/fanout_view.hpp>
+#include <mockturtle/views/topo_view.hpp>
+#include <mockturtle/utils/node_map.hpp>
+#include <mockturtle/algorithms/cleanup.hpp>
+#include <mockturtle/io/write_dot.hpp>
+#include <mockturtle/io/write_bench.hpp>
 #include <fmt/format.h>
 
 using namespace mockturtle;
@@ -29,6 +35,22 @@ namespace also
       {
         compute_num_gates();
         report();
+
+        auto klut = ntk2klut();
+
+        std::cout << fmt::format(
+            " [i] klut #pis  = {}\n"
+            " [i] klut #pos  = {}\n"
+            " [i] klut size  = {}\n"
+            " [i] klut #invs = {}\n",
+            klut.num_pis(), klut.num_pos(), klut.num_gates(), num_inverters_in_klut( klut )
+            );
+
+        write_dot( klut, "test.dot" );
+        write_bench( klut, "test.bench" );
+
+        /* not gates are seprated nodes in the klut network */
+        assert( ntk.num_gates() + num_inverters_in_klut( klut ) == klut.num_gates() );
       }
 
       void report()
@@ -143,7 +165,6 @@ namespace also
                   {
                     num_nni++;
                     num_maj--;
-                    std::cout << " node " << n << " is replaced." << std::endl;
                     opt_inverted_nodes.insert( ntk.get_node( compl_fanins[0] ) );
                   }
                   else
@@ -173,15 +194,10 @@ namespace also
                 {
                   auto children = get_children( n );
 
-                  std::cout << " child0: " << children[0].index
-                            << " child1: " << children[1].index
-                            << " child2: " << children[2].index << std::endl;
-
                   if( has_constant( n ) && !ntk.is_complemented( children[0] ) )
                   {
                     num_xnor_opt++;
                     opt_inverted_nodes.insert( ntk.get_node( compl_fanins[0] ) );
-                    std::cout << " xor node " << n << " is replaced." << std::endl;
                   }
                 }
               }
@@ -192,6 +208,148 @@ namespace also
             }
             );
 
+      }
+
+      void orded_inputs( std::vector<signal<klut_network>>& array )
+      {
+        std::sort( array.begin(), array.end(), [this]( auto const& c1, auto const& c2 ) {
+            return c1 < c2;
+            } );
+      }
+
+      unsigned num_inverters_in_klut( klut_network const& klut )
+      {
+        unsigned count{0u};
+        klut.foreach_gate( [&]( auto const& n ) {
+            if( klut.fanin_size( n) == 1u )
+            {
+              count++;
+            }
+            } );
+
+        return count;
+      }
+
+      signal<klut_network> create_nni( klut_network& klut, std::vector<signal<klut_network>> const& children )
+      {
+        static uint64_t _nni = 0x71;
+        kitty::dynamic_truth_table tt_nni( 3 );
+        kitty::create_from_words( tt_nni, &_nni, &_nni + 1 );
+
+        return klut.create_node( children, tt_nni );
+      }
+
+      /* mapping the current ntk into a klut network */
+      klut_network ntk2klut()
+      {
+        klut_network klut;
+
+        node_map<signal<klut_network>, Ntk> node2new( ntk ); 
+
+        node2new[ ntk.get_constant( false ) ] = klut.get_constant( false );
+        //node2new[ ntk.get_constant( true )  ] = klut.get_constant( true );
+
+        /* reserve constant 1 */
+        /* create pis */
+        ntk.foreach_pi( [&]( auto n ) {
+            node2new[n] = klut.create_pi();
+            });
+
+        /* create klut nodes */
+        topo_view ntk_topo{ntk};
+        ntk_topo.foreach_node( [&]( auto n ) {
+            if ( ntk.is_constant( n ) || ntk.is_pi( n ) )
+            return;
+
+            if( ntk.is_maj( n ) )
+            {
+              auto compl_fanins = get_invs_fanins( n );
+              auto tmp = compl_fanins.size();
+              
+              /* nni(a, b, c) = <!a!bc> */
+              if( tmp == 1 && has_constant( n ) && compl_fanins[0].index != 0 )
+              {
+                std::array<signal<klut_network>, 3u> replaced_children;
+                
+                ntk.foreach_fanin( n, [&]( auto const& f ) {
+                    if( f.index == 0 )
+                    {
+                      replaced_children[0] = ntk.is_complemented( f ) ? klut.get_constant( false ) : klut.get_constant( true ); 
+                    }
+                    else
+                    {
+                      if( ntk.is_complemented( f ) )
+                      {
+                        replaced_children[1] = node2new[f];
+                      }
+                      else
+                      {
+                        replaced_children[2] = node2new[f];
+                      }
+                    }
+                    } );
+
+
+                std::cout << "create nni node: " << replaced_children[0] 
+                          << " " << replaced_children[1] << " " << replaced_children[2] << std::endl;
+
+                /* array to vector */
+                std::vector<signal<klut_network>> v;
+                v.push_back( replaced_children[0] );
+                v.push_back( replaced_children[1] );
+                v.push_back( replaced_children[2] );
+
+                node2new[n] = create_nni( klut, v );
+              }
+              else
+              {
+                std::vector<signal<klut_network>> children;
+                ntk.foreach_fanin( n, [&]( auto const& f ) {
+                      children.push_back( ntk.is_complemented( f ) ? klut.create_not( node2new[f] ) : node2new[f] );
+                    } );
+                node2new[n] = klut.create_maj( children[0], children[1], children[2] );
+              }
+            }
+            else if( ntk.is_xor3( n ) )
+            {
+              auto compl_fanins = get_invs_fanins( n );
+              auto tmp = compl_fanins.size();
+
+              if( tmp == 1 && has_constant( n ) && compl_fanins[0].index != 0 )
+              {
+                std::vector<signal<klut_network>> replaced_children;
+                ntk.foreach_fanin( n, [&]( auto const& f ) {
+                    if( f.index != 0 )
+                    {
+                    replaced_children.push_back( node2new[f] );
+                    }
+                    } );
+
+                node2new[n] = klut.create_xor3( klut.get_constant( true ), replaced_children[0], replaced_children[1] );
+              }
+              else
+              {
+                std::vector<signal<klut_network>> children;
+                ntk.foreach_fanin( n, [&]( auto const& f ) {
+                    children.push_back( ntk.is_complemented( f ) ? klut.create_not( node2new[f] ) : node2new[f] );
+                    } );
+                node2new[n] = klut.create_xor3( children[0], children[1], children[2] );
+              }
+            }
+            else
+            {
+              assert( false && "not allowed" );
+            }
+            } );
+
+        /* create pos */
+        ntk.foreach_po( [&]( auto const& f, auto index ) {
+            auto const o = ntk.is_complemented( f ) ? klut.create_not( node2new[f] ) : node2new[f];
+            klut.create_po( o );
+            } );
+
+        klut = cleanup_dangling( klut );
+        return klut;
       }
 
     private:
