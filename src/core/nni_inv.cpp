@@ -247,9 +247,7 @@ namespace also
         node_map<signal<klut_network>, Ntk> node2new( ntk ); 
 
         node2new[ ntk.get_constant( false ) ] = klut.get_constant( false );
-        //node2new[ ntk.get_constant( true )  ] = klut.get_constant( true );
 
-        /* reserve constant 1 */
         /* create pis */
         ntk.foreach_pi( [&]( auto n ) {
             node2new[n] = klut.create_pi();
@@ -265,41 +263,63 @@ namespace also
             {
               auto compl_fanins = get_invs_fanins( n );
               auto tmp = compl_fanins.size();
+              std::vector<signal<klut_network>> replaced_children;
               
               /* nni(a, b, c) = <!a!bc> */
-              if( tmp == 1 && has_constant( n ) && compl_fanins[0].index != 0 )
+              if( tmp == 1 && has_constant( n ) )
               {
-                std::array<signal<klut_network>, 3u> replaced_children;
+                /* normal and */
+                if( compl_fanins[0].index == 0 ) 
+                {
+                  ntk.foreach_fanin( n, [&]( auto const& f ) {
+                      if( f.index != 0 )
+                      {
+                        replaced_children.push_back( node2new[f] );
+                      }
+                      } );
                 
+                  node2new[n] = klut.create_maj( klut.get_constant( true ), replaced_children[0], replaced_children[1] );
+                }
+                else /* nni f = !bc, or f = !cb */
+                {
+                  replaced_children.push_back( klut.get_constant( true ) );
+                  
+                  signal<klut_network> s1, s2;
+                  ntk.foreach_fanin( n, [&]( auto const& f ) {
+                      if( f.index != 0 )
+                      {
+                        if( ntk.is_complemented( f ) )
+                        {
+                          s1 = node2new[f];
+                        }
+                        else
+                        {
+                          s2 = node2new[f];
+                        }
+                      } } );
+
+                  replaced_children.push_back( s1 );
+                  replaced_children.push_back( s2 );
+                  
+                  node2new[n] = create_nni( klut, replaced_children );
+                }
+              }
+              else if( tmp == 2 )
+              {
+                signal<klut_network> s2;
                 ntk.foreach_fanin( n, [&]( auto const& f ) {
-                    if( f.index == 0 )
+                    if( ntk.is_complemented( f ) )
                     {
-                      replaced_children[0] = ntk.is_complemented( f ) ? klut.get_constant( false ) : klut.get_constant( true ); 
+                    replaced_children.push_back( node2new[f] );
                     }
                     else
                     {
-                      if( ntk.is_complemented( f ) )
-                      {
-                        replaced_children[1] = node2new[f];
-                      }
-                      else
-                      {
-                        replaced_children[2] = node2new[f];
-                      }
+                      s2 = node2new[f];
                     }
                     } );
-
-
-                std::cout << "create nni node: " << replaced_children[0] 
-                          << " " << replaced_children[1] << " " << replaced_children[2] << std::endl;
-
-                /* array to vector */
-                std::vector<signal<klut_network>> v;
-                v.push_back( replaced_children[0] );
-                v.push_back( replaced_children[1] );
-                v.push_back( replaced_children[2] );
-
-                node2new[n] = create_nni( klut, v );
+                replaced_children.push_back( s2 );
+                node2new[n] = create_nni( klut, replaced_children );
+                
               }
               else
               {
