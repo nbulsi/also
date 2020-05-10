@@ -46,7 +46,6 @@ namespace also
             klut.num_pis(), klut.num_pos(), klut.num_gates(), num_inverters_in_klut( klut )
             );
 
-        write_dot( klut, "test.dot" );
         write_bench( klut, "test.bench" );
 
         /* not gates are seprated nodes in the klut network */
