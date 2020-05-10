@@ -56,7 +56,7 @@ namespace also
   /* print information */
   void print_node( xmg_network const& xmg, xmg_network::node const& n ) 
   {
-    std::cout << " node " << n << " inverters infor: ";
+    std::cout << " node " << n << " inverters infro: ";
     xmg.foreach_fanin(n, [&]( auto s ) { std::cout << " { " << s.index << " , " << s.complement << " } "; } ); 
     std::cout << std::endl;
   }
@@ -86,6 +86,7 @@ namespace also
     int num_edges(  xmg_network::node const& n ); 
     int num_invs(  xmg_network::node const& n ); 
     int one_level_savings( xmg_network::node const& n ); 
+    int one_level_savings_nni( xmg_network::node const& n ); 
     int two_level_savings( xmg_network::node const& n ); 
     void xor_jump();
     
@@ -210,6 +211,48 @@ namespace also
     if( xmg.is_maj( n ) )
     {
       after = num_edges( n ) - before;
+    }
+    else
+    {
+       int in, out;
+
+       out = num_out_edges( n ) - num_invs_fanouts( n ); 
+       
+       auto tmp = num_invs_fanins( n );
+       
+       if( tmp == 1 || tmp == 3 )
+       {
+          in = 0; 
+       }
+       else if( tmp == 2 || tmp == 0 )
+       {
+         in = 1;
+       }
+       else
+       {
+         assert( false );
+       }
+       
+       after = in + out; 
+    }
+
+    return before - after;
+  }
+  
+  int inv_manager::one_level_savings_nni( xmg_network::node const& n ) 
+  {
+    int before, after, after_nni;
+
+    before = num_invs( n );
+
+    if( xmg.is_maj( n ) )
+    {
+      after = num_edges( n ) - before;
+
+      if( num_invs_fanins( n ) == 2 )
+      {
+
+      }
     }
     else
     {

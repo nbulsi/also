@@ -16,10 +16,12 @@
 #include <mockturtle/utils/node_map.hpp>
 #include <mockturtle/networks/xmg.hpp>
 #include <mockturtle/networks/aig.hpp>
+#include <mockturtle/networks/mig.hpp>
 
 namespace also
 {
   mockturtle::xmg_network xmg_from_aig( const mockturtle::aig_network& aig );
+  mockturtle::xmg_network xmg_from_mig( const mockturtle::mig_network& mig );
 }
 
 #endif
