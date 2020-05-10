@@ -27,14 +27,14 @@ namespace also
   {
     public:
       nni_manager( Ntk const& ntk )
-        : ntk( ntk )
+        : ntk( ntk ), fanout_ntk( fanout_view<Ntk> { ntk } )
       {
       }
 
       void run()
       {
-        compute_num_gates();
-        report();
+        //compute_num_gates();
+        //report();
 
         auto klut = ntk2klut();
 
@@ -103,7 +103,6 @@ namespace also
 
       std::set<node<Ntk>> get_parent_nodes( node<Ntk> const& n )
       {
-        fanout_view fanout_ntk{ntk};
         std::set<node<Ntk>> nodes;
 
         fanout_ntk.foreach_fanout( n, [&]( auto const& p ) 
@@ -221,14 +220,28 @@ namespace also
       {
         unsigned count{0u};
         klut.foreach_gate( [&]( auto const& n ) {
-            if( klut.fanin_size( n) == 1u )
+            if( klut.fanin_size( n ) == 1u )
             {
               count++;
             }
             } );
 
         return count;
+      }                
+
+      bool is_complemented_po_driver( node<Ntk> const& n )
+      {
+        bool match = false;
+        ntk.foreach_po( [&]( auto const& s)
+            {
+              if( ntk.get_node( s ) == n && ntk.is_complemented( s ) )
+              {
+                match = true;
+              }
+            } );
+        return match;
       }
+
 
       signal<klut_network> create_nni( klut_network& klut, std::vector<signal<klut_network>> const& children )
       {
@@ -237,6 +250,11 @@ namespace also
         kitty::create_from_words( tt_nni, &_nni, &_nni + 1 );
 
         return klut.create_node( children, tt_nni );
+      }
+
+      bool is_node_in_vector( node<Ntk> const& n )
+      {
+        return std::find( inv_po.begin(), inv_po.end(), n ) != inv_po.end();
       }
 
       /* mapping the current ntk into a klut network */
@@ -263,6 +281,7 @@ namespace also
             {
               auto compl_fanins = get_invs_fanins( n );
               auto tmp = compl_fanins.size();
+              auto parents = get_parent_signals( n );
               std::vector<signal<klut_network>> replaced_children;
               
               /* nni(a, b, c) = <!a!bc> */
@@ -304,6 +323,24 @@ namespace also
                   node2new[n] = create_nni( klut, replaced_children );
                 }
               }
+              else if( tmp == 1 && is_complemented_po_driver( n ) && fanout_ntk.fanout_size( n ) == 0 )
+              {
+                signal<klut_network> s2;
+                ntk.foreach_fanin( n, [&]( auto const& f ) {
+                    if( !ntk.is_complemented( f ) )
+                    {
+                    replaced_children.push_back( node2new[f] );
+                    }
+                    else
+                    {
+                      s2 = node2new[f];
+                    }
+                    } );
+                replaced_children.push_back( s2 );
+                node2new[n] = create_nni( klut, replaced_children );
+
+                inv_po.push_back( n );
+              }
               else if( tmp == 2 )
               {
                 signal<klut_network> s2;
@@ -319,7 +356,6 @@ namespace also
                     } );
                 replaced_children.push_back( s2 );
                 node2new[n] = create_nni( klut, replaced_children );
-                
               }
               else
               {
@@ -364,7 +400,8 @@ namespace also
 
         /* create pos */
         ntk.foreach_po( [&]( auto const& f, auto index ) {
-            auto const o = ntk.is_complemented( f ) ? klut.create_not( node2new[f] ) : node2new[f];
+            auto const o = ( ntk.is_complemented( f ) && !is_node_in_vector( ntk.get_node( f ) ) ) 
+                           ? klut.create_not( node2new[f] ) : node2new[f];
             klut.create_po( o );
             } );
 
@@ -374,7 +411,9 @@ namespace also
 
     private:
       Ntk ntk;
+      fanout_view<Ntk> fanout_ntk;
       std::unordered_set<node<Ntk>> opt_inverted_nodes;
+      std::vector<node<Ntk>> inv_po;
       unsigned num_maj{0u}, num_nni{0u}, num_inv_origin{0u}, num_inv_remains{0u}, num_xor3{0u}, num_xnor_opt{0u}, num_inv_opt{0u};
   };
 
