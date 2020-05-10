@@ -31,7 +31,7 @@ namespace also
       {
       }
 
-      void run()
+      klut_network run()
       {
         //compute_num_gates();
         //report();
@@ -51,6 +51,7 @@ namespace also
 
         /* not gates are seprated nodes in the klut network */
         assert( ntk.num_gates() + num_inverters_in_klut( klut ) == klut.num_gates() );
+        return klut;
       }
 
       void report()
@@ -424,10 +425,10 @@ namespace also
 /******************************************************************************
  * Public functions                                                           *
  ******************************************************************************/
-  void nni_opt( mockturtle::xmg_network const& ntk )
+  klut_network nni_opt( mockturtle::xmg_network const& ntk )
   {
     nni_manager<mockturtle::xmg_network> m( ntk );
-    m.run();
+    return m.run();
   }
 
 }

@@ -14,11 +14,12 @@
 #define NNI_INV_HPP
 
 #include <mockturtle/networks/xmg.hpp>
+#include <mockturtle/networks/klut.hpp>
 
 namespace also
 {
 
-  void nni_opt( mockturtle::xmg_network const& ntk );
+  mockturtle::klut_network nni_opt( mockturtle::xmg_network const& ntk );
 
 }
 

@@ -46,7 +46,9 @@ namespace alice
          call_with_stopwatch( time, [&]() { also::xmg_inv_optimization( xmg ); 
              } );
          
-         also::nni_opt( xmg );
+         auto klut = also::nni_opt( xmg );
+         store<klut_network>().extend(); 
+         store<klut_network>().current() = klut;
 
          std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
       }
