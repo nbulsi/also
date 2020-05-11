@@ -35,6 +35,7 @@
 #include "networks/m5ig/m5ig.hpp"
 #include "networks/img/img.hpp"
 #include "networks/img/img_verilog_reader.hpp"
+#include "core/aig2xmg.hpp"
 
 using namespace mockturtle;
 
@@ -364,6 +365,20 @@ namespace alice
     mig = cleanup_dangling( mig );
 
     return mig;
+  }
+  
+  ALICE_CONVERT( mig_network, element, xmg_network )
+  {
+    mig_network mig = element;
+
+    return also::xmg_from_mig( mig );
+  }
+  
+  ALICE_CONVERT( aig_network, element, xmg_network )
+  {
+    aig_network aig = element;
+
+    return also::xmg_from_aig( aig );
   }
 
 

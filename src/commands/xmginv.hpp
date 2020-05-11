@@ -42,8 +42,9 @@ namespace alice
          xmg_network xmg = store<xmg_network>().current();
          
          stopwatch<>::duration time{0};
-         call_with_stopwatch( time, [&]() { also::xmg_inv_optimization( xmg ); } );
-
+         call_with_stopwatch( time, [&]() { also::xmg_inv_optimization( xmg ); 
+             } );
+         
          std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
       }
 
