@@ -107,7 +107,7 @@ namespace also
       } );
 
       assert( children.size() == 3u );
-      node2new[n] = xmg.create_maj( children[0], children[1], children[0] );
+      node2new[n] = xmg.create_maj( children[0], children[1], children[2] );
         } );
 
     /* create pos */
