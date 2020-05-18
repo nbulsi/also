@@ -23,6 +23,16 @@ namespace also
     private:
       aig_network aig; //source graph
   };
+  
+  class mig2xmg_manager
+  {
+    public:
+      mig2xmg_manager( mig_network mig );
+      xmg_network run();
+
+    private:
+      mig_network mig; //source graph
+  };
 
 /******************************************************************************
  * Private functions                                                          *
@@ -67,6 +77,47 @@ namespace also
 
     return xmg;
   }
+  
+  mig2xmg_manager::mig2xmg_manager( mig_network mig )
+    : mig( mig )
+  {
+  }
+
+  xmg_network mig2xmg_manager::run()
+  {
+    xmg_network xmg;
+    node_map<sig, mig_network> node2new( mig ); 
+    
+    node2new[mig.get_node( mig.get_constant( false ) )] = xmg.get_constant( false );
+    
+    /* create pis */
+    mig.foreach_pi( [&]( auto n ) {
+        node2new[n] = xmg.create_pi();
+        });
+
+    /* create xmg nodes */
+    topo_view mig_topo{mig};
+    mig_topo.foreach_node( [&]( auto n ) {
+      if ( mig.is_constant( n ) || mig.is_pi( n ) )
+        return;
+      
+      std::vector<sig> children;
+      mig.foreach_fanin( n, [&]( auto const& f ) {
+        children.push_back( mig.is_complemented( f ) ? xmg.create_not( node2new[f] ) : node2new[f] );
+      } );
+
+      assert( children.size() == 3u );
+      node2new[n] = xmg.create_maj( children[0], children[1], children[2] );
+        } );
+
+    /* create pos */
+    mig.foreach_po( [&]( auto const& f, auto index ) {
+        auto const o = mig.is_complemented( f ) ? xmg.create_not( node2new[f] ) : node2new[f];
+        xmg.create_po( o );
+        } );
+
+    return xmg;
+  }
 
 /******************************************************************************
  * Public functions                                                           *
@@ -74,6 +125,12 @@ namespace also
   xmg_network xmg_from_aig( const aig_network& aig )
   {
     aig2xmg_manager mgr( aig );
+    return mgr.run();
+  }
+  
+  xmg_network xmg_from_mig( const mig_network& mig )
+  {
+    mig2xmg_manager mgr( mig );
     return mgr.run();
   }
 
