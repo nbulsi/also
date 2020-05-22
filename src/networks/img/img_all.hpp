@@ -84,7 +84,7 @@ public:
                    kitty::dynamic_truth_table const& function, 
                    LeavesIterator begin, 
                    LeavesIterator end, 
-                   Fn&& fn )
+                   Fn&& fn ) const
   {
     assert( function.num_vars() <= 3 );
     const auto fe = kitty::extend_to( function, 3 );

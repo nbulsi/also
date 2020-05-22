@@ -16,7 +16,8 @@
 #include <mockturtle/mockturtle.hpp>
 
 #include "../networks/m5ig/m5ig_npn.hpp"
-#include "../networks/img/img_npn.hpp"
+#include "../networks/img/img_all.hpp"
+#include "../networks/img/fc_cost.hpp"
 #include "../networks/aoig/xag_lut_npn.hpp"
 #include "../core/misc.hpp"
 
@@ -30,7 +31,7 @@ namespace alice
       {
         add_flag( "--m5ig_npn,-r",    "cut rewriting based on m5ig_npn" );
         add_flag( "--m3ig_npn,-m",    "cut rewriting based on m3ig_npn" );
-        add_flag( "--img_npn,-i",     "cut rewriting based on img" );
+        add_flag( "--img_fc,-i",      "cut rewriting based on img without fanout conflicts" );
         add_flag( "--xag_npn_lut,-g", "cut rewriting based on xag_npn_lut" );
         add_flag( "--xag_npn,-p",     "cut rewriting based on xag_npn" );
       }
@@ -151,23 +152,23 @@ namespace alice
           store<xag_network>().extend(); 
           store<xag_network>().current() = xag;
         }
-        else if( is_set( "img_npn" ) )
+        else if( is_set( "img_fc" ) )
         {
-          assert( false && "not implemented" );
-          /*img_network img = store<img_network>().current();
+          img_network img = store<img_network>().current();
 
           print_stats( img );
 
-          img_npn_resynthesis resyn;
+          img_all_resynthesis resyn;
           cut_rewriting_params ps;
           ps.cut_enumeration_ps.cut_size = 3u;
-          cut_rewriting( img, resyn, ps );
+          
+          img = cut_rewriting<img_network, decltype( resyn ), fc_cost<img_network>>( img, resyn, ps );
           img = cleanup_dangling( img );
 
           print_stats( img );
 
           store<img_network>().extend(); 
-          store<img_network>().current() = img;*/
+          store<img_network>().current() = img;
         }
         else
         {
