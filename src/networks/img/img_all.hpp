@@ -87,8 +87,8 @@ public:
                    Fn&& fn ) const
   {
     assert( function.num_vars() <= 3 );
-    const auto fe = kitty::extend_to( function, 3 );
-    
+    //const auto fe = kitty::extend_to( function, 3 );
+    auto fe = function;
     auto func_str = "0x" + kitty::to_hex( fe );
     const auto it = class2signal.find( func_str );
     assert( it != class2signal.end() );
@@ -113,7 +113,7 @@ private:
   
   void load_optimal_img()
   {
-    std::ifstream infile( "../src/networks/img/opt_img.txt" );
+    std::ifstream infile( "../src/networks/img/opt_img_fanout_free.txt" );
     if( !infile )
     {
       std::cout << " Cannot open file " << std::endl; 
@@ -163,6 +163,50 @@ private:
     return result;
   }
 
+  std::vector<img_network::signal> create_img_from_str_vec_new_fromat( const std::vector<std::string> strs,
+                                                                       const std::vector<img_network::signal>& signals )
+  {
+    assert( strs.size() == 1u );
+    std::vector<img_network::signal> result;
+    auto s = strs[0u];
+
+    std::stack<img_network::signal> inputs;
+
+    for( auto i = 0ul; i < s.size(); i++ )
+    {
+      if( s[i] == '(')
+      {
+        continue;
+      }
+      else if( s[i] >= 'a' )
+      {
+        inputs.push( signals[ s[i] - 'a' + 1 ] );
+      }
+      else if( s[i] == '0' )
+      {
+        inputs.push( signals[0] );
+      }
+      else if( s[i] == ')' )
+      {
+        auto x1 = inputs.top(); inputs.pop();
+        auto x2 = inputs.top(); inputs.pop();
+
+        if( db.get_node( x1 ) == 0 )
+        {
+          inputs.push( db.create_not( x2 ) );
+        }
+        else
+        {
+          inputs.push( db.create_imp( x2, x1 ) );
+        }
+      }
+    }
+
+    db.create_po( inputs.top() );
+    result.push_back( inputs.top() ); 
+    return result;
+  }
+
   void build_db()
   {
     std::vector<img_network::signal> signals;
@@ -177,17 +221,22 @@ private:
 
     for( const auto e : opt_img )
     {
-      if( e.first == "0x00" )
+      if( e.first == "0x00" || e.first == "0x0" )
       {
         std::vector<img_network::signal> tmp{ signals[0] };
         class2signal.insert( std::make_pair( e.first, tmp ) );
       }
-      else if( e.first == "0xaa" )
+      else if( e.first == "0xff" || e.first == "0xf" )
+      {
+        std::vector<img_network::signal> tmp{ db.create_not( signals[0] ) };
+        class2signal.insert( std::make_pair( e.first, tmp ) );
+      }
+      else if( e.first == "0xaa" || e.first == "0xa" )
       {
         std::vector<img_network::signal> tmp{ signals[1] };
         class2signal.insert( std::make_pair( e.first, tmp ) );
       }
-      else if( e.first == "0xcc" )
+      else if( e.first == "0xcc" || e.first == "0xc" )
       {
         std::vector<img_network::signal> tmp{ signals[2] };
         class2signal.insert( std::make_pair( e.first, tmp ) );
@@ -199,7 +248,7 @@ private:
       }
       else
       {
-        class2signal.insert( std::make_pair( e.first, create_img_from_str_vec( e.second, signals ) ) );
+        class2signal.insert( std::make_pair( e.first, create_img_from_str_vec_new_fromat( e.second, signals ) ) );
       }
     }
 
