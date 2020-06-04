@@ -4,7 +4,7 @@
 /*!
   \file xag_algebraic_rewriting.hpp
   \brief xag algebraric rewriting
-  \hmtian
+  \author huiming tian
 */
 
 #pragma once
@@ -75,21 +75,18 @@ public:
   {
     switch ( ps.strategy )
     {
-    case xag_depth_rewriting_params::dfs:
-      run_dfs();
-      break;
-    case xag_depth_rewriting_params::selective:
-      run_selective();
-      break;
-    case xag_depth_rewriting_params::aggressive:
-      run_aggressive();
-      break;
+      case xag_depth_rewriting_params::dfs:
+        run_dfs();
+        break;
+      
+      case xag_depth_rewriting_params::selective:
+        run_selective();
+        break;
+      
+      case xag_depth_rewriting_params::aggressive:
+        run_aggressive();
+        break;
     }
-
-    /*if( ps.apply_xor3_to_xor2 )
-    {
-      run_xor3_flatten();
-    }*/
   }
 /*****************************************Optimization strategies Begin********************************************************************/
 private:
@@ -220,12 +217,18 @@ private:
    
     if(!ntk.is_complemented(ocs[0]) && !ntk.is_complemented(ocs[1]))
       return false;
-    if(ntk.is_complemented(ocs[0]) ^ ntk.is_complemented(ocs[1]) == 1){
-    if(ntk.is_complemented(ocs[0]))
+
+    if( ( ntk.is_complemented(ocs[0]) ^ ntk.is_complemented(ocs[1] ) )  == 1)
+    {
+      if(ntk.is_complemented(ocs[0]))
       {
         ocs[0] = !ocs[0];
-      }else
-	ocs[1] = !ocs[1];}
+      }
+      else
+      {
+        ocs[1] = !ocs[1];
+      }
+    }
     
     auto opt = ntk.create_xor(ocs[0], ocs[1]) ^ true;
     ntk.substitute_node( n, opt );
@@ -242,66 +245,69 @@ private:
     /* get children of top node, ordered by node level (ascending). */
     auto ocs = ordered_children( n );
     
-    if(ntk.fanout_size(ntk.get_node(ocs[0])) ==1 && ntk.fanout_size(ntk.get_node(ocs[1])) == 1){
-    if(ntk.is_xor(n))
+    if(ntk.fanout_size(ntk.get_node(ocs[0])) ==1 && ntk.fanout_size(ntk.get_node(ocs[1])) == 1)
     {
-      if(ocs[0].index == 0 || ocs[1].index == 0)
+      if(ntk.is_xor(n))
       {
-	if(ocs[0].index == 0 )
-	{
-	  auto opt = ntk.is_complemented(ocs[0])? !ocs[1] : ocs[1];
-	  ntk.substitute_node(n,opt);
-	  ntk.update_levels();
-	}
-        if (ocs[1].index == 0 )
-	{
-	  auto opt = ntk.is_complemented(ocs[1])? !ocs[0] : ocs[0];
-	  ntk.substitute_node(n,opt);
-	  ntk.update_levels();
-	}
-      }
-
-      if(ocs[0].index == 1 || ocs[1].index == 1 )
-      {
-	if(ocs[0].index == 1 )
-	{
-	  auto opt = ntk.is_complemented(ocs[0])? ocs[1] : !ocs[1];
-	  ntk.substitute_node(n, opt);
-	  ntk.update_levels();	  
-        }
-        if(ocs[1].index == 1 )
-	{
-	  auto opt = ntk.is_complemented(ocs[1])? ocs[0] : !ocs[0];
-	  ntk.substitute_node(n, opt);
-	  ntk.update_levels(); 
-        }
-      }
-    }
-
-    if(ntk.is_and(n))
-    {
-      if(ocs[0].index == 1 || ocs[1].index == 1)
-      {
-	if(ocs[0].index == 1 && !ntk.is_complemented(ocs[0]) )
+        if(ocs[0].index == 0 || ocs[1].index == 0)
         {
-	  auto opt = ocs[1];
-	  ntk.substitute_node(n,opt);
-	  ntk.update_levels();
-	}
-	else if(ocs[1].index == 1 && ntk.is_complemented(ocs[1]))
-	{
-	  auto opt = ocs[0];
-	  ntk.substitute_node(n,opt);
-	  ntk.update_levels();
-	}	  
+          if(ocs[0].index == 0 )
+          {
+            auto opt = ntk.is_complemented(ocs[0])? !ocs[1] : ocs[1];
+            ntk.substitute_node(n,opt);
+            ntk.update_levels();
+          }
+
+          if (ocs[1].index == 0 )
+          {
+            auto opt = ntk.is_complemented(ocs[1])? !ocs[0] : ocs[0];
+            ntk.substitute_node(n,opt);
+            ntk.update_levels();
+          }
+        }
+
+        if(ocs[0].index == 1 || ocs[1].index == 1 )
+        {
+          if(ocs[0].index == 1 )
+          {
+            auto opt = ntk.is_complemented(ocs[0])? ocs[1] : !ocs[1];
+            ntk.substitute_node(n, opt);
+            ntk.update_levels();	  
+          }
+
+          if(ocs[1].index == 1 )
+          {
+            auto opt = ntk.is_complemented(ocs[1])? ocs[0] : !ocs[0];
+            ntk.substitute_node(n, opt);
+            ntk.update_levels(); 
+          }
+        }
       }
-    }
+
+      if(ntk.is_and(n))
+      {
+        if(ocs[0].index == 1 || ocs[1].index == 1)
+        {
+          if(ocs[0].index == 1 && !ntk.is_complemented(ocs[0]) )
+          {
+            auto opt = ocs[1];
+            ntk.substitute_node(n,opt);
+            ntk.update_levels();
+          }
+          else if(ocs[1].index == 1 && ntk.is_complemented(ocs[1]))
+          {
+            auto opt = ocs[0];
+            ntk.substitute_node(n,opt);
+            ntk.update_levels();
+          }	  
+        }
+      }
     }
     /* XOR: [a0] = a, [a1] = !a.*/
     /* AND: (a1) = a, (a0) = 0.   */
     return true;
   }
-/**************************************************************************************************************/
+  /**************************************************************************************************************/
   /* Use the Boolean configuration between AND and XOR.
    * There are main two expression for reference.
    * (a[!ab]) = (ab),  (!a[ab]) = (!ab). */
@@ -309,7 +315,7 @@ private:
   {
     if ( !ntk.is_and( n ) )
       return false;
-    
+
     if ( ntk.level( n ) == 0 )
       return false;
 
@@ -319,10 +325,10 @@ private:
     /* depth of last child must be (significantly) higher than depth of second child */
     if ( ntk.level( ntk.get_node( ocs[1] ) ) <= ntk.level( ntk.get_node( ocs[0] ) ) + 1 )
       return false;
-    
+
     if( !ntk.is_xor( ntk.get_node( ocs[1] ) ) )
       return false;
-    
+
     const auto ocs2 = ordered_children( ntk.get_node( ocs[1] ) );   
     /* Judgement */
     if( ocs[0].index == ocs2[0].index && (ocs[0].complement ^ ocs2[0].complement) == 1)
@@ -337,7 +343,7 @@ private:
     }
     return true;
   }
-/**************************************************************************************************************/
+  /**************************************************************************************************************/
   /* Refer to follow two expressions:
    * (a(ab)) = (ab), (!a(!a!b)) = (!a!b).
    */
@@ -406,9 +412,9 @@ private:
     {
       if(ocs[0] == ocs2[0])
       {
-    	auto opt = ntk.create_xor(ocs[0], ntk.create_and(ocs2[0], ocs2[1]));
-	ntk.substitute_node(n, opt);
-	ntk.update_levels();
+        auto opt = ntk.create_xor(ocs[0], ntk.create_and(ocs2[0], ocs2[1]));
+        ntk.substitute_node(n, opt);
+        ntk.update_levels();
       }
     /*if ( auto cand = find_common_grand_child_two( ocs, ocs2 ); cand )
     {
@@ -442,19 +448,20 @@ private:
 
     if (ocs[0].index == ocs2[0].index && ntk.is_complemented(ocs[1]) && ntk.is_complemented(ocs2[0]) && ntk.is_complemented(ocs2[1]) && ntk.fanout_size(ntk.get_node(ocs[1])) == 1 )
     {
-        if(ntk.is_complemented(ocs[0]))
-        {
-	   ocs2[1] = !ocs2[1];
-           auto opt =  ntk.create_nand(ocs2[0], ocs2[1]);
-           ntk.substitute_node(n, opt);
-           ntk.update_levels();
-        }else
-	{
-	   ocs2[1] = !ocs2[1];
-	   auto opt = ntk.create_and(ocs2[0], ocs2[1]);
-	   ntk.substitute_node(n, opt);
-	   ntk.update_levels();
-	}
+      if(ntk.is_complemented(ocs[0]))
+      {
+        ocs2[1] = !ocs2[1];
+        auto opt =  ntk.create_nand(ocs2[0], ocs2[1]);
+        ntk.substitute_node(n, opt);
+        ntk.update_levels();
+      }
+      else
+      {
+        ocs2[1] = !ocs2[1];
+        auto opt = ntk.create_and(ocs2[0], ocs2[1]);
+        ntk.substitute_node(n, opt);
+        ntk.update_levels();
+      }
     }
     return true;
   }
@@ -651,8 +658,6 @@ private:
 
   .. note::
 
-      The implementation of this algorithm was heavily inspired by an
-      implementation from Luca Amarù.
    \endverbatim
  */
 template<class Ntk>
@@ -680,12 +685,3 @@ void xag_depth_rewriting( Ntk& ntk, xag_depth_rewriting_params const& ps = {} )
 }
 
 } /* namespace mockturtle */
-/* also: Advanced Logic Synthesis and Optimization tool
- * Copyright (C) 2020- Ningbo University, Ningbo, China */
-
-/*!
-  \file xag_algebraic_rewriting.hpp
-  \brief xag algebraric rewriting
- * also: Advanced Logic Synthesis and Optimization tool
- * Copyright (C) 2020- Ningbo University, Ningbo, China */
-
