@@ -48,6 +48,7 @@
 #include "commands/xagrs.hpp"
 #include "commands/xagopt.hpp"
 #include "commands/xmgcost2.hpp"
+#include "commands/xagrw.hpp"
 
 ALICE_MAIN( also )
 
