@@ -156,15 +156,21 @@ namespace alice
         {
           img_network img = store<img_network>().current();
 
+          std::cout << fmt::format( "[i] total_fc_cost: {}\n", total_fc_cost( img ) );
           print_stats( img );
 
-          img_all_resynthesis resyn;
           cut_rewriting_params ps;
           ps.cut_enumeration_ps.cut_size = 3u;
           
-          img = cut_rewriting<img_network, decltype( resyn ), fc_cost<img_network>>( img, resyn, ps );
+          using cost_fn = fc_cost<fanout_view<img_network>>;
+          using resyn_fn = img_all_resynthesis<fanout_view<img_network>>;
+
+          resyn_fn resyn;
+          fanout_view fanout_img{img};
+          img = cut_rewriting<fanout_view<img_network>, resyn_fn, cost_fn>( fanout_img, resyn, ps );
           img = cleanup_dangling( img );
 
+          std::cout << fmt::format( "[i] total_fc_cost: {}\n", total_fc_cost( img ) );
           print_stats( img );
 
           store<img_network>().extend(); 

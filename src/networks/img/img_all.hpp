@@ -68,6 +68,7 @@ namespace mockturtle
       const auto img = node_resynthesis<img_network>( klut, resyn );
    \endverbatim
  */
+template<class Ntk = img_network>
 class img_all_resynthesis
 {
 public:
@@ -80,7 +81,7 @@ public:
   }
 
   template<typename LeavesIterator, typename Fn>
-  void operator()( img_network& img, 
+  void operator()( Ntk& img, 
                    kitty::dynamic_truth_table const& function, 
                    LeavesIterator begin, 
                    LeavesIterator end, 
