@@ -185,12 +185,11 @@ namespace alice
           
           cut_rewriting_params ps;
           ps.cut_enumeration_ps.cut_size = 3u;
-
+          
           img_all_resynthesis<img_network> resyn;
-          
-          img = cut_rewriting( img, resyn, ps );
+          cut_rewriting( img, resyn, ps );
           img = cleanup_dangling( img );
-          
+
           print_stats( img );
           
           store<img_network>().extend(); 

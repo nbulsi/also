@@ -47,7 +47,7 @@ namespace alice
       void execute()
       {
         img_network img = store<img_network>().current();
-        
+
         /* Examples: a -> ( a -> b ) = a -> b
         img_network img;
 
@@ -87,7 +87,7 @@ namespace alice
         call_with_stopwatch( time, [&]() 
             {
               /* rewriting */
-              depth_view depth_img( img );
+              depth_view depth_img{img};
               img_depth_rewriting( depth_img, ps );
               img = cleanup_dangling( img );
             } );
