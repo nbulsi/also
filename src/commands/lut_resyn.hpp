@@ -168,7 +168,7 @@ namespace alice
         {
           img_network img, tmp_img;
 
-          img_all_resynthesis resyn;
+          img_all_resynthesis<img_network> resyn;
           img = node_resynthesis<img_network>( klut, resyn );
 
           depth_view img_depth{img};

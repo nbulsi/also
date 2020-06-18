@@ -32,6 +32,7 @@ namespace alice
         add_flag( "--m5ig_npn,-r",    "cut rewriting based on m5ig_npn" );
         add_flag( "--m3ig_npn,-m",    "cut rewriting based on m3ig_npn" );
         add_flag( "--img_fc,-i",      "cut rewriting based on img without fanout conflicts" );
+        add_flag( "--img_all,-a",     "cut rewriting based on img_all for size optimization" );
         add_flag( "--xag_npn_lut,-g", "cut rewriting based on xag_npn_lut" );
         add_flag( "--xag_npn,-p",     "cut rewriting based on xag_npn" );
       }
@@ -156,7 +157,7 @@ namespace alice
         {
           img_network img = store<img_network>().current();
 
-          std::cout << fmt::format( "[i] total_fc_cost: {}\n", total_fc_cost( img ) );
+          auto fcost1 = total_fc_cost( img );
           print_stats( img );
 
           cut_rewriting_params ps;
@@ -170,9 +171,28 @@ namespace alice
           img = cut_rewriting<fanout_view<img_network>, resyn_fn, cost_fn>( fanout_img, resyn, ps );
           img = cleanup_dangling( img );
 
-          std::cout << fmt::format( "[i] total_fc_cost: {}\n", total_fc_cost( img ) );
+          auto fcost2 = total_fc_cost( img );
           print_stats( img );
+          std::cout << "fcost: " << fcost1 << " to " << fcost2 << std::endl;
 
+          store<img_network>().extend(); 
+          store<img_network>().current() = img;
+        }
+        else if( is_set( "img_all" ) )
+        {
+          img_network img = store<img_network>().current();
+          print_stats( img );
+          
+          cut_rewriting_params ps;
+          ps.cut_enumeration_ps.cut_size = 3u;
+
+          img_all_resynthesis<img_network> resyn;
+          
+          img = cut_rewriting( img, resyn, ps );
+          img = cleanup_dangling( img );
+          
+          print_stats( img );
+          
           store<img_network>().extend(); 
           store<img_network>().current() = img;
         }
