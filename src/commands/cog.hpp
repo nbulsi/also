@@ -91,6 +91,10 @@ namespace alice
             }
             
 
+            unsigned count_top_down{0};
+            unsigned count_bottom_up{0};
+            unsigned count_bi{0};
+
             for( const auto& s : myset )
             {
               outfile << "0x" << s << " ";
@@ -98,9 +102,64 @@ namespace alice
 
               kitty::create_from_hex_string( tt, s );
 
+              /*
+               * try top decomposition
+               * */
+
+              kitty::dynamic_truth_table expr( 4 );
+              bool flag = false;
+
+              for( auto i = 0u; i < 4u; i++ )
+              {
+                auto r = kitty::is_top_decomposable( tt, i, &expr );
+
+                if( r != kitty::top_decomposition::none )
+                {
+                  std::cout << s << " top decomposition is possibile at input index " << i << std::endl;
+                  count_top_down++;
+                  flag = true;
+                  break;
+                }
+              }
+
+              if( !flag )
+              {
+                bool flag_found = false;
+
+                for( auto i = 0u; i < 3u && !flag_found; i++ )
+                {
+                  for( auto j = i + 1; j < 4u && !flag_found; j++ )
+                  {
+                    auto r = kitty::is_bottom_decomposable( tt, i, j, &expr, true );
+
+                    if( r != kitty::bottom_decomposition::none )
+                    {
+                      std::cout << s << " bottom decomposition is possibile at input index " << i << " and " << j << std::endl;
+                      count_bottom_up++;
+                      flag_found = true;
+                      flag = true;
+                    }
+                  }
+                }
+              }
+
+              if( !flag )
+              {
+                auto r = kitty::is_bi_decomposable( tt, expr );
+                if ( std::get<1>( r ) != kitty::bi_decomposition::none )
+                {
+                  std::cout << s << " bidecomposition is possibile " << std::endl;
+                  count_bi++;
+                  flag = true;
+                }
+              }
+
               outfile << also::nbu_cog( tt, enable_fanout_clauses ) << std::endl;
             }
             
+            std::cout << "There are " << count_top_down  << " functions can be top down decomposed " << std::endl;
+            std::cout << "There are " << count_bottom_up << " functions can be bottom up decomposed " << std::endl;
+            std::cout << "There are " << count_bi << " functions can be bi-decomposed " << std::endl;
             outfile.close();
           }
           else
