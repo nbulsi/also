@@ -196,6 +196,11 @@ namespace also
             outputs[out_idx] = lit;
         }
 
+        int get_output(int out_idx)
+        {
+          return outputs[out_idx];
+        }
+
         bool satisfies_spec(const percy::spec& spec)
         {
             if (spec.nr_triv == spec.get_nr_out()) 

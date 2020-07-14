@@ -183,7 +183,7 @@ namespace also
         /* total variables used in SAT formulation */
         total_nr_vars = nr_op_vars + nr_sel_vars + nr_sim_vars + nr_out_vars;
 
-        if( spec.verbosity > 1 )
+        if( spec.verbosity > 3 )
         {
           printf( "Creating variables (mig)\n");
           printf( "nr steps    = %d\n", spec.nr_steps );
@@ -223,7 +223,7 @@ namespace also
         /* total variables used in SAT formulation */
         total_nr_vars = nr_op_vars + nr_sel_vars + nr_sim_vars;
 
-        if( spec.verbosity > 1 )
+        if( spec.verbosity > 3 )
         {
           printf( "Creating variables (mig)\n");
           printf( "nr steps    = %d\n", spec.nr_steps );
@@ -330,7 +330,7 @@ namespace also
       {
         auto status = true;
 
-        if (spec.verbosity > 2) 
+        if (spec.verbosity > 3) 
         {
           printf("Creating fanin clauses (mig)\n");
           printf("Nr. clauses = %d (PRE)\n", solver->nr_clauses());
@@ -356,7 +356,7 @@ namespace also
           if( write_cnf_file ) { add_print_clause( clauses, pLits, pLits + ctr ); }
         }
 
-        if (spec.verbosity > 2) 
+        if (spec.verbosity > 3) 
         {
           printf("Nr. clauses = %d (POST)\n", solver->nr_clauses());
         }
@@ -414,7 +414,7 @@ namespace also
         {
           for( int i = 0; i < spec.nr_steps; i++ )
           {
-            printf( "g_%d_%d is %d\n", h, i + spec.nr_in, get_out_var( spec, h, i ) );
+            printf( "g_%d_%d is %d\n", h, i + spec.nr_in + 1, get_out_var( spec, h, i ) );
           }
         }
         printf( "**************************************\n" );
@@ -452,7 +452,7 @@ namespace also
       {
         auto outbit = kitty::get_bit( spec[spec.synth_func( h )], t + 1 );
 
-        if( ( spec.out_inv >> spec.synth_func( 0 ) ) & 1 )
+        if( ( spec.out_inv >> spec.synth_func( h ) ) & 1 )
         {
           outbit = 1 - outbit;
         }
@@ -1096,7 +1096,7 @@ namespace also
 
           if( spec.verbosity > 2 )
           {
-            printf("[i] Step %d performs op %d, inputs are:%d%d%d\n", i, op, op_inputs[0], op_inputs[1], op_inputs[2] );
+            printf("[i] Step %d performs op %d, inputs are:%d%d%d\n", i + 1 + spec.nr_in, op, op_inputs[0], op_inputs[1], op_inputs[2] );
           }
 
         }
@@ -1113,6 +1113,19 @@ namespace also
             if( solver->var_value( get_out_var( spec, h, i ) ) )
             {
               chain.set_output( h, ( ( i + spec.get_nr_in() + 1) << 1 ) + ( ( spec.out_inv >> h ) & 1 ) );
+              
+              if( spec.verbosity > 2 )
+              {
+                printf("[i] PO %d is step %d", h, spec.nr_in + i + 1 );
+                if( chain.get_output( h ) )
+                {
+                  printf( " is invtered\n" );
+                }
+                else
+                {
+                  printf( "\n" );
+                }
+              }
             }
           }
         }
@@ -1575,7 +1588,7 @@ namespace also
    {
       spec.preprocess();
 
-      encoder.set_print_clause( true );
+      //encoder.set_print_clause( true );
       
       // The special case when the Boolean chain to be synthesized
       // consists entirely of trivial functions.
@@ -1669,8 +1682,8 @@ namespace also
           {
             encoder.extract_mig3( spec, mig3 );
             auto sim_tt = mig3.simulate()[0];
-            auto xot_tt = sim_tt ^ ( spec[0] );
-            auto first_one = kitty::find_first_one_bit( xot_tt );
+            auto xor_tt = sim_tt ^ ( spec[0] );
+            auto first_one = kitty::find_first_one_bit( xor_tt );
             if( first_one == -1 )
             {
               return success;
