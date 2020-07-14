@@ -35,11 +35,13 @@ namespace also
       int nr_sim_vars;
       int nr_op_vars;
       int nr_res_vars;
+      int nr_out_vars;
 
       int sel_offset;
       int sim_offset;
       int op_offset;
       int res_offset;
+      int out_offset;
 
       int total_nr_vars;
 
@@ -50,6 +52,8 @@ namespace also
       FILE* f = NULL;
       int num_clauses = 0;
       std::vector<std::vector<int>> clauses;
+
+      pabc::Vec_Int_t* vLits; // Dynamic vector of literals
       
       pabc::lit pLits[2048];
       solver_wrapper* solver;
@@ -124,6 +128,14 @@ namespace also
         assert( false && "sel var is not existed" );
         return -1;
       }
+
+      int get_out_var( const spec& spec, int h, int i ) const
+      {
+        assert( h < spec.nr_nontriv );
+        assert( i < spec.nr_steps );
+
+        return out_offset + spec.nr_steps * h + i;
+      }
       
       int get_res_var(const spec& spec, int step_idx, int res_var_idx) const
       {
@@ -138,11 +150,13 @@ namespace also
     public:
       mig_three_encoder( solver_wrapper& solver )
       {
+        vLits = pabc::Vec_IntAlloc( 128 );
         this->solver = &solver;
       }
 
       ~mig_three_encoder()
       {
+        pabc::Vec_IntFree( vLits );
       }
 
       void create_variables( const spec& spec )
@@ -156,14 +170,18 @@ namespace also
 
         /* number of truth table simulation variables */
         nr_sim_vars = spec.nr_steps * spec.tt_size;
+
+        /* number of output selection variables */
+        nr_out_vars = spec.nr_nontriv * spec.nr_steps;
         
         /* offsets, this is used to find varibles correspondence */
         sel_offset = 0;
         op_offset  = nr_sel_vars;
         sim_offset = nr_sel_vars + nr_op_vars;
+        out_offset = nr_sel_vars + nr_op_vars + nr_sim_vars;
 
         /* total variables used in SAT formulation */
-        total_nr_vars = nr_op_vars + nr_sel_vars + nr_sim_vars;
+        total_nr_vars = nr_op_vars + nr_sel_vars + nr_sim_vars + nr_out_vars;
 
         if( spec.verbosity > 1 )
         {
@@ -172,6 +190,7 @@ namespace also
           printf( "nr_in       = %d\n", spec.nr_in );
           printf( "nr_sel_vars = %d\n", nr_sel_vars );
           printf( "nr_op_vars  = %d\n", nr_op_vars );
+          printf( "nr_out_vars = %d\n", nr_out_vars );
           printf( "nr_sim_vars = %d\n", nr_sim_vars );
           printf( "tt_size     = %d\n", spec.tt_size );
           printf( "creating %d total variables\n", total_nr_vars);
@@ -236,9 +255,9 @@ namespace also
 
         sel_offset = 0;
         res_offset = nr_sel_vars;
-        op_offset = nr_sel_vars + nr_res_vars;
+        op_offset  = nr_sel_vars + nr_res_vars;
         sim_offset = nr_sel_vars + nr_res_vars + nr_op_vars;
-        total_nr_vars = nr_sel_vars + nr_res_vars + nr_op_vars + nr_sim_vars;
+        total_nr_vars = nr_sel_vars + nr_res_vars + nr_op_vars + nr_sim_vars; 
 
         if (spec.verbosity) {
           printf("Creating variables (MIG)\n");
@@ -369,7 +388,7 @@ namespace also
         for( const auto e : sel_map )
         {
           auto array = e.second;
-          printf( "s_%d_%d%d%dis %d\n", array[0], array[1], array[2], array[3], e.first );
+          printf( "s_%d_%d%d%d is %d\n", array[0], array[1], array[2], array[3], e.first );
         }
         
         printf( "\noperators variables\n\n" );
@@ -389,6 +408,15 @@ namespace also
             printf( "tt_%d_%d is %d\n", i + spec.nr_in, t + 1, get_sim_var( spec, i, t ) );
           }
         }
+        
+        printf( "\noutput variables\n\n" );
+        for( auto h = 0; h < spec.nr_nontriv; h++ )
+        {
+          for( int i = 0; i < spec.nr_steps; i++ )
+          {
+            printf( "g_%d_%d is %d\n", h, i + spec.nr_in, get_out_var( spec, h, i ) );
+          }
+        }
         printf( "**************************************\n" );
       }
 
@@ -400,7 +428,7 @@ namespace also
         }
       }
 
-        
+      /* the function works for a single-output function */  
       bool fix_output_sim_vars(const spec& spec, int t)
       {
         const auto ilast_step = spec.nr_steps - 1;
@@ -417,6 +445,91 @@ namespace also
         if( print_clause ) { print_sat_clause( solver, &sim_lit, &sim_lit + 1); }
         if( write_cnf_file ) { add_print_clause( clauses, &sim_lit, &sim_lit + 1); }
         return solver->add_clause(&sim_lit, &sim_lit + 1);
+      }
+
+      /* for multi-output function */
+      bool multi_fix_output_sim_vars( const spec& spec, int h, int step_id, int t )
+      {
+        auto outbit = kitty::get_bit( spec[spec.synth_func( h )], t + 1 );
+
+        if( ( spec.out_inv >> spec.synth_func( 0 ) ) & 1 )
+        {
+          outbit = 1 - outbit;
+        }
+
+        pLits[0] = pabc::Abc_Var2Lit( get_out_var( spec, h, step_id ), 1 );
+        pLits[1] = pabc::Abc_Var2Lit( get_sim_var( spec, step_id, t ), 1 - outbit );
+
+        if( print_clause ) { print_sat_clause( solver, pLits, pLits + 2 ); }
+
+        return solver->add_clause( pLits, pLits + 2 );
+      }
+
+      /*
+       * for multi-output functions, create clauses:
+       * (1) all outputs show have at least one output var to be
+       * true, 
+       * g_0_3 + g_0_4
+       * g_1_3 + g_1_4
+       *
+       * g_0_4 + g_1_4, at lease one output is the last step
+       * function
+       * */
+      bool create_output_clauses( const spec& spec )
+      {
+        auto status = true;
+
+        // Every output points to an operand
+        if( spec.nr_nontriv > 1 )
+        {
+          for( int h = 0; h < spec.nr_nontriv; h++ )
+          {
+            for( int i = 0; i < spec.nr_steps; i++ )
+            {
+              pabc::Vec_IntSetEntry( vLits, i, pabc::Abc_Var2Lit( get_out_var( spec, h, i ), 0 ) );
+            }
+
+            status &= solver->add_clause(
+                pabc::Vec_IntArray( vLits ),
+                pabc::Vec_IntArray( vLits ) + spec.nr_steps );
+
+            /* print clauses */
+            if( print_clause )
+            {
+              std::cout << "Add clause: ";
+              for( int i = 0; i < spec.nr_steps; i++ )
+              {
+                std::cout << " " << get_out_var( spec, h, i );
+              }
+              std::cout << std::endl;
+            }
+          }
+        }
+
+        //At least one of the outputs has to refer to the final
+        //operator
+        const auto last_op = spec.nr_steps - 1;
+
+        for( int h = 0; h < spec.nr_nontriv; h++ )
+        {
+          pabc::Vec_IntSetEntry( vLits, h, pabc::Abc_Var2Lit( get_out_var( spec, h, last_op ), 0 ) );
+        }
+
+        status &= solver->add_clause( 
+            pabc::Vec_IntArray( vLits ),
+            pabc::Vec_IntArray( vLits ) + spec.nr_nontriv );
+
+        if( print_clause )
+        {
+          std::cout << "Add clause: ";
+          for( int h = 0; h < spec.nr_nontriv; h++ )
+          {
+            std::cout << " " << get_out_var( spec, h, last_op );
+          }
+          std::cout << std::endl;
+        }
+
+        return status;
       }
 
      std::vector<int> idx_to_op_var( const spec& spec, const std::vector<int>& set, const int i )
@@ -616,7 +729,15 @@ namespace also
           ret &= add_consistency_clause_init( spec, t, svar );
         }
         
-        ret &= fix_output_sim_vars(spec, t);
+        //ret &= fix_output_sim_vars(spec, t);
+
+        for( int h = 0; h < spec.nr_nontriv; h++ )
+        {
+          for( int i = 0; i < spec.nr_steps; i++ )
+          {
+            ret &= multi_fix_output_sim_vars( spec, h, i, t );
+          }
+        }
 
         return ret;
       }
@@ -723,6 +844,11 @@ namespace also
 
         create_main_clauses( spec );
         
+        if( !create_output_clauses( spec ) )
+        {
+          return false;
+        }
+
         if( !create_fanin_clauses( spec ) )
         {
           return false;
@@ -1436,6 +1562,8 @@ namespace also
    synth_result mig_three_synthesize( spec& spec, mig3& mig3, solver_wrapper& solver, mig_three_encoder& encoder )
    {
       spec.preprocess();
+
+      encoder.set_print_clause( true );
       
       // The special case when the Boolean chain to be synthesized
       // consists entirely of trivial functions.
