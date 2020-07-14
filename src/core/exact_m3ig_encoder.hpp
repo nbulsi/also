@@ -1060,7 +1060,8 @@ namespace also
       void extract_mig3(const spec& spec, mig3& chain )
       {
         int op_inputs[3] = { 0, 0, 0 };
-        chain.reset( spec.nr_in, 1, spec.nr_steps );
+        
+        chain.reset( spec.nr_in, spec.get_nr_out(), spec.nr_steps );
 
         int svar = 0;
         for (int i = 0; i < spec.nr_steps; i++) 
@@ -1100,12 +1101,23 @@ namespace also
 
         }
         
-        const auto pol = spec.out_inv ? 1 : 0;
-        const auto tmp = ( ( spec.nr_steps + spec.nr_in ) << 1 ) + pol;
-        chain.set_output(0, tmp);
+        //const auto pol = spec.out_inv ? 1 : 0;
+        //const auto tmp = ( ( spec.nr_steps + spec.nr_in ) << 1 ) + pol;
+        //chain.set_output(0, tmp);
+
+        //set outputs
+        for( int h = 0; h < spec.nr_nontriv; h++ )
+        {
+          for( int i = 0; i < spec.nr_steps; i++ )
+          {
+            if( solver->var_value( get_out_var( spec, h, i ) ) )
+            {
+              chain.set_output( h, ( ( i + spec.get_nr_in() + 1) << 1 ) + ( ( spec.out_inv >> h ) & 1 ) );
+            }
+          }
+        }
 
         //printf("[i] %d nodes are required\n", spec.nr_steps );
-
 
         if( dev) 
         {
