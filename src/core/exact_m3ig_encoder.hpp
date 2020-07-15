@@ -947,6 +947,11 @@ namespace also
           return false;
         }
         
+        if( !create_output_clauses( spec ) )
+        {
+          return false;
+        }
+        
         if (spec.add_alonce_clauses) 
         {
           create_alonce_clauses(spec);
@@ -1106,7 +1111,7 @@ namespace also
         //chain.set_output(0, tmp);
 
         //set outputs
-        for( int h = 0; h < spec.nr_nontriv; h++ )
+        /*for( int h = 0; h < spec.nr_nontriv; h++ )
         {
           for( int i = 0; i < spec.nr_steps; i++ )
           {
@@ -1126,6 +1131,45 @@ namespace also
                   printf( "\n" );
                 }
               }
+            }
+          }
+        }*/
+
+        auto triv_count = 0;
+        auto nontriv_count = 0;
+
+        for( int h = 0; h < spec.get_nr_out(); h++ )
+        {
+          if( ( spec.triv_flag >> h ) & 1 )
+          {
+            chain.set_output( h, ( spec.triv_func( triv_count++ ) << 1 ) + ( ( spec.out_inv >> h ) & 1 ) );
+            if( spec.verbosity > 2 )
+            {
+              printf( "[i] PO %d is a trivial function.\n" );
+            }
+            continue;
+          }
+
+          for( int i = 0; i < spec.nr_steps; i++ )
+          {
+            if( solver->var_value( get_out_var( spec, nontriv_count, i ) ) )
+            {
+              chain.set_output( h, (( i + spec.get_nr_in() + 1 ) << 1 ) + (( spec.out_inv >> h ) & 1 ) );
+              
+              if( spec.verbosity > 2 )
+              {
+                printf("[i] PO %d is step %d", h, spec.nr_in + i + 1 );
+                if( chain.get_output( h ) )
+                {
+                  printf( " and invtered\n" );
+                }
+                else
+                {
+                  printf( "\n" );
+                }
+              }
+              nontriv_count++;
+              break;
             }
           }
         }

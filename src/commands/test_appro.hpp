@@ -49,6 +49,7 @@ namespace alice
 
         spec[0] = ~sum;
         spec[1] = ~carry;
+        spec[2] = x;
         auto result = also::mig_three_synthesize( spec, mig3, solver, encoder ); 
 
         assert( result == success );
