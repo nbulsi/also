@@ -87,6 +87,21 @@ namespace also
 
       return index;
     }
+
+    std::vector<std::vector<unsigned>> get_all_permutation( const std::vector<unsigned>& vars )
+    {
+      std::vector<std::vector<unsigned>> v;
+      auto vec_copy = vars;
+
+      std::sort( vec_copy.begin(), vec_copy.end() );
+
+      do
+      {
+        v.push_back( vec_copy );
+      }while( std::next_permutation( vec_copy.begin(), vec_copy.end() ) );
+
+      return v;
+    }
       
     template <typename T>
       void show_array( const std::vector<T>& array )

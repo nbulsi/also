@@ -1106,35 +1106,6 @@ namespace also
 
         }
         
-        //const auto pol = spec.out_inv ? 1 : 0;
-        //const auto tmp = ( ( spec.nr_steps + spec.nr_in ) << 1 ) + pol;
-        //chain.set_output(0, tmp);
-
-        //set outputs
-        /*for( int h = 0; h < spec.nr_nontriv; h++ )
-        {
-          for( int i = 0; i < spec.nr_steps; i++ )
-          {
-            if( solver->var_value( get_out_var( spec, h, i ) ) )
-            {
-              chain.set_output( h, ( ( i + spec.get_nr_in() + 1) << 1 ) + ( ( spec.out_inv >> h ) & 1 ) );
-              
-              if( spec.verbosity > 2 )
-              {
-                printf("[i] PO %d is step %d", h, spec.nr_in + i + 1 );
-                if( chain.get_output( h ) )
-                {
-                  printf( " is invtered\n" );
-                }
-                else
-                {
-                  printf( "\n" );
-                }
-              }
-            }
-          }
-        }*/
-
         auto triv_count = 0;
         auto nontriv_count = 0;
 
