@@ -34,7 +34,7 @@ namespace alice
         mig3 mig3;
         spec spec( 2 );
 
-        spec.verbosity = 4;
+        spec.verbosity = 3;
 
         bsat_wrapper solver;
         also::mig_three_encoder encoder( solver );

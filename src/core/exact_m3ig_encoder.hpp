@@ -1129,15 +1129,7 @@ namespace also
               
               if( spec.verbosity > 2 )
               {
-                printf("[i] PO %d is step %d", h, spec.nr_in + i + 1 );
-                if( chain.get_output( h ) )
-                {
-                  printf( " and invtered\n" );
-                }
-                else
-                {
-                  printf( "\n" );
-                }
+                printf("[i] PO %d is step %d\n", h, spec.nr_in + i + 1 );
               }
               nontriv_count++;
               break;
