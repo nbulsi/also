@@ -34,7 +34,7 @@ namespace alice
         mig3 mig3;
         spec spec( 2 );
 
-        spec.verbosity = 3;
+        spec.verbosity = 4;
 
         bsat_wrapper solver;
         also::mig_three_encoder encoder( solver );
@@ -48,14 +48,14 @@ namespace alice
         const auto sum = x ^ y ^ z;
         const auto carry = kitty::ternary_majority( x, y, z );
 
-        spec[0] = ~sum;
-        spec[1] = ~carry;
-        spec[2] = x;
+        spec[0] = sum;
+        spec[1] = carry;
+        
         auto result = also::mig_three_synthesize( spec, mig3, solver, encoder ); 
 
         assert( result == success );
 
-        kitty::static_truth_table<1> tt_str;
+        /*kitty::static_truth_table<1> tt_str;
         kitty::create_from_binary_string( tt_str, "00" );
         kitty::set_bit( tt_str, 1 );
         kitty::set_bit( tt_str, 0 );
@@ -84,7 +84,8 @@ namespace alice
             std::cout << "permu: ";
             also::show_array( e );
           }
-        }
+        }*/
+        //auto res = mig_three_appro_synthesize( spec, 1 );
       }
     
       private:

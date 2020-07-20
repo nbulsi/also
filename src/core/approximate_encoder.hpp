@@ -35,8 +35,8 @@ namespace also
       int nr_sel_vars;
       int nr_sim_vars;
       int nr_op_vars;
-      int nr_res_vars;
-      int nr_out_vars;
+      int nr_res_vars; //used for create cardinarity constraints
+      int nr_out_vars; //used for the output variables
 
       int sel_offset;
       int sim_offset;
@@ -134,12 +134,17 @@ namespace also
       int get_out_var( const spec& spec, int h, int i ) const
       {
         assert( h < spec.nr_nontriv );
-        assert( i < spec.nr_steps );
+        assert( i <= spec.nr_steps );
 
         return out_offset + spec.nr_steps * h + i;
       }
+
+      int get_res_var( const spec& spec, int h, int res_var_idx ) const
+      {
+        return res_offset + h * spec.nr_steps + res_var_idx;
+      }
       
-      int get_res_var(const spec& spec, int step_idx, int res_var_idx) const
+      /*int get_res_var(const spec& spec, int step_idx, int res_var_idx) const
       {
         auto offset = 0;
         for (int i = 0; i < step_idx; i++) {
@@ -147,7 +152,7 @@ namespace also
         }
 
         return res_offset + offset + res_var_idx;
-      }
+      }*/
     
     public:
       approximate_encoder( solver_wrapper& solver, const int& dist )
@@ -167,7 +172,7 @@ namespace also
         /* number of simulation variables, s_out_in1_in2_in3 */
         sel_map = comput_select_vars_map3( spec.nr_steps, spec.nr_in );
         nr_sel_vars = sel_map.size();
-        
+
         /* number of operators per step */ 
         nr_op_vars = spec.nr_steps * MIG_OP_VARS_PER_STEP;
 
@@ -176,15 +181,23 @@ namespace also
 
         /* number of output selection variables */
         nr_out_vars = spec.nr_nontriv * spec.nr_steps;
+
+        /* number of result variables for cardinarity constraints */
+        /* spec.nr_steps is the total selective variables, C = 1
+         * means at most 1 variable should be selected 
+         * nr_res_vars = ( sel_var.size() + 1 ) * ( C + 2)
+         * */
+        nr_res_vars = ( ( spec.nr_steps + 1 ) * ( 1 + 2 ) ) * spec.nr_nontriv; 
         
         /* offsets, this is used to find varibles correspondence */
         sel_offset = 0;
         op_offset  = nr_sel_vars;
         sim_offset = nr_sel_vars + nr_op_vars;
         out_offset = nr_sel_vars + nr_op_vars + nr_sim_vars;
+        res_offset = nr_sel_vars + nr_op_vars + nr_sim_vars + nr_out_vars;
 
         /* total variables used in SAT formulation */
-        total_nr_vars = nr_op_vars + nr_sel_vars + nr_sim_vars + nr_out_vars;
+        total_nr_vars = nr_op_vars + nr_sel_vars + nr_sim_vars + nr_out_vars + nr_res_vars;
 
         if( spec.verbosity > 3 )
         {
@@ -195,6 +208,7 @@ namespace also
           printf( "nr_op_vars  = %d\n", nr_op_vars );
           printf( "nr_out_vars = %d\n", nr_out_vars );
           printf( "nr_sim_vars = %d\n", nr_sim_vars );
+          printf( "nr_res_vars = %d\n", nr_res_vars );
           printf( "tt_size     = %d\n", spec.tt_size );
           printf( "creating %d total variables\n", total_nr_vars);
         }
@@ -331,6 +345,7 @@ namespace also
             printf( "g_%d_%d is %d\n", h, i + spec.nr_in + 1, get_out_var( spec, h, i ) );
           }
         }
+        
         printf( "**************************************\n" );
       }
       
@@ -422,8 +437,6 @@ namespace also
        * */
       bool multi_appro_fix_output_sim_vars( const spec& spec, int t )
       {
-        std::cout << "ERROR distance: " << max_error_distance << std::endl;
-        int ctr = 0;
         bool ret = true;
         
         /* get the exact value of tt bit index t */
@@ -437,20 +450,29 @@ namespace also
         }
         auto exact_decimal_vaule = to_decimal( spec, truth );
 
+        std::cout << " decimal value in " << t << " is " << exact_decimal_vaule << std::endl;
+        std::cout << " current steps: " << spec.nr_steps << std::endl;
+
         /* generate all possibile step index */
         std::vector<unsigned> v(spec.nr_steps);
         unsigned n(0);
         std::generate(v.begin(), v.end(), [&]{ return n++; });
 
+        show_array( v );
+
         /* get all the combinational index */
-        auto comb = get_all_combination_index( v, spec.nr_steps, spec.nr_nontriv );
+        auto comb = get_all_combination_index( v, v.size(), spec.nr_nontriv );
         for( auto const& c : comb )
         {
+          show_array( c );
           auto perm = get_all_permutation( c );
 
           for( auto const& p : perm )
           {
+            int ctr = 0;
             assert( p.size() == spec.nr_nontriv );
+            std::cout << "permutation: ";
+            show_array( p );
 
             for( int h  = 0; h < spec.nr_nontriv; h++ )
             {
@@ -468,10 +490,15 @@ namespace also
               auto ctr_current = ctr;
 
               kitty::static_truth_table<3> possible_output;
-              do
+              auto max = pow( 2, spec.nr_nontriv ) - 1;
+              int count = 0;
+              
+              while( count <= max )
               {
                 auto value = to_decimal( spec, possible_output );
                 auto error_distance = abs( exact_decimal_vaule - value );
+
+                std::cout << " abs : " << error_distance << std::endl;
 
                 if( error_distance > max_error_distance )
                 {
@@ -479,14 +506,16 @@ namespace also
                   /* add constraints to prevent this case */
                   for( int h = 0; h < spec.nr_nontriv; h++ )
                   {
-                    pLits[ctr++] = pabc::Abc_Var2Lit( get_sim_var( spec, p[h], t ), kitty::get_bit( possible_output, h ) );
+                    pLits[ctr++] = pabc::Abc_Var2Lit( get_sim_var( spec, p[h], t ), 1 - kitty::get_bit( possible_output, h ) );
                   }
                   
                   ret &= solver->add_clause( pLits, pLits + ctr );
                   if( print_clause ) { print_sat_clause( solver, pLits, pLits + ctr ); }
                 }
+
                 kitty::next_inplace( possible_output );
-              }while( to_decimal( spec, possible_output ) == ( pow( 2, spec.nr_nontriv ) - 1 ) ); /*for 000 to 111, as an example*/
+                count++;
+              }
 
           }
         }
@@ -558,8 +587,36 @@ namespace also
           std::cout << std::endl;
         }
 
+
         return status;
       }
+
+    /* add constraints to make each step can at most one output */
+    void create_cardinality_constraints( const spec& spec )
+    {
+      std::vector<int> outvars;
+      std::vector<int> rvars;
+
+      for( int h = 0; h < spec.nr_nontriv; h++ )
+      {
+        outvars.clear();
+        rvars.clear();
+
+        for( int i = 0; i < spec.nr_steps; i++ )
+        {
+          outvars.push_back( get_out_var( spec, h, i ) );
+        }
+
+        const auto nr_res_vars = ( 1 + 2 ) * ( outvars.size() + 1 );
+
+        for( int j = 0; j < nr_res_vars; j++ )
+        {
+          rvars.push_back( get_res_var(spec, h, j ) );
+        }
+
+        create_cardinality_circuit( solver, outvars, rvars, 1 );
+      }
+    }
 
      std::vector<int> idx_to_op_var( const spec& spec, const std::vector<int>& set, const int i )
      {
@@ -760,12 +817,24 @@ namespace also
         
         //ret &= fix_output_sim_vars(spec, t);
 
-        for( int h = 0; h < spec.nr_nontriv; h++ )
+        if( spec.nr_steps < spec.nr_nontriv || max_error_distance == 0 )
         {
-          for( int i = 0; i < spec.nr_steps; i++ )
+          for( int h = 0; h < spec.nr_nontriv; h++ )
           {
-            ret &= multi_fix_output_sim_vars( spec, h, i, t );
+            for( int i = 0; i < spec.nr_steps; i++ )
+            {
+              ret &= multi_fix_output_sim_vars( spec, h, i, t );
+            }
           }
+        }
+        else
+        {
+          ret &= multi_appro_fix_output_sim_vars( spec, t );
+
+          /*if( max_error_distance == 0 )
+          {
+            create_cardinality_constraints( spec );
+          }*/
         }
 
         return ret;
@@ -1229,6 +1298,56 @@ namespace also
       }
 
   };
+
+  /***********************************************************
+   * public function
+   ***********************************************************/
+  synth_result mig_three_appro_synthesize( spec& spec, int const& error_distance )
+  {
+    spec.preprocess();
+    spec.nr_steps = spec.initial_steps; 
+    
+    mig3 mig3;
+    bsat_wrapper solver;
+    approximate_encoder encoder( solver, error_distance );
+
+    encoder.set_print_clause( false );
+
+    while( true )
+    {
+      solver.restart();
+
+      if( !encoder.encode( spec ) )
+      {
+        spec.nr_steps++;
+        break;
+      }
+
+      const auto status = solver.solve( spec.conflict_limit );
+
+      if( status == success )
+      {
+        //encoder.show_verbose_result();
+        encoder.extract_mig3( spec, mig3 );
+        return success;
+      }
+      else if( status == failure )
+      {
+        spec.nr_steps++;
+        if( spec.nr_steps == 20 )
+        {
+          break;
+        }
+      }
+      else
+      {
+        return timeout;
+      }
+
+    }
+
+    return success;
+  }
 
 }
 
