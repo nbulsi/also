@@ -40,6 +40,7 @@ namespace alice
         add_flag( "--para_cegar_fence, -b",  "parallel cegar fence-based synthesize" );
         add_option( "--init_steps, -s", num_steps, "reset the initial steps for synthesize" );
         add_option( "--error_rate, -r", error_rate, "set the error rate for approximate synthesis" );
+        add_option( "--num_functions, -n", num_functions, "set the number of functions to be synthesized, default = 1, works for default synthesize mode" );
       }
 
       rules validity_rules() const
@@ -50,6 +51,7 @@ namespace alice
       private:
       int num_steps = 1;
       float error_rate = 0.1;
+      int num_functions = 1;
 
       std::string print_expr( const also::mig3& mig3, const int& step_idx )
       {
@@ -94,7 +96,7 @@ namespace alice
         return ss.str();
       }
 
-      std::string print_all_expr( const spec& spec, const also::mig3& mig3 )
+      std::string print_all_expr( const spec& spec, also::mig3& mig3 )
       {
         std::stringstream ss;
 
@@ -115,6 +117,26 @@ namespace alice
         }
 
         std::cout << "[expressions] " << ss.str() << std::endl;
+
+        std::cout << "[i] There are " << spec.get_nr_out() << " functions be synthesized\n\n"; 
+
+        for( int i = 0; i < spec.get_nr_out(); i++ )
+        {
+          std::cout << "[i] Function id " << i << " is " << kitty::to_binary( spec[i] ) << std::endl;
+          auto outvar = mig3.get_output(i) >> 1;
+          std::cout << "[i] PO " << i << " is " << char( outvar - 1 + 'a' ); 
+          if( mig3.get_output(i) & 1 )
+          {
+            std::cout << " and inverted\n";
+          }
+          else
+          {
+            std::cout << std::endl;
+          }
+          
+          std::cout << std::endl;
+        }
+
         return ss.str();
       }
 
@@ -151,7 +173,7 @@ namespace alice
     protected:
       void execute()
       {
-        auto& opt = store<optimum_network>().current();
+        assert( store<optimum_network>().size() >= num_functions );
 
         spec spec;
         also::mig3 mig3;
@@ -164,16 +186,19 @@ namespace alice
 
         spec.initial_steps = num_steps;
 
-        auto copy = opt.function;
-        if( copy.num_vars()  < 3 )
+        for( int i = 0 ; i < num_functions; i++ )
         {
-          spec[0] = kitty::extend_to( copy, 3 );
+          auto& opt = store<optimum_network>()[i];
+          auto copy = opt.function;
+          if( copy.num_vars()  < 3 )
+          {
+            spec[i] = kitty::extend_to( copy, 3 );
+          }
+          else
+          {
+            spec[i] = copy;
+          }
         }
-        else
-        {
-          spec[0] = copy;
-        }
-
 
         stopwatch<>::duration time{0};
         if( is_set( "cegar" ) )
@@ -206,7 +231,7 @@ namespace alice
           also::mig_three_encoder encoder( solver );
           call_with_stopwatch( time, [&]() 
               { 
-                  enumerate_m3ig( copy );
+                  enumerate_m3ig( spec[0] ); //works for only one function
               });
         }
         else if( is_set( "fence" ) )

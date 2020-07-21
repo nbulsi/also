@@ -85,7 +85,7 @@ namespace alice
             also::show_array( e );
           }
         }*/
-        //auto res = mig_three_appro_synthesize( spec, 1 );
+        auto res = mig_three_appro_synthesize( spec, 1 );
       }
     
       private:

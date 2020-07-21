@@ -59,6 +59,11 @@ namespace also
         {
           return operators[i];
         }
+        
+        bool is_output_inverted(int out_idx)
+        {
+          return outputs[out_idx] & 1;
+        }
 
         void reset(int _nr_in, int _nr_out, int _nr_steps)
         {

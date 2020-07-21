@@ -451,28 +451,28 @@ namespace also
         auto exact_decimal_vaule = to_decimal( spec, truth );
 
         std::cout << " decimal value in " << t << " is " << exact_decimal_vaule << std::endl;
-        std::cout << " current steps: " << spec.nr_steps << std::endl;
+        //std::cout << " current steps: " << spec.nr_steps << std::endl;
 
         /* generate all possibile step index */
         std::vector<unsigned> v(spec.nr_steps);
         unsigned n(0);
         std::generate(v.begin(), v.end(), [&]{ return n++; });
 
-        show_array( v );
+        //show_array( v );
 
         /* get all the combinational index */
         auto comb = get_all_combination_index( v, v.size(), spec.nr_nontriv );
         for( auto const& c : comb )
         {
-          show_array( c );
+          //show_array( c );
           auto perm = get_all_permutation( c );
 
           for( auto const& p : perm )
           {
             int ctr = 0;
             assert( p.size() == spec.nr_nontriv );
-            std::cout << "permutation: ";
-            show_array( p );
+            //std::cout << "permutation: ";
+            //show_array( p );
 
             for( int h  = 0; h < spec.nr_nontriv; h++ )
             {
@@ -498,7 +498,7 @@ namespace also
                 auto value = to_decimal( spec, possible_output );
                 auto error_distance = abs( exact_decimal_vaule - value );
 
-                std::cout << " abs : " << error_distance << std::endl;
+                //std::cout << "value: " << value <<" abs : " << error_distance << std::endl;
 
                 if( error_distance > max_error_distance )
                 {
@@ -506,7 +506,7 @@ namespace also
                   /* add constraints to prevent this case */
                   for( int h = 0; h < spec.nr_nontriv; h++ )
                   {
-                    pLits[ctr++] = pabc::Abc_Var2Lit( get_sim_var( spec, p[h], t ), 1 - kitty::get_bit( possible_output, h ) );
+                    pLits[ctr++] = pabc::Abc_Var2Lit( get_sim_var( spec, p[h], t ), kitty::get_bit( possible_output, h ) );
                   }
                   
                   ret &= solver->add_clause( pLits, pLits + ctr );
@@ -1065,15 +1065,7 @@ namespace also
               
               if( spec.verbosity > 2 )
               {
-                printf("[i] PO %d is step %d", h, spec.nr_in + i + 1 );
-                if( chain.get_output( h ) )
-                {
-                  printf( " and invtered\n" );
-                }
-                else
-                {
-                  printf( "\n" );
-                }
+                printf("[i] PO %d is step %d\n", h, spec.nr_in + i + 1 );
               }
               nontriv_count++;
               break;
@@ -1311,7 +1303,7 @@ namespace also
     bsat_wrapper solver;
     approximate_encoder encoder( solver, error_distance );
 
-    encoder.set_print_clause( false );
+    encoder.set_print_clause( true );
 
     while( true )
     {
@@ -1327,7 +1319,7 @@ namespace also
 
       if( status == success )
       {
-        //encoder.show_verbose_result();
+        encoder.show_verbose_result();
         encoder.extract_mig3( spec, mig3 );
         return success;
       }
