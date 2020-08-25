@@ -14,7 +14,8 @@
 #define XAGRS_HPP
 
 #include <mockturtle/mockturtle.hpp>
-#include <mockturtle/algorithms/xag_resub_withDC.hpp>
+#include <mockturtle/algorithms/resubstitution.hpp>
+#include <mockturtle/networks/xag.hpp>
 
 #include "../core/misc.hpp"
 
@@ -40,11 +41,7 @@ namespace alice
         /* derive some XAG */
          xag_network xag = store<xag_network>().current();
          
-         using view_t = depth_view<fanout_view<xag_network>>;
-         fanout_view<xag_network> fanout_view{xag};
-         view_t resub_view{fanout_view};
-         resubstitution_minmc_withDC( resub_view , ps);
-
+         resubstitution( xag, ps, &st );
          xag = cleanup_dangling( xag );
          
          std::cout << "[xagrs] "; 
@@ -56,6 +53,7 @@ namespace alice
     
     private:
       resubstitution_params ps;
+      resubstitution_stats  st;
   };
   
   ALICE_ADD_COMMAND( xagrs, "Rewriting" )
