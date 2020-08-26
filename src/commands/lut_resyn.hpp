@@ -16,6 +16,8 @@
 #include <mockturtle/mockturtle.hpp>
 #include <mockturtle/algorithms/node_resynthesis/xmg_npn.hpp>
 #include <mockturtle/algorithms/node_resynthesis/xmg3_npn.hpp>
+#include <mockturtle/algorithms/node_resynthesis/shannon.hpp>
+#include <mockturtle/algorithms/node_resynthesis/dsd.hpp>
 
 #include "../networks/m5ig/m5ig.hpp"
 #include "../networks/m5ig/m5ig_npn.hpp"
@@ -240,8 +242,19 @@ namespace alice
         }
         else if( is_set( "xag" ) )
         {
-          xag_npn_lut_resynthesis resyn;
-          const auto xag = node_resynthesis<xag_network>( klut, resyn );
+          xag_network xag;
+          if( cut_size <= 4 )
+          {
+            xag_npn_lut_resynthesis resyn;
+            xag = node_resynthesis<xag_network>( klut, resyn );
+          }
+          else
+          {
+            shannon_resynthesis<xag_network> fallback; // fallback
+            dsd_resynthesis<xag_network, decltype( fallback )> resyn( fallback );
+            
+            xag = node_resynthesis<xag_network>( klut, resyn );
+          }
 
           depth_view xag_depth{xag};
           std::cout << "[I/O:" << xag.num_pis() << "/" << xag.num_pos() << "] xag gates: " 
