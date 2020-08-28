@@ -42,6 +42,7 @@
 #include "commands/cog.hpp"
 #include "commands/test_tt.hpp"
 #include "commands/test_img.hpp"
+#include "commands/test_xagdec.hpp"
 #include "commands/imgrw.hpp"
 #include "commands/imgff.hpp"
 #include "commands/ax.hpp"
