@@ -20,6 +20,22 @@ namespace also
   template<class Ntk>
   class xag_dec_impl
   {
+    private:
+      inline unsigned num_supports( kitty::dynamic_truth_table const& spec )
+      {
+        unsigned count = 0u;
+
+        for( auto i = 0u; i < spec.num_vars(); ++i )
+        {
+          if( kitty::has_var( spec, i ) )
+          {
+            count++;
+          }
+        }
+
+        return count;
+      }
+
     public:
       xag_dec_impl( Ntk& ntk, kitty::dynamic_truth_table const& func, std::vector<signal<Ntk>> const& children, dsd_decomposition_params const& ps )
         : _ntk( ntk ),
@@ -36,8 +52,11 @@ namespace also
         }
       }
 
-      signal<Ntk> decompose( kitty::dynamic_truth_table& remainder )
+      signal<Ntk> decompose( kitty::dynamic_truth_table& remainder, bool flag_shannon )
       {
+        fmt::print( "current remainder = {}, vars = {}, Real # supports: {} supports = {}\n", kitty::to_binary( remainder ), remainder.num_vars(), 
+            num_supports( remainder ),
+            support.size() );
         /* step 1: check constants */
         if ( kitty::is_const0( remainder ) )
         {
@@ -49,9 +68,33 @@ namespace also
         }
 
         /* step 2: check primary inputs*/
-        if ( support.size() == 1u )
+        if ( num_supports( remainder ) == 1u )
         {
-          auto var = remainder.construct();
+          /* due to the shannon decomopsition on two cofactors,
+           * the real num of supports may not equal the elements
+           * in the vector [support] */
+          for( auto s : support )
+          {
+            auto var = remainder.construct();
+            kitty::create_nth_var( var, s );
+
+            if( remainder == var )
+            {
+              return pis[s];
+            }
+            else if( remainder == ~var )
+            {
+              return _ntk.create_not( pis[s] );
+            }
+            else
+            {
+              /* do nothing */
+            }
+          }
+          
+          assert( false );
+
+          /* auto var = remainder.construct();
           kitty::create_nth_var( var, support.front() );
           if ( remainder == var )
           {
@@ -66,7 +109,7 @@ namespace also
             }
             assert( remainder == ~var );
             return _ntk.create_not( pis[support.front()] );
-          }
+          }*/
         }
 
         /* step 3: check top disjoint decomposition */
@@ -77,8 +120,11 @@ namespace also
           {
             std::cout << "Top decomposition on var " << +var << " is successful\n";
             /* remove var from support, pis do not change */
-            support.erase( std::remove( support.begin(), support.end(), var ), support.end() );
-            const auto right = decompose( remainder );
+            if( !flag_shannon )
+            {
+              support.erase( std::remove( support.begin(), support.end(), var ), support.end() );
+            }
+            const auto right = decompose( remainder, false );
 
             switch ( res )
             {
@@ -103,10 +149,10 @@ namespace also
         {
           for ( auto i = 0u; i < j; ++i )
           {
-            std::cout << "Bottom decomposition on var " << +support[i] << " and " << +support[j] << " is successful\n";
             if ( auto res = kitty::is_bottom_decomposable( remainder, support[i], support[j], &remainder, _ps.with_xor );
                 res != kitty::bottom_decomposition::none )
             {
+              std::cout << "Bottom decomposition on var " << +support[i] << " and " << +support[j] << " is successful\n";
               /* update pis based on decomposition type */
               switch ( res )
               {
@@ -130,31 +176,47 @@ namespace also
               }
 
               /* remove var from support */
-              support.erase( support.begin() + j );
+              if( !flag_shannon )
+              {
+                support.erase( support.begin() + j );
+              }
 
-              return decompose( remainder ); 
+              return decompose( remainder, false ); 
             }
           }
         }
 
         /* step 5: for a prime function, if the number of vars is
          * larger than 4u, apply shannon decomposition, else invoke NPN */
+        //if( support.size() > 4u )
+        //{
+          auto var = support.front();
+          std::cout << "Shannon decomposition on var: " << +var << std::endl;
+          /* remove var from support, pis do not change */
+          support.erase( std::remove( support.begin(), support.end(), var ), support.end() );
 
-        if( support.size() > 4u )
-        {
-          /* TODO: shannon decomposition */
+          auto c0 = kitty::cofactor0( remainder, var );
+          auto c1 = kitty::cofactor1( remainder, var );
           
-        }
-        else
-        {
-          /* TODO: npn */
-        }
+          fmt::print( "cofactor0 : {} supports : {}\ncofactor1 : {} supports : {}\n", 
+                       kitty::to_binary( c0 ), num_supports( c0 ),
+                       kitty::to_binary( c1 ), num_supports( c1 ) );
+          
+          auto f1  = decompose( c1, true  );  
+          auto f0  = decompose( c0, false );  
 
+          return _ntk.create_ite( pis[var], f1, f0 );
+        //}
+        //else
+        //{
+          /* TODO: npn */
+          //assert( false && "NPN method should be invokde" );
+        //}
       }
 
       signal<Ntk> run()
       {
-        return decompose( _func );
+        return decompose( _func, false );
       }
 
     private:

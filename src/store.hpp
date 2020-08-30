@@ -274,6 +274,26 @@ namespace alice
     os << "\n";
   }
   
+  ALICE_READ_FILE( xag_network, verilog, filename, cmd )
+  {
+    xag_network xag;
+    lorina::read_verilog( filename, mockturtle::verilog_reader( xag ) );
+    return xag;
+  }
+  
+  ALICE_WRITE_FILE( xag_network, verilog, xag, filename, cmd )
+  {
+     mockturtle::write_verilog( xag, filename );
+  }
+  
+  ALICE_PRINT_STORE_STATISTICS( xag_network, os, xag )
+  {
+    mockturtle::depth_view depth_xag{xag};
+    os << fmt::format( "XAG   i/o = {}/{}   gates = {}   level = {}", 
+          xag.num_pis(), xag.num_pos(), xag.num_gates(), depth_xag.depth() );
+    os << "\n";
+  }
+  
   ALICE_READ_FILE( img_network, verilog, filename, cmd )
   {
     img_network img;
