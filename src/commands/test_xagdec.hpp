@@ -56,7 +56,7 @@ namespace alice
 
         std::cout << " table : " << kitty::to_binary( table ) << std::endl;
         std::cout << " sim   : " << kitty::to_binary( res ) << std::endl;
-        //assert( res == table );
+        assert( res == table && "Simulation results is not equal as the spec" );
 
         also::print_stats( xag );
         store<xag_network>().extend(); 
