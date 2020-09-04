@@ -29,38 +29,63 @@ namespace alice
       public:
       explicit test_xagdec_command( const environment::ptr& env ) : command( env, " test the performance of combined tt decomposition" )
       {
+        add_flag( "--random_test, -r", "enable random function test" );
       }
       
-      rules validity_rules() const
-      {
-        return { has_store_element<optimum_network>( env ) };
-      }
-
       protected:
       void execute()
       {
-        //kitty::dynamic_truth_table table( 5u );
-        //kitty::create_from_expression( table, "{a<bc(de)>}" );
+        if( !is_set( "random_test" ) )
+        {
+          assert( store<optimum_network>().size() != 0u );
+          auto& opt = store<optimum_network>().current();
+          kitty::dynamic_truth_table table = opt.function;
 
-        auto& opt = store<optimum_network>().current();
-        kitty::dynamic_truth_table table = opt.function;
+          xag_network xag;
+          std::vector<xag_network::signal> pis( table.num_vars() );
+          std::generate( pis.begin(), pis.end(), [&]() { return xag.create_pi(); } );
 
-        xag_network xag;
-        std::vector<xag_network::signal> pis( table.num_vars() );
-        std::generate( pis.begin(), pis.end(), [&]() { return xag.create_pi(); } );
+          xag.create_po( also::xag_dec( xag, table, pis ) );
 
-        xag.create_po( also::xag_dec( xag, table, pis ) );
+          default_simulator<kitty::dynamic_truth_table> sim( table.num_vars() );
+          auto res = simulate<kitty::dynamic_truth_table>( xag, sim )[0];
 
-        default_simulator<kitty::dynamic_truth_table> sim( table.num_vars() );
-        auto res = simulate<kitty::dynamic_truth_table>( xag, sim )[0];
+          std::cout << " table : " << kitty::to_binary( table ) << std::endl;
+          std::cout << " sim   : " << kitty::to_binary( res ) << std::endl;
+          assert( res == table && "Simulation results is not equal as the spec" );
 
-        std::cout << " table : " << kitty::to_binary( table ) << std::endl;
-        std::cout << " sim   : " << kitty::to_binary( res ) << std::endl;
-        assert( res == table && "Simulation results is not equal as the spec" );
+          also::print_stats( xag );
+          store<xag_network>().extend(); 
+          store<xag_network>().current() = xag;
+        }
+        else
+        {
+          for ( uint32_t var = 4u; var <= 6u; ++var )
+          {
+            for ( auto i = 0u; i < 100u; ++i )
+            {
+              kitty::dynamic_truth_table func( var );
+              kitty::create_random( func );
 
-        also::print_stats( xag );
-        store<xag_network>().extend(); 
-        store<xag_network>().current() = xag;
+              xag_network xag;
+              std::vector<xag_network::signal> pis( var );
+              std::generate( pis.begin(), pis.end(), [&]() { return xag.create_pi(); } );
+              xag.create_po( also::xag_dec( xag, func, pis ) );
+
+              default_simulator<kitty::dynamic_truth_table> sim( func.num_vars() );
+              auto res = simulate<kitty::dynamic_truth_table>( xag, sim )[0];
+
+              if( res != func )
+              {
+                std::cout << " table : " << kitty::to_binary( func ) << std::endl;
+                std::cout << " sim   : " << kitty::to_binary( res ) << std::endl;
+                assert( false );
+              }
+            }
+          }
+
+        }
+
       }
   };
 

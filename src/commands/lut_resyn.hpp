@@ -26,6 +26,7 @@
 #include "../networks/img/img.hpp"
 #include "../networks/img/img_npn.hpp"
 #include "../networks/aoig/xag_lut_npn.hpp"
+#include "../networks/aoig/xag_lut_dec.hpp"
 #include "../networks/img/img_all.hpp"
 #include "../core/aig2xmg.hpp"
 
@@ -250,8 +251,9 @@ namespace alice
           }
           else
           {
-            shannon_resynthesis<xag_network> fallback; // fallback
-            dsd_resynthesis<xag_network, decltype( fallback )> resyn( fallback );
+            //shannon_resynthesis<xag_network> fallback; // fallback
+            //dsd_resynthesis<xag_network, decltype( fallback )> resyn( fallback );
+            xag_lut_dec_resynthesis<xag_network> resyn;
             
             xag = node_resynthesis<xag_network>( klut, resyn );
           }
