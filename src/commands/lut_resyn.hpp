@@ -27,6 +27,7 @@
 #include "../networks/img/img_npn.hpp"
 #include "../networks/aoig/xag_lut_npn.hpp"
 #include "../networks/aoig/xag_lut_dec.hpp"
+#include "../networks/aoig/build_xag_db.hpp"
 #include "../networks/img/img_all.hpp"
 #include "../core/aig2xmg.hpp"
 
@@ -253,7 +254,9 @@ namespace alice
           {
             //shannon_resynthesis<xag_network> fallback; // fallback
             //dsd_resynthesis<xag_network, decltype( fallback )> resyn( fallback );
-            xag_lut_dec_resynthesis<xag_network> resyn;
+            xag_network db;
+            auto opt_xags = also::load_xag_string_db( db );
+            xag_lut_dec_resynthesis<xag_network> resyn( opt_xags );
             
             xag = node_resynthesis<xag_network>( klut, resyn );
           }

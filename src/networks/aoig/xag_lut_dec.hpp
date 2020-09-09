@@ -14,6 +14,7 @@
 #define XAG_LUT_DEC_HPP
 
 #include "xag_dec.hpp"
+#include "build_xag_db.hpp"
 
 namespace mockturtle
 {
@@ -22,16 +23,20 @@ namespace mockturtle
   class xag_lut_dec_resynthesis
   {
     public:
-      explicit xag_lut_dec_resynthesis()
+      explicit xag_lut_dec_resynthesis( std::unordered_map<std::string, std::string>& opt_xags )
+        : opt_xags( opt_xags )
       {
       }
       
       template<typename LeavesIterator, typename Fn>
       void operator()( Ntk& ntk, kitty::dynamic_truth_table const& function, LeavesIterator begin, LeavesIterator end, Fn&& fn ) const
       {
-        const auto f = also::xag_dec( ntk, function, std::vector<signal<Ntk>>( begin, end ) );
+        const auto f = also::xag_dec( ntk, function, std::vector<signal<Ntk>>( begin, end ), opt_xags );
         fn( f );
       }
+
+    private:
+      std::unordered_map<std::string, std::string>& opt_xags;
   };
 
 

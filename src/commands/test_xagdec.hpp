@@ -20,6 +20,7 @@
 
 #include "../networks/aoig/xag_dec.hpp"
 #include "../core/misc.hpp"
+#include "../networks/aoig/build_xag_db.hpp"
 
 namespace alice
 {
@@ -30,11 +31,16 @@ namespace alice
       explicit test_xagdec_command( const environment::ptr& env ) : command( env, " test the performance of combined tt decomposition" )
       {
         add_flag( "--random_test, -r", "enable random function test" );
+        add_flag( "--disable_npn, -d", "disable NPN during decomposition" );
       }
       
       protected:
       void execute()
       {
+        xag_network xag;
+        auto opt_xags = also::load_xag_string_db( xag );
+        ps.with_npn4 = is_set( "disable_npn" ) ? false : true;
+
         if( !is_set( "random_test" ) )
         {
           assert( store<optimum_network>().size() != 0u );
@@ -45,7 +51,7 @@ namespace alice
           std::vector<xag_network::signal> pis( table.num_vars() );
           std::generate( pis.begin(), pis.end(), [&]() { return xag.create_pi(); } );
 
-          xag.create_po( also::xag_dec( xag, table, pis ) );
+          xag.create_po( also::xag_dec( xag, table, pis, opt_xags, ps ) );
 
           default_simulator<kitty::dynamic_truth_table> sim( table.num_vars() );
           auto res = simulate<kitty::dynamic_truth_table>( xag, sim )[0];
@@ -70,7 +76,7 @@ namespace alice
               xag_network xag;
               std::vector<xag_network::signal> pis( var );
               std::generate( pis.begin(), pis.end(), [&]() { return xag.create_pi(); } );
-              xag.create_po( also::xag_dec( xag, func, pis ) );
+              xag.create_po( also::xag_dec( xag, func, pis, opt_xags, ps ) );
 
               default_simulator<kitty::dynamic_truth_table> sim( func.num_vars() );
               auto res = simulate<kitty::dynamic_truth_table>( xag, sim )[0];
@@ -85,8 +91,11 @@ namespace alice
           }
 
         }
-
       }
+
+      private:
+      also::xag_dec_params ps;
+
   };
 
   ALICE_ADD_COMMAND( test_xagdec, "Various" )

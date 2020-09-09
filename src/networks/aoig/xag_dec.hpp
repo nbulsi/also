@@ -15,11 +15,17 @@
 #define XAG_DEC_HPP
 
 #include "../../core/misc.hpp"
+#include "build_xag_db.hpp"
 
 namespace also
 {
-  
-  template<class Ntk>
+  /*! \brief Parameters for xag_dec */
+  struct xag_dec_params
+  {
+    /*! \brief Apply NPN4. */
+    bool with_npn4{true};
+  };
+
   class xag_dec_impl
   {
     private:
@@ -39,15 +45,18 @@ namespace also
       }
 
     public:
-      xag_dec_impl( Ntk& ntk, kitty::dynamic_truth_table const& func, std::vector<signal<Ntk>> const& children, dsd_decomposition_params const& ps )
+      xag_dec_impl( xag_network& ntk, kitty::dynamic_truth_table const& func, std::vector<signal<xag_network>> const& children, 
+                    std::unordered_map<std::string, std::string>& opt_xags, 
+                    xag_dec_params const& ps )
         : _ntk( ntk ),
           _func( func ),
           pis( children ),
+          opt_xags( opt_xags ),
           _ps( ps )
       {
       }
 
-      signal<Ntk> decompose( kitty::dynamic_truth_table& remainder, std::vector<signal<Ntk>> const& children )
+      signal<xag_network> decompose( kitty::dynamic_truth_table& remainder, std::vector<signal<xag_network>> const& children )
       {
         auto sup = get_func_supports( remainder );
         
@@ -82,7 +91,7 @@ namespace also
         /* top decomposition */
         for( auto var : sup )
         {
-          if ( auto res = kitty::is_top_decomposable( remainder, var, &remainder, _ps.with_xor );
+          if ( auto res = kitty::is_top_decomposable( remainder, var, &remainder, true );
               res != kitty::top_decomposition::none )
           {
             const auto right = decompose( remainder, children );
@@ -110,8 +119,8 @@ namespace also
         {
           for ( auto i = 0u; i < j; ++i )
           {
-            if ( auto res = kitty::is_bottom_decomposable( remainder, sup[i], sup[j], &remainder, _ps.with_xor );
-                res != kitty::bottom_decomposition::none )
+            if ( auto res = kitty::is_bottom_decomposable( remainder, sup[i], sup[j], &remainder, true );
+                res != kitty::bottom_decomposition::none ) /* allow XOR */
             {
               auto copy = children;
               switch ( res )
@@ -140,36 +149,187 @@ namespace also
           }
         }
 
-        /* shannon decomposition */
-        auto var = sup.front();
-        auto c0 = kitty::cofactor0( remainder, var );
-        auto c1 = kitty::cofactor1( remainder, var );
+        if( sup.size() > 4u || !_ps.with_npn4 )
+        {
+          /* shannon decomposition */
+          auto var = sup.front();
+          auto c0 = kitty::cofactor0( remainder, var );
+          auto c1 = kitty::cofactor1( remainder, var );
 
-        const auto f0  = decompose( c0, children );  
-        const auto f1  = decompose( c1, children );  
+          const auto f0  = decompose( c0, children );  
+          const auto f1  = decompose( c1, children );  
 
-        return _ntk.create_ite( children[var], f1, f0 );
+          return _ntk.create_ite( children[var], f1, f0 );
+        }
+        else
+        {
+          /* NPN transformation */
+          return xag_from_npn( remainder, children );
+        }
 
         assert( false );
       }
 
-      signal<Ntk> run()
+      signal<xag_network> xag_from_npn( kitty::dynamic_truth_table const& remainder, std::vector<signal<xag_network>> const& children )
+      {
+        /* get pi signals */
+        auto sup = get_func_supports( remainder );
+        std::vector<signal<xag_network>> small_pis;
+        for( auto const i : sup )
+        {
+          small_pis.push_back( children[i] );
+        }
+        
+        auto copy = remainder;
+        const auto support = kitty::min_base_inplace( copy );
+        const auto small_func = kitty::shrink_to( copy, static_cast<unsigned int>( support.size() ) );
+
+        auto tt =  small_func;
+
+        auto ttsup = get_func_supports( tt );
+        
+        const auto config = kitty::exact_npn_canonization( tt );
+
+        auto func_str = "0x" + kitty::to_hex( std::get<0>( config ) );
+        //std::cout << " process function " << func_str << std::endl;
+
+        const auto it = opt_xags.find( func_str );
+        assert( it != opt_xags.end() );
+
+        std::vector<signal<xag_network>> pis( support.size(), _ntk.get_constant( false ) );
+        std::copy( small_pis.begin(), small_pis.end(), pis.begin() );
+
+        std::vector<signal<xag_network>> pis_perm( support.size() );
+        auto perm = std::get<2>( config );
+        for ( auto i = 0; i < support.size(); ++i )
+        {
+          pis_perm[i] = pis[perm[i]];
+        }
+
+        const auto& phase = std::get<1>( config );
+        for ( auto i = 0; i < support.size(); ++i )
+        {
+          if ( ( phase >> perm[i] ) & 1 )
+          {
+            pis_perm[i] = !pis_perm[i];
+          }
+        }
+
+        auto res = create_xag_from_str( it->second, pis_perm );
+
+        return ( ( phase >> support.size() ) & 1 ) ? !res : res;
+      }
+      
+      signal<xag_network> create_xag_from_str( const std::string& str, const std::vector<signal<xag_network>>& pis_perm )
+      {
+        std::stack<int> polar;
+        std::stack<signal<xag_network>> inputs;
+
+        for ( auto i = 0ul; i < str.size(); i++ )
+        {
+          // operators polarity
+          if ( str[i] == '[' || str[i] == '(' || str[i] == '{' )
+          {
+            polar.push( (i > 0 && str[i - 1] == '!') ? 1 : 0 );
+          }
+
+          //input signals
+          if ( str[i] >= 'a' && str[i] <= 'd' )
+          {
+            inputs.push( pis_perm[str[i] - 'a'] );
+
+            polar.push( ( i > 0 && str[i - 1] == '!' ) ? 1 : 0 );
+          }
+
+          //create signals
+          if ( str[i] == ']' )
+          {
+            assert( inputs.size() >= 2u );
+            auto x1 = inputs.top();
+            inputs.pop();
+            auto x2 = inputs.top();
+            inputs.pop();
+
+            assert( polar.size() >= 3u );
+            auto p1 = polar.top();
+            polar.pop();
+            auto p2 = polar.top();
+            polar.pop();
+
+            auto p3 = polar.top();
+            polar.pop();
+
+            inputs.push( _ntk.create_xor( x1 ^ p1, x2 ^ p2 ) ^ p3 );
+            polar.push( 0 );
+          }
+
+          if ( str[i] == ')' )
+          {
+            assert( inputs.size() >= 2u );
+            auto x1 = inputs.top();
+            inputs.pop();
+            auto x2 = inputs.top();
+            inputs.pop();
+
+            assert( polar.size() >= 3u );
+            auto p1 = polar.top();
+            polar.pop();
+            auto p2 = polar.top();
+            polar.pop();
+
+            auto p3 = polar.top();
+            polar.pop();
+
+            inputs.push( _ntk.create_and( x1 ^ p1, x2 ^ p2 ) ^ p3 );
+            polar.push( 0 );
+          }
+
+          if ( str[i] == '}' )
+          {
+            assert( inputs.size() >= 2u );
+            auto x1 = inputs.top();
+            inputs.pop();
+            auto x2 = inputs.top();
+            inputs.pop();
+
+            assert( polar.size() >= 3u );
+            auto p1 = polar.top();
+            polar.pop();
+            auto p2 = polar.top();
+            polar.pop();
+
+            auto p3 = polar.top();
+            polar.pop();
+
+            inputs.push( _ntk.create_or( x1 ^ p1, x2 ^ p2 ) ^ p3 );
+            polar.push( 0 );
+          }
+        }
+
+        assert( !polar.empty() );
+        auto po = polar.top();
+        polar.pop();
+        return inputs.top() ^ po;
+      }
+
+      signal<xag_network> run()
       {
         return decompose( _func, pis );
       }
 
     private:
-    Ntk& _ntk;
+    xag_network& _ntk;
     kitty::dynamic_truth_table _func;
-    std::vector<signal<Ntk>> pis;
-    dsd_decomposition_params const& _ps;
+    std::vector<signal<xag_network>> pis;
+    std::unordered_map<std::string, std::string>& opt_xags;
+    xag_dec_params const& _ps;
   };
 
-    template<class Ntk>
-    signal<Ntk> xag_dec( Ntk& ntk, kitty::dynamic_truth_table const& func, std::vector<signal<Ntk>> const& children, 
-                                   dsd_decomposition_params const& ps = {} )
+    signal<xag_network> xag_dec( xag_network& ntk, kitty::dynamic_truth_table const& func, std::vector<signal<xag_network>> const& children,
+                                 std::unordered_map<std::string, std::string>& opt_xags,
+                                   xag_dec_params const& ps = {} )
     {
-      xag_dec_impl<Ntk> impl( ntk, func, children, ps );
+      xag_dec_impl impl( ntk, func, children, opt_xags, ps );
       return impl.run();
     }
 
