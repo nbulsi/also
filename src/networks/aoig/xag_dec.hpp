@@ -45,7 +45,7 @@ namespace also
       }
 
     public:
-      xag_dec_impl( xag_network& ntk, kitty::dynamic_truth_table const& func, std::vector<signal<xag_network>> const& children, 
+      xag_dec_impl( xag_network& ntk, kitty::dynamic_truth_table const& func, std::vector<xag_network::signal> const& children, 
                     std::unordered_map<std::string, std::string>& opt_xags, 
                     xag_dec_params const& ps )
         : _ntk( ntk ),
@@ -56,7 +56,7 @@ namespace also
       {
       }
 
-      signal<xag_network> decompose( kitty::dynamic_truth_table& remainder, std::vector<signal<xag_network>> const& children )
+      xag_network::signal decompose( kitty::dynamic_truth_table& remainder, std::vector<xag_network::signal> const& children )
       {
         auto sup = get_func_supports( remainder );
         
@@ -170,11 +170,11 @@ namespace also
         assert( false );
       }
 
-      signal<xag_network> xag_from_npn( kitty::dynamic_truth_table const& remainder, std::vector<signal<xag_network>> const& children )
+      xag_network::signal xag_from_npn( kitty::dynamic_truth_table const& remainder, std::vector<xag_network::signal> const& children )
       {
         /* get pi signals */
         auto sup = get_func_supports( remainder );
-        std::vector<signal<xag_network>> small_pis;
+        std::vector<xag_network::signal> small_pis;
         for( auto const i : sup )
         {
           small_pis.push_back( children[i] );
@@ -196,10 +196,10 @@ namespace also
         const auto it = opt_xags.find( func_str );
         assert( it != opt_xags.end() );
 
-        std::vector<signal<xag_network>> pis( support.size(), _ntk.get_constant( false ) );
+        std::vector<xag_network::signal> pis( support.size(), _ntk.get_constant( false ) );
         std::copy( small_pis.begin(), small_pis.end(), pis.begin() );
 
-        std::vector<signal<xag_network>> pis_perm( support.size() );
+        std::vector<xag_network::signal> pis_perm( support.size() );
         auto perm = std::get<2>( config );
         for ( auto i = 0; i < support.size(); ++i )
         {
@@ -220,10 +220,10 @@ namespace also
         return ( ( phase >> support.size() ) & 1 ) ? !res : res;
       }
       
-      signal<xag_network> create_xag_from_str( const std::string& str, const std::vector<signal<xag_network>>& pis_perm )
+      xag_network::signal create_xag_from_str( const std::string& str, const std::vector<xag_network::signal>& pis_perm )
       {
         std::stack<int> polar;
-        std::stack<signal<xag_network>> inputs;
+        std::stack<xag_network::signal> inputs;
 
         for ( auto i = 0ul; i < str.size(); i++ )
         {
@@ -312,7 +312,7 @@ namespace also
         return inputs.top() ^ po;
       }
 
-      signal<xag_network> run()
+      xag_network::signal run()
       {
         return decompose( _func, pis );
       }
@@ -320,12 +320,12 @@ namespace also
     private:
     xag_network& _ntk;
     kitty::dynamic_truth_table _func;
-    std::vector<signal<xag_network>> pis;
+    std::vector<xag_network::signal> pis;
     std::unordered_map<std::string, std::string>& opt_xags;
     xag_dec_params const& _ps;
   };
 
-    signal<xag_network> xag_dec( xag_network& ntk, kitty::dynamic_truth_table const& func, std::vector<signal<xag_network>> const& children,
+    xag_network::signal xag_dec( xag_network& ntk, kitty::dynamic_truth_table const& func, std::vector<xag_network::signal> const& children,
                                  std::unordered_map<std::string, std::string>& opt_xags,
                                    xag_dec_params const& ps = {} )
     {

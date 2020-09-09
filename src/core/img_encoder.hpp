@@ -140,8 +140,8 @@ namespace also
   img_network img_from_expr( const std::string& expr, const unsigned& num_pis )
   {
     img_network img;
-    std::vector<signal<img_network>> sig;
-    std::stack<signal<img_network>> inputs;
+    std::vector<img_network::signal> sig;
+    std::stack<img_network::signal> inputs;
 
     sig.push_back( img.get_constant( false ) );
     for( auto i = 0u; i < num_pis; i++ )
