@@ -38,6 +38,7 @@ namespace alice
       explicit cog_command( const environment::ptr& env ) : command( env, "compute optimal m5ig" )
       {
         add_option( "filename, -f", filename, "the input txt file name" );
+        add_option( "tt_size, -s", tt_size,   "the input size of tt" );
         add_flag(   "--m3ig, -m", "using m3ig as the underlying logic network" );
         add_flag(   "--img, -i",  "using img as the underlying logic network" );
         add_flag(   "--aoig, -a",  "using aoig as the underlying logic network" );
@@ -212,7 +213,7 @@ namespace alice
         }
         else if( is_set( "aoig" ) )
         {
-            kitty::dynamic_truth_table tt4s( 4 );
+            kitty::dynamic_truth_table tt4s( tt_size );
             int count = 0;
 
             std::unordered_set<std::string> myset;
@@ -244,7 +245,7 @@ namespace alice
             for( const auto& s : myset )
             {
               outfile << "0x" << s << " ";
-              kitty::dynamic_truth_table tt( 4 );
+              kitty::dynamic_truth_table tt( tt_size );
 
               kitty::create_from_hex_string( tt, s );
 
@@ -330,6 +331,7 @@ namespace alice
 
     private:
       std::string filename = "test.txt";
+      unsigned tt_size = 4u;
   };
 
   ALICE_ADD_COMMAND( cog, "Exact synthesis" )

@@ -14,6 +14,7 @@
 #define CUTRW_HPP
 
 #include <mockturtle/mockturtle.hpp>
+#include <mockturtle/algorithms/node_resynthesis/bidecomposition.hpp>
 
 #include "../networks/m5ig/m5ig_npn.hpp"
 #include "../networks/img/img_all.hpp"
@@ -127,6 +128,13 @@ namespace alice
           cut_rewriting_params ps;
           ps.cut_enumeration_ps.cut_size = 4u;
           xag = cut_rewriting( xag, resyn, ps );
+          
+          xag = cleanup_dangling( xag );
+
+          //bidecomposition refactoring
+          bidecomposition_resynthesis<xag_network> resyn2;
+          refactoring( xag, resyn2 );
+          
           xag = cleanup_dangling( xag );
 
           print_stats( xag );
