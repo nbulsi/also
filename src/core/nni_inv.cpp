@@ -75,9 +75,9 @@ namespace also
       }
 
     private:
-      std::array<signal<Ntk>, 3> get_children( node<Ntk> const& n ) const
+      std::array<mockturtle::signal<Ntk>,3> get_children( node<Ntk> const& n ) const
       {
-        std::array<signal<Ntk>, 3> children;
+        std::array<mockturtle::signal<Ntk>, 3> children;
         ntk.foreach_fanin( n, [&children]( auto const& f, auto i ) { children[i] = f; } );
         std::sort( children.begin(), children.end(), [this]( auto const& c1, auto const& c2 ) {
             return  ntk.get_node( c1 )  <  ntk.get_node( c2 ) ;
@@ -85,9 +85,9 @@ namespace also
         return children;
       }
 
-      std::vector<signal<Ntk>> get_invs_fanins( node<Ntk> const& n )
+      std::vector<mockturtle::signal<Ntk>> get_invs_fanins( node<Ntk> const& n )
       {
-        std::vector<signal<Ntk>> compl_fanin_signals;
+        std::vector<mockturtle::signal<Ntk>> compl_fanin_signals;
         auto children = get_children( n );
 
         for( auto const& c : children )
@@ -112,9 +112,9 @@ namespace also
         return nodes;
       }
 
-      std::vector<signal<Ntk>> get_parent_signals( node<Ntk> const& n )
+      std::vector<mockturtle::signal<Ntk>> get_parent_signals( node<Ntk> const& n )
       {
-        std::vector<signal<Ntk>> signals;
+        std::vector<mockturtle::signal<Ntk>> signals;
 
         auto parents = get_parent_nodes( n );
 
@@ -209,7 +209,7 @@ namespace also
 
       }
 
-      void orded_inputs( std::vector<signal<klut_network>>& array )
+      void orded_inputs( std::vector<klut_network::signal>& array )
       {
         std::sort( array.begin(), array.end(), [this]( auto const& c1, auto const& c2 ) {
             return c1 < c2;
@@ -243,7 +243,7 @@ namespace also
       }
 
 
-      signal<klut_network> create_nni( klut_network& klut, std::vector<signal<klut_network>> const& children )
+      klut_network::signal create_nni( klut_network& klut, std::vector<klut_network::signal> const& children )
       {
         static uint64_t _nni = 0x71;
         kitty::dynamic_truth_table tt_nni( 3 );
@@ -262,7 +262,7 @@ namespace also
       {
         klut_network klut;
 
-        node_map<signal<klut_network>, Ntk> node2new( ntk ); 
+        node_map<klut_network::signal, Ntk> node2new( ntk ); 
 
         node2new[ ntk.get_constant( false ) ] = klut.get_constant( false );
 
@@ -282,7 +282,7 @@ namespace also
               auto compl_fanins = get_invs_fanins( n );
               auto tmp = compl_fanins.size();
               auto parents = get_parent_signals( n );
-              std::vector<signal<klut_network>> replaced_children;
+              std::vector<klut_network::signal> replaced_children;
               
               /* nni(a, b, c) = <!a!bc> */
               if( tmp == 1 && has_constant( n ) )
@@ -303,7 +303,7 @@ namespace also
                 {
                   replaced_children.push_back( klut.get_constant( true ) );
                   
-                  signal<klut_network> s1, s2;
+                  klut_network::signal s1, s2;
                   ntk.foreach_fanin( n, [&]( auto const& f ) {
                       if( f.index != 0 )
                       {
@@ -325,7 +325,7 @@ namespace also
               }
               else if( tmp == 1 && is_complemented_po_driver( n ) && fanout_ntk.fanout_size( n ) == 0 )
               {
-                signal<klut_network> s2;
+                klut_network::signal s2;
                 ntk.foreach_fanin( n, [&]( auto const& f ) {
                     if( !ntk.is_complemented( f ) )
                     {
@@ -343,7 +343,7 @@ namespace also
               }
               else if( tmp == 2 )
               {
-                signal<klut_network> s2;
+                klut_network::signal s2;
                 ntk.foreach_fanin( n, [&]( auto const& f ) {
                     if( ntk.is_complemented( f ) )
                     {
@@ -359,7 +359,7 @@ namespace also
               }
               else
               {
-                std::vector<signal<klut_network>> children;
+                std::vector<klut_network::signal> children;
                 ntk.foreach_fanin( n, [&]( auto const& f ) {
                       children.push_back( ntk.is_complemented( f ) ? klut.create_not( node2new[f] ) : node2new[f] );
                     } );
@@ -373,7 +373,7 @@ namespace also
 
               if( tmp == 1 && has_constant( n ) && compl_fanins[0].index != 0 )
               {
-                std::vector<signal<klut_network>> replaced_children;
+                std::vector<klut_network::signal> replaced_children;
                 ntk.foreach_fanin( n, [&]( auto const& f ) {
                     if( f.index != 0 )
                     {
@@ -385,7 +385,7 @@ namespace also
               }
               else
               {
-                std::vector<signal<klut_network>> children;
+                std::vector<klut_network::signal> children;
                 ntk.foreach_fanin( n, [&]( auto const& f ) {
                     children.push_back( ntk.is_complemented( f ) ? klut.create_not( node2new[f] ) : node2new[f] );
                     } );
