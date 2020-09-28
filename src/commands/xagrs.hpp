@@ -40,8 +40,8 @@ namespace alice
       {
         /* derive some XAG */
          xag_network xag = store<xag_network>().current();
-         
-         resubstitution( xag, ps, &st );
+
+         default_resubstitution( xag, ps, &st );
          xag = cleanup_dangling( xag );
          
          std::cout << "[xagrs] "; 
