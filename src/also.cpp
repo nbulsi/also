@@ -50,6 +50,7 @@
 #include "commands/xagopt.hpp"
 #include "commands/xmgcost2.hpp"
 #include "commands/xagrw.hpp"
+#include "commands/xagban.hpp"
 
 ALICE_MAIN( also )
 
