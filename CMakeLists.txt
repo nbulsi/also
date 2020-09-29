@@ -17,7 +17,7 @@ if(UNIX)
   foreach (WARNING unknown-pragmas gnu-anonymous-struct nested-anon-types
       sign-compare unused-parameter format delete-non-virtual-dtor unused-lambda-capture
       unused-variable unused-private-field inconsistent-missing-override
-      unused-but-set-parameter range-loop-analysis tautological-overlap-compare)
+      unused-but-set-parameter range-loop-analysis tautological-overlap-compare macro-redefined)
     check_cxx_compiler_flag("-Wno-${WARNING}" HAS_WNO_${WARNING})
     if (HAS_WNO_${WARNING})
       add_compile_options(-Wno-${WARNING})
