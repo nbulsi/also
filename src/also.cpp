@@ -51,6 +51,7 @@
 #include "commands/xmgcost2.hpp"
 #include "commands/xagrw.hpp"
 #include "commands/xagban.hpp"
+#include "commands/stochastic.hpp"
 
 ALICE_MAIN( also )
 
