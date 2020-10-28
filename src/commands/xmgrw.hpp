@@ -13,8 +13,10 @@
 #ifndef XMGRW_COMMAND_HPP
 #define XMGRW_COMMAND_HPP
 
-#include <mockturtle/mockturtle.hpp>
+#include <mockturtle/networks/xmg.hpp>
+#include <mockturtle/views/depth_view.hpp>
 #include <mockturtle/algorithms/equivalence_checking.hpp>
+#include <mockturtle/algorithms/mig_algebraic_rewriting.hpp>
 
 #include "../core/xmg_rewriting.hpp"
 #include "../core/misc.hpp"
@@ -73,7 +75,7 @@ namespace alice
             assert( false );
           }
 
-          depth_view depth_xmg( xmg );
+          depth_view depth_xmg{ xmg }; 
           mig_algebraic_depth_rewriting( depth_xmg, ps_mig );
           xmg = cleanup_dangling( xmg );
           
@@ -114,11 +116,11 @@ namespace alice
           xmg1 = xmg;
           
           /* mig_algebraic_depth_rewriting is suitable for ntk that has majority nodes */
-          depth_view depth_xmg1( xmg );
+          depth_view depth_xmg1{ xmg };
           mig_algebraic_depth_rewriting( depth_xmg1, ps_mig );
           xmg = cleanup_dangling( xmg );
-          
-          depth_view depth_xmg2( xmg );
+
+          depth_view depth_xmg2{ xmg }; 
           xmg_depth_rewriting( depth_xmg2, ps_xmg );
           xmg = cleanup_dangling( xmg );
           xmg2 = xmg;
@@ -134,7 +136,9 @@ namespace alice
         }
 
         std::cout << "[xmgrw] "; 
-        also::print_stats( xmg );
+        auto xmg_copy = cleanup_dangling( xmg );
+        also::print_stats( xmg_copy );
+        
         store<xmg_network>().extend(); 
         store<xmg_network>().current() = xmg;
       }
