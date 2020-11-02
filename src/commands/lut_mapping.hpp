@@ -30,6 +30,7 @@ namespace alice
         add_option( "cut_size, -k", cut_size, "set the cut size from 2 to 8, default = 4" );
         add_flag( "--verbose, -v", "print the information" );
         add_flag( "--satlut, -s",  "satlut mapping" );
+        add_flag( "--aig, -a",  "LUT mapping for AIG" );
         add_flag( "--xmg, -x",  "LUT mapping for XMG" );
         add_flag( "--mig, -m",  "LUT mapping for MIG" );
         add_flag( "--opt_img, -o",  "Using optimal IMG size for 3-input function as the cost function" );
@@ -54,6 +55,20 @@ namespace alice
           /* collapse into k-LUT network */
           auto klut = *collapse_mapped_network<klut_network>( mapped_xmg );
           klut = cleanup_dangling( klut );
+          store<klut_network>().extend(); 
+          store<klut_network>().current() = klut;
+        }
+        else if( is_set( "aig" ) )
+        {
+          assert( store<aig_network>().size() > 0 );
+          aig_network aig = store<aig_network>().current();
+
+          mapping_view<aig_network, true> mapped_aig{aig};
+          ps.cut_enumeration_ps.cut_size = cut_size;
+          lut_mapping<mapping_view<aig_network, true>, true>( mapped_aig, ps );
+          
+          /* collapse into k-LUT network */
+          const auto klut = *collapse_mapped_network<klut_network>( mapped_aig );
           store<klut_network>().extend(); 
           store<klut_network>().current() = klut;
         }

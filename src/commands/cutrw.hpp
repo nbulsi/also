@@ -37,14 +37,6 @@ namespace alice
         add_flag( "--xag_npn_lut,-g", "cut rewriting based on xag_npn_lut" );
         add_flag( "--xag_npn,-p",     "cut rewriting based on xag_npn" );
       }
-      
-      template<class Ntk>
-      void print_stats( const Ntk& ntk )
-     {
-       depth_view depth_ntk{ ntk };
-       std::cout << fmt::format( "ntk   i/o = {}/{}   gates = {}   level = {}\n", 
-                    ntk.num_pis(), ntk.num_pos(), ntk.num_gates(), depth_ntk.depth() );
-     }
 
       void execute()
       {
@@ -53,7 +45,7 @@ namespace alice
         {
           m5ig_network m5ig = store<m5ig_network>().current();
 
-          print_stats( m5ig );
+          also::print_stats( m5ig );
 
           /******************************************************/
           /* for testing cut enumeration for m5ig               */
@@ -96,7 +88,7 @@ namespace alice
           m5ig = cut_rewriting( m5ig, resyn, ps );
           m5ig = cleanup_dangling( m5ig );
 
-          print_stats( m5ig );
+          also::print_stats( m5ig );
 
           store<m5ig_network>().extend(); 
           store<m5ig_network>().current() = m5ig;
@@ -105,7 +97,7 @@ namespace alice
         {
           mig_network mig = store<mig_network>().current();
 
-          print_stats( mig );
+          also::print_stats( mig );
 
           mig_npn_resynthesis resyn;
           cut_rewriting_params ps;
@@ -113,7 +105,7 @@ namespace alice
           mig = cut_rewriting( mig, resyn, ps );
           mig = cleanup_dangling( mig );
 
-          print_stats( mig );
+          also::print_stats( mig );
 
           store<mig_network>().extend(); 
           store<mig_network>().current() = mig;
@@ -122,7 +114,7 @@ namespace alice
         {
           xag_network xag = store<xag_network>().current();
 
-          print_stats( xag );
+          also::print_stats( xag );
 
           xag_npn_lut_resynthesis resyn;
           cut_rewriting_params ps;
@@ -137,7 +129,7 @@ namespace alice
           
           xag = cleanup_dangling( xag );
 
-          print_stats( xag );
+          also::print_stats( xag );
 
           store<xag_network>().extend(); 
           store<xag_network>().current() = xag;
@@ -146,7 +138,7 @@ namespace alice
         {
           xag_network xag = store<xag_network>().current();
 
-          print_stats( xag );
+          also::print_stats( xag );
 
           xag_npn_resynthesis<xag_network> resyn;
           cut_rewriting_params ps;
@@ -156,7 +148,7 @@ namespace alice
           cut_rewriting( xag, resyn, ps );
           xag = cleanup_dangling( xag );
 
-          print_stats( xag );
+          also::print_stats( xag );
 
           store<xag_network>().extend(); 
           store<xag_network>().current() = xag;
@@ -166,7 +158,7 @@ namespace alice
           img_network img = store<img_network>().current();
 
           auto fcost1 = total_fc_cost( img );
-          print_stats( img );
+          also::print_stats( img );
 
           cut_rewriting_params ps;
           ps.cut_enumeration_ps.cut_size = 3u;
@@ -180,7 +172,7 @@ namespace alice
           img = cleanup_dangling( img );
 
           auto fcost2 = total_fc_cost( img );
-          print_stats( img );
+          also::print_stats( img );
           std::cout << "fcost: " << fcost1 << " to " << fcost2 << std::endl;
 
           store<img_network>().extend(); 
@@ -189,7 +181,7 @@ namespace alice
         else if( is_set( "img_all" ) )
         {
           img_network img = store<img_network>().current();
-          print_stats( img );
+          also::print_stats( img );
           
           cut_rewriting_params ps;
           ps.cut_enumeration_ps.cut_size = 3u;
@@ -198,7 +190,7 @@ namespace alice
           cut_rewriting( img, resyn, ps );
           img = cleanup_dangling( img );
 
-          print_stats( img );
+          also::print_stats( img );
           
           store<img_network>().extend(); 
           store<img_network>().current() = img;
@@ -207,7 +199,7 @@ namespace alice
         {
           xmg_network xmg = store<xmg_network>().current();
 
-          print_stats( xmg );
+          also::print_stats( xmg );
 
           xmg_npn_resynthesis resyn;
           cut_rewriting_params ps;
@@ -215,10 +207,10 @@ namespace alice
           cut_rewriting( xmg, resyn, ps );
           xmg = cleanup_dangling( xmg );
 
-          print_stats( xmg );
+          also::print_stats( xmg );
 
           store<xmg_network>().extend(); 
-          store<xmg_network>().current() = xmg;
+          store<xmg_network>().current() = cleanup_dangling( xmg );
         }
       }
     
