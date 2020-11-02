@@ -17,7 +17,7 @@
 namespace also
 {
 
-  void stochastic_synthesis( unsigned num_vars, unsigned n, unsigned m, std::vector<unsigned>& vector );
+  void stochastic_synthesis( unsigned const& num_vars, unsigned const& m, unsigned const& n, std::vector<unsigned> const& vector );
 
 }
 

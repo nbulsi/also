@@ -41,8 +41,8 @@ namespace alice
           while( std::getline( myfile, line ) )
           {
             if( line_index == 0u ) { num_vars = std::stoi( line ); } 
-            if( line_index == 1u ) { n = std::stoi( line ); } 
-            if( line_index == 2u ) { m = std::stoi( line ); } 
+            if( line_index == 1u ) { m = std::stoi( line ); } 
+            if( line_index == 2u ) { n = std::stoi( line ); } 
 
             if( line_index == 3u ) 
             {
@@ -64,8 +64,8 @@ namespace alice
           if( is_set( "verbose" ) )
           {
             std::cout << " num_vars : " << num_vars << "\n" 
-                      << " n        : " << n << "\n"
-                      << " m        : " << m << std::endl;
+                      << " m        : " << m 
+                      << " n        : " << n << "\n";
 
             std::cout << "Problem vector: ";
             for( auto const& e : vector )
@@ -75,7 +75,7 @@ namespace alice
             std::cout << std::endl;
           }
 
-          stochastic_synthesis( num_vars, n, m, vector );
+          stochastic_synthesis( num_vars, m, n, vector );
         }
         else
         {
