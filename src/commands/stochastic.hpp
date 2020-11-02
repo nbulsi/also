@@ -14,6 +14,7 @@
 #define STOCHASTIC_HPP
 
 #include <fstream>
+#include "../core/exact_sto_m3ig.hpp"
 
 namespace alice
 {
@@ -24,6 +25,7 @@ namespace alice
       explicit stochastic_command( const environment::ptr& env ) : command( env, "stochastic circuit synthesis" )
       {
         add_option( "filename, -f", filename, "the input txt file name" );
+        add_flag( "--verbose, -v", "verbose output" );
       }
     
     protected:
@@ -58,9 +60,22 @@ namespace alice
 
           myfile.close();
 
-          std::cout << " num_vars : " << num_vars << "\n" 
-                    << " n        : " << n << "\n"
-                    << " m        : " << m << std::endl;
+
+          if( is_set( "verbose" ) )
+          {
+            std::cout << " num_vars : " << num_vars << "\n" 
+                      << " n        : " << n << "\n"
+                      << " m        : " << m << std::endl;
+
+            std::cout << "Problem vector: ";
+            for( auto const& e : vector )
+            {
+              std::cout << e << " ";
+            }
+            std::cout << std::endl;
+          }
+
+          stochastic_synthesis( num_vars, n, m, vector );
         }
         else
         {
@@ -70,6 +85,7 @@ namespace alice
 
     private:
       std::string filename = "vector.txt";
+
       unsigned num_vars; //the number of variables
       unsigned n; //the highest power
       unsigned m; //the number control the accuracy 
