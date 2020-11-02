@@ -30,6 +30,7 @@
 #include "../networks/aoig/build_xag_db.hpp"
 #include "../networks/img/img_all.hpp"
 #include "../core/aig2xmg.hpp"
+#include "../core/misc.hpp"
 
 namespace alice
 {
@@ -71,12 +72,19 @@ namespace alice
           xmg_network xmg;
           xmg_npn_resynthesis resyn;
           xmg = node_resynthesis<xmg_network>( klut, resyn );
-          depth_view xmg_depth1{xmg};
           
+          /* add to store */
+          if( is_set( "new_entry" ) )
+          {
+            store<xmg_network>().extend(); 
+            store<xmg_network>().current() = xmg;
+          }
+
           if( is_set( "enable_direct_mapping" ) )
           {
             /* make the xmg from aig one-to-one mapping as the
              * basiline xmg*/
+            depth_view xmg_depth1{xmg};
             assert( store<aig_network>().size() > 0 );
             aig_network aig = store<aig_network>().current();
             auto xmg_baseline = also::xmg_from_aig( aig );
@@ -93,47 +101,21 @@ namespace alice
             if( xmg_depth2.depth() < xmg_depth1.depth() )
             {
               xmg = also::xmg_from_aig( aig );
+              /* add to store */
+              if( is_set( "new_entry" ) )
+              {
+                store<xmg_network>().extend(); 
+                store<xmg_network>().current() = xmg;
+              }
             }
           }
 
-          depth_view xmg_depth{xmg};
-          
-          std::cout << "[I/O:" << xmg.num_pis() << "/" << xmg.num_pos() << "] XMG gates: " 
-                    << xmg.num_gates() << " XMG depth: " << xmg_depth.depth() << std::endl;
-
-          /* add to store */
-          if( is_set( "new_entry" ) )
-          {
-            store<xmg_network>().extend(); 
-            store<xmg_network>().current() = xmg;
-          }
         }
-#if 0        
-        else if( is_set( "enable_direct_mapping" ) )
-        {
-          /* make the xmg from aig one-to-one mapping as the
-           * basiline xmg*/
-          assert( store<aig_network>().size() > 0 );
-          aig_network aig = store<aig_network>().current();
-          auto xmg = also::xmg_from_aig( aig );
-          
-          /* add to store */
-          if( is_set( "new_entry" ) )
-          {
-            store<xmg_network>().extend(); 
-            store<xmg_network>().current() = xmg;
-          }
-        }
-#endif
         else if( is_set( "xmg3" ) )
         {
           xmg_network xmg;
           xmg3_npn_resynthesis<xmg_network> resyn;
           xmg = node_resynthesis<xmg_network>( klut, resyn );
-          
-          depth_view xmg_depth{xmg};
-          std::cout << "[I/O:" << xmg.num_pis() << "/" << xmg.num_pos() << "] XMG3 gates: " 
-                    << xmg.num_gates() << " XMG3 depth: " << xmg_depth.depth() << std::endl;
 
           /* add to store */
           if( is_set( "new_entry" ) )
@@ -141,6 +123,10 @@ namespace alice
             store<xmg_network>().extend(); 
             store<xmg_network>().current() = xmg;
           }
+          
+          depth_view xmg_depth{xmg};
+          std::cout << "[I/O:" << xmg.num_pis() << "/" << xmg.num_pos() << "] XMG3 gates: " 
+                    << xmg.num_gates() << " XMG3 depth: " << xmg_depth.depth() << std::endl;
         }
         else if( is_set( "m5ig" ) )
         {
@@ -175,16 +161,16 @@ namespace alice
           img_all_resynthesis<img_network> resyn;
           img = node_resynthesis<img_network>( klut, resyn );
 
-          depth_view img_depth{img};
-          std::cout << "[I/O:" << img.num_pis() << "/" << img.num_pos() << "] IMG gates: " 
-            << img.num_gates() << " IMG depth: " << img_depth.depth() << std::endl;
-
           /* add to store */
           if( is_set( "new_entry" ) )
           {
             store<img_network>().extend(); 
             store<img_network>().current() = img;
           }
+
+          depth_view img_depth{img};
+          std::cout << "[I/O:" << img.num_pis() << "/" << img.num_pos() << "] IMG gates: " 
+            << img.num_gates() << " IMG depth: " << img_depth.depth() << std::endl;
         }
         else if( is_set( "test_m3ig" ) )
         {
@@ -260,33 +246,33 @@ namespace alice
             
             xag = node_resynthesis<xag_network>( klut, resyn );
           }
-
-          depth_view xag_depth{xag};
-          std::cout << "[I/O:" << xag.num_pis() << "/" << xag.num_pos() << "] xag gates: " 
-                    << xag.num_gates() << " xag depth: " << xag_depth.depth() << std::endl;
           
           /* add to store */
-          if( !is_set( "notnew" ) )
+          if( is_set( "new_entry" ) )
           {
             store<xag_network>().extend(); 
             store<xag_network>().current() = xag;
           }
+
+          depth_view xag_depth{xag};
+          std::cout << "[I/O:" << xag.num_pis() << "/" << xag.num_pos() << "] xag gates: " 
+                    << xag.num_gates() << " xag depth: " << xag_depth.depth() << std::endl;
         }
         else
         {
           mig_npn_resynthesis resyn;
           const auto mig = node_resynthesis<mig_network>( klut, resyn );
-
-          depth_view mig_depth{mig};
-          std::cout << "[I/O:" << mig.num_pis() << "/" << mig.num_pos() << "] MIG gates: " 
-                    << mig.num_gates() << " MIG depth: " << mig_depth.depth() << std::endl;
           
           /* add to store */
-          if( !is_set( "notnew" ) )
+          if( is_set( "new_entry" ) )
           {
             store<mig_network>().extend(); 
             store<mig_network>().current() = mig;
           }
+
+          depth_view mig_depth{mig};
+          std::cout << "[I/O:" << mig.num_pis() << "/" << mig.num_pos() << "] MIG gates: " 
+                    << mig.num_gates() << " MIG depth: " << mig_depth.depth() << std::endl;
         }
       }
 

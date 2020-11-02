@@ -34,7 +34,7 @@
 #include "commands/exact_maj.hpp"
 #include "commands/exprsim.hpp"
 #include "commands/xmgrw.hpp"
-#include "commands/xmgrs.hpp"
+//#include "commands/xmgrs.hpp"
 #include "commands/cutrw.hpp"
 #include "commands/xmgcost.hpp"
 #include "commands/magic.hpp"

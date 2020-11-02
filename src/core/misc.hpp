@@ -166,7 +166,8 @@ namespace also
     template<class Ntk>
     void print_stats( const Ntk& ntk )
     {
-      depth_view depth_ntk( ntk );
+      auto copy = ntk;
+      depth_view depth_ntk{ copy };
       std::cout << fmt::format( "ntk   i/o = {}/{}   gates = {}   level = {}\n", 
           ntk.num_pis(), ntk.num_pos(), ntk.num_gates(), depth_ntk.depth() );
     }
