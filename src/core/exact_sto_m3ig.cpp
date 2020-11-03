@@ -29,7 +29,7 @@ namespace also
       unsigned n;
       std::vector<unsigned> vector;
 
-      unsigned vec_sum;
+      unsigned vec_sum = 0u;
       bool verbose = false;
       bool trivial = false;
   };
@@ -45,12 +45,15 @@ namespace also
 
   unsigned sto_syn_manager::sum_of_vector()
   {
-    unsigned sum{ 0u };
+    unsigned sum = 0u;
+    std::cout << " sum = " << sum << "\n";
     for( auto const& v : vector )
     {
       sum += v;
+      std::cout << " v = " << v << "\n";
     }
 
+    std::cout << " sum = " << sum << "\n";
     return sum;
   }
 

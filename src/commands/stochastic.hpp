@@ -37,6 +37,7 @@ namespace alice
         if( myfile.is_open() )
         {
           unsigned line_index = 0u;
+          vector.clear();
 
           while( std::getline( myfile, line ) )
           {
