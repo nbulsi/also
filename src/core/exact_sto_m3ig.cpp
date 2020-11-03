@@ -21,6 +21,7 @@ namespace also
       void preprocess();
       unsigned sum_of_vector();
       unsigned count_tt_sum_of_x( unsigned const& spec_num, kitty::dynamic_truth_table const& tt_solution );
+      bool validate( kitty::dynamic_truth_table const& tt );
 
     private:
       unsigned num_vars;
@@ -29,6 +30,8 @@ namespace also
       std::vector<unsigned> vector;
 
       unsigned vec_sum;
+      bool verbose = false;
+      bool trivial = false;
   };
 
 /******************************************************************************
@@ -51,29 +54,74 @@ namespace also
     return sum;
   }
 
+  bool sto_syn_manager::validate( kitty::dynamic_truth_table const& tt )
+  {
+    unsigned j = 0u;
+    
+    for( j = 0u; j <= n; j++ )
+    {
+      if( verbose )
+      {
+        std::cout << "The " << j << "th element: " << vector[j] << std::endl;
+        std::cout << "The " << "sum of entry equals to " << j << " is " << count_tt_sum_of_x( j, tt ) << std::endl;
+      }
+
+      if( vector[j] != count_tt_sum_of_x( j, tt ) )
+      {
+        return false;
+      }
+    }
+
+    if( ( j - 1 ) == n )
+    {
+      return true;
+    }
+
+    assert( false );
+  }
+
   /* check all primary inputs and its complements for trivial
    * cases */
   void sto_syn_manager::preprocess()
   {
     unsigned num_vars_m_plus_n = m + n;
 
+    /* consts */
+    if( vec_sum == 0u )
+    {
+      trivial = true;
+      std::cout << "Const zero is a solution\n";
+    }
+    else if( vec_sum == pow( 2, num_vars_m_plus_n ) )
+    {
+      trivial = true;
+      std::cout << "Const one is a solution\n";
+    }
+    else if( vec_sum > pow( 2, num_vars_m_plus_n ) )
+    {
+      assert( false && "Problem vector overflow\n" );
+    }
+
     for( auto i = 0u; i < num_vars_m_plus_n; i++ )
     {
       kitty::dynamic_truth_table tt( num_vars_m_plus_n );
       kitty::create_nth_var( tt, i );
 
-      kitty::print_binary( ~tt, std::cout );
-      std::cout << "\n";
       auto num_ones = kitty::count_ones( tt );
-      std::cout << "num_ones: " << num_ones << std::endl;
 
       if( num_ones == vec_sum )
       {
-        /* for further check */
-        for( auto j = 0u; j <= n; j++ )
+        if( validate( tt ) ) 
         {
-          std::cout << "The " << j << "th element: " << vector[j] << std::endl;
-          std::cout << "The " << "sum of entry equals to " << j << " is " << count_tt_sum_of_x( j, tt ) << std::endl;
+          trivial = true;
+          kitty::print_binary( tt, std::cout );
+          std::cout << " is a solution\n";
+        }
+        else if( validate( ~tt ) )
+        {
+          trivial = true;
+          kitty::print_binary( ~tt, std::cout );
+          std::cout << " is a solution\n";
         }
       }
     }
@@ -92,12 +140,14 @@ namespace also
     do
     {
       auto sum = 0u;
-      //kitty::print_binary( tt_enum, std::cout );
-      //std::cout << std::endl;
 
       for( auto i = 0u; i < n; i++ )
       {
-        //std::cout << " bit on " << i + m << " is " << kitty::get_bit( tt_enum, i + m ) << "\n";
+        if( verbose )
+        {
+          std::cout << " bit on " << i + m << " is " << kitty::get_bit( tt_enum, i + m ) << "\n";
+        }
+
         sum += kitty::get_bit( tt_enum, i + m );
       }
 
