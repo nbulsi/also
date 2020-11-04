@@ -6,6 +6,8 @@
 #include <cmath>
 
 #include <kitty/kitty.hpp>
+#include <mockturtle/mockturtle.hpp>
+#include "exact_m3ig_sto_encoder.hpp"
 
 namespace also
 {
@@ -46,14 +48,11 @@ namespace also
   unsigned sto_syn_manager::sum_of_vector()
   {
     unsigned sum = 0u;
-    std::cout << " sum = " << sum << "\n";
     for( auto const& v : vector )
     {
       sum += v;
-      std::cout << " v = " << v << "\n";
     }
 
-    std::cout << " sum = " << sum << "\n";
     return sum;
   }
 
@@ -118,13 +117,13 @@ namespace also
         {
           trivial = true;
           kitty::print_binary( tt, std::cout );
-          std::cout << " is a solution\n";
+          std::cout << " is a solution. The expression -->" << " f = " << static_cast<char>( 'a' + i ) << "\n";
         }
         else if( validate( ~tt ) )
         {
           trivial = true;
           kitty::print_binary( ~tt, std::cout );
-          std::cout << " is a solution\n";
+          std::cout << " is a solution. The expression --> " << " f = !" << static_cast<char>( 'a' + i ) << "\n";
         }
       }
     }
@@ -168,12 +167,37 @@ namespace also
 
   void sto_syn_manager::run()
   {
-    std::cout << " num_vars : " << num_vars << " \n"
-              << " m        : " << m << " \n"
-              << " n        : " << n << " \n" 
-              << " vec_sum  : " << vec_sum << " \n";
+    if( verbose )
+    {
+      std::cout << " num_vars : " << num_vars << " \n"
+        << " m        : " << m << " \n"
+        << " n        : " << n << " \n" 
+        << " vec_sum  : " << vec_sum << " \n";
+    }
 
     preprocess();
+
+    if( trivial == false )
+    {
+      std::cout << "need further solve\n";
+    }
+
+    percy::spec spec;
+    also::mig3 mig3;
+
+    kitty::dynamic_truth_table tt( 3 );
+
+    kitty::create_from_hex_string( tt, "e8" );
+    spec[0] = tt;
+
+    spec.initial_steps = 0;
+    percy::bsat_wrapper solver;
+    mig_three_sto_encoder encoder( solver );
+
+    if( mig_three_sto_synthesize( spec, mig3, solver, encoder ) == percy::success )
+    {
+      print_all_expr( spec, mig3 );
+    }
   }
 
 /******************************************************************************
