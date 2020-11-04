@@ -185,12 +185,12 @@ namespace also
     percy::spec spec;
     also::mig3 mig3;
 
-    kitty::dynamic_truth_table tt( 3 );
+    kitty::dynamic_truth_table tt( 4 );
 
-    kitty::create_from_hex_string( tt, "e8" );
+    kitty::create_from_hex_string( tt, "e880" );
     spec[0] = tt;
+    spec.verbosity = 2;
 
-    spec.initial_steps = 0;
     percy::bsat_wrapper solver;
     mig_three_sto_encoder encoder( solver );
 

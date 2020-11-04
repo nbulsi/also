@@ -4,7 +4,7 @@
 /**
  * @file exact_m3ig_sto_encoder.hpp
  *
- * @brief TODO
+ * @brief SAT solver
  *
  * @author Zhufei
  * @since  0.1
@@ -16,7 +16,6 @@
 #include <mockturtle/mockturtle.hpp>
 
 #include "m3ig_helper.hpp"
-//#include "misc.hpp"
 
 using namespace percy;
 using namespace mockturtle;
@@ -139,7 +138,7 @@ namespace also
         if( spec.verbosity > 1 )
         {
           printf( "Creating variables (mig)\n");
-          printf( "nr steps    = %d\n", spec.nr_steps );
+          printf( "nr_steps    = %d\n", spec.nr_steps );
           printf( "nr_in       = %d\n", spec.nr_in );
           printf( "nr_sel_vars = %d\n", nr_sel_vars );
           printf( "nr_op_vars  = %d\n", nr_op_vars );
