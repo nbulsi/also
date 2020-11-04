@@ -274,6 +274,8 @@ namespace also
       {
         const auto ilast_step = spec.nr_steps - 1;
         auto outbit = kitty::get_bit( spec[spec.synth_func(0)], t + 1);
+
+        //std::cout << "spec[ " << t + 1 << "] is " << outbit << std::endl;
         
         if ( (spec.out_inv >> spec.synth_func(0) ) & 1 ) 
         {
@@ -525,7 +527,7 @@ namespace also
           return false;
         }
         
-        if( true )
+        if( spec.verbosity > 2 )
         {
           show_variable_correspondence( spec );
         }

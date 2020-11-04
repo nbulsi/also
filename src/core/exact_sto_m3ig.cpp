@@ -182,15 +182,19 @@ namespace also
       std::cout << "need further solve\n";
     }
 
+
     percy::spec spec;
     also::mig3 mig3;
 
     kitty::dynamic_truth_table tt( 4 );
 
-    kitty::create_from_hex_string( tt, "e880" );
+    kitty::create_from_hex_string( tt, "177f" );
     spec[0] = tt;
-    spec.verbosity = 2;
+    spec.verbosity = 0;
 
+    auto flag_normal = kitty::is_normal( tt );
+    if( !flag_normal ) { std::cout << " Function is not normal \n"; }
+    
     percy::bsat_wrapper solver;
     mig_three_sto_encoder encoder( solver );
 
