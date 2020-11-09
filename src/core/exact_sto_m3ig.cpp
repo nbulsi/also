@@ -8,6 +8,7 @@
 #include <kitty/kitty.hpp>
 #include <mockturtle/mockturtle.hpp>
 #include "exact_m3ig_sto_encoder.hpp"
+#include "exact_sto_m3ig.hpp"
 
 namespace also
 {
@@ -179,7 +180,11 @@ namespace also
 
     if( trivial == false )
     {
-      std::cout << "need further solve\n";
+      std::cout << "[i] Not trivial case, need further solve.\n";
+    }
+    else
+    {
+      return;
     }
 
 
@@ -188,15 +193,23 @@ namespace also
 
     kitty::dynamic_truth_table tt( 4 );
 
-    kitty::create_from_hex_string( tt, "177f" );
+    kitty::create_from_hex_string( tt, "17e8" );
     spec[0] = tt;
     spec.verbosity = 0;
 
     auto flag_normal = kitty::is_normal( tt );
-    if( !flag_normal ) { std::cout << " Function is not normal \n"; }
+    if( !flag_normal ) { std::cout << "[i] Function is not normal \n"; }
+    
+    //stochastic problem vector
+    Problem_Vector_t instance;
+    instance.num_vars = num_vars;
+    instance.m = m;
+    instance.n = n;
+    instance.v = vector;
     
     percy::bsat_wrapper solver;
-    mig_three_sto_encoder encoder( solver );
+    mig_three_sto_encoder encoder( solver, instance );
+
 
     if( mig_three_sto_synthesize( spec, mig3, solver, encoder ) == percy::success )
     {

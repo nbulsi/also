@@ -16,6 +16,15 @@
 
 namespace also
 {
+  typedef struct Problem_Vector_t_ Problem_Vector_t;
+
+  struct Problem_Vector_t_
+  {
+    unsigned num_vars;
+    unsigned m;
+    unsigned n;
+    std::vector<unsigned> v;
+  };
 
   void stochastic_synthesis( unsigned const& num_vars, unsigned const& m, unsigned const& n, std::vector<unsigned> const& vector );
 

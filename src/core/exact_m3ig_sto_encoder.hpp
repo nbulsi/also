@@ -16,23 +16,37 @@
 #include <mockturtle/mockturtle.hpp>
 
 #include "m3ig_helper.hpp"
+#include "exact_sto_m3ig.hpp"
 
 using namespace percy;
 using namespace mockturtle;
 
 namespace also
 {
+  template <typename TType>
+    void print_vector(const std::vector<TType>& vec)
+    {
+      typename  std::vector<TType>::const_iterator it;
+      std::cout << "(";
+      for(it = vec.begin(); it != vec.end(); it++)
+      {
+        if(it!= vec.begin()) std::cout << ",";
+        std::cout << (*it);
+      }
+      std::cout << ")\n";
+    }
 
   class mig_three_sto_encoder
   {
     private:
       solver_wrapper* solver;
+      Problem_Vector_t problem_vec;
       pabc::lit pLits[2048];
       
       int nr_sel_vars;
       int nr_sim_vars;
       int nr_op_vars;
-      int nr_res_vars;
+      int nr_res_vars = 0u;
       int total_nr_vars;
 
       int sel_offset;
@@ -95,7 +109,7 @@ namespace also
         return -1;
       }
       
-      int get_res_var(const spec& spec, int step_idx, int res_var_idx) const
+      /*int get_res_var(const spec& spec, int step_idx, int res_var_idx) const
       {
         auto offset = 0;
         for (int i = 0; i < step_idx; i++) {
@@ -103,20 +117,105 @@ namespace also
         }
 
         return res_offset + offset + res_var_idx;
+      }*/
+
+      /* idx in [0,n] */
+      std::vector<int> get_res_var_set( int idx ) 
+      {
+        assert( idx >= 0 );
+        assert( idx <= get_n_value() );
+
+        std::vector<int> v;
+
+        auto offset = 0;
+        auto s = get_number_entries_sum_equal_C();
+
+        for( auto i = 0u; i < idx; i++ )
+        {
+          if( i == 0 )
+          {
+            offset += ( problem_vec.v[i] + 2 ) * ( s[i] + 1 - 1 );
+          }
+          else
+          {
+            offset += ( problem_vec.v[i] + 2 ) * ( s[i] + 1 );
+          }
+        }
+
+        int bound;
+        if( idx == 0 )
+        {
+          bound = ( problem_vec.v[idx] + 2 ) * ( s[idx] + 1 - 1 );
+        }
+        else
+        {
+          bound = ( problem_vec.v[idx] + 2 ) * ( s[idx] + 1 );
+        }
+
+        for( auto i = 0u; i < bound; i++ )
+        {
+          v.push_back( res_offset + offset + i );
+        }
+
+        return v;
+      }
+
+      std::vector<int> get_sim_var_set( int idx )
+      {
+        assert( idx >= 0 );
+        assert( idx <= get_n_value() );
+        
+        std::vector<int> v;
+
+        auto offset = 0;
+        auto s = get_number_entries_sum_equal_C();
+
+        for( auto i = 0u; i < idx; i++ )
+        {
+          offset += s[i]; 
+        }
+
+        auto bound = s[idx];
+        for( auto i = 0u; i < bound; i++ )
+        {
+          if( !( i == 0 && idx == 0 ) )
+          {
+            v.push_back( offset + i - 1 );
+          }
+        }
+
+        return v;
       }
 
     public:
-      mig_three_sto_encoder( solver_wrapper& solver )
+      mig_three_sto_encoder( solver_wrapper& solver, Problem_Vector_t const& problem_vec )
       {
         this->solver = &solver;
+        this->problem_vec = problem_vec;
+      }
+
+      unsigned get_num_vars()
+      {
+        return problem_vec.num_vars;
+      }
+
+      unsigned get_n_value()
+      {
+        return problem_vec.n;
+      }
+      
+      unsigned get_m_value()
+      {
+        return problem_vec.m;
       }
 
       ~mig_three_sto_encoder()
       {
       }
-      
+
       void create_variables( const spec& spec )
       {
+        //std::cout << " m = " << problem_vec.m << " n = " << problem_vec.n << std::endl;
         /* number of simulation variables, s_out_in1_in2_in3 */
         sel_map = comput_select_vars_map3( spec.nr_steps, spec.nr_in );
         nr_sel_vars = sel_map.size();
@@ -126,16 +225,31 @@ namespace also
 
         /* number of truth table simulation variables */
         nr_sim_vars = spec.nr_steps * spec.tt_size;
+
+        /* number of result variables for cardinality constraints */
+        auto v = get_number_entries_sum_equal_C();
+        for( auto i = 0; i < get_n_value() + 1; i++ )
+        {
+          if( i == 0) /* note that the first bit is 0 for normal function */
+          {
+            nr_res_vars += ( ( problem_vec.v[ i ] + 2 ) * ( v[i] - 1 + 1 ) );
+          }
+          else
+          {
+            nr_res_vars += ( ( problem_vec.v[ i ] + 2 ) * ( v[i] + 1 ) );
+          }
+        }
         
         /* offsets, this is used to find varibles correspondence */
         sel_offset = 0;
         op_offset  = nr_sel_vars;
         sim_offset = nr_sel_vars + nr_op_vars;
+        res_offset = nr_sel_vars + nr_op_vars + nr_sim_vars;
 
         /* total variables used in SAT formulation */
-        total_nr_vars = nr_op_vars + nr_sel_vars + nr_sim_vars;
+        total_nr_vars = nr_op_vars + nr_sel_vars + nr_sim_vars + nr_res_vars;
 
-        if( spec.verbosity > 1 )
+        if( spec.verbosity >= 0 )
         {
           printf( "Creating variables (mig)\n");
           printf( "nr_steps    = %d\n", spec.nr_steps );
@@ -143,12 +257,25 @@ namespace also
           printf( "nr_sel_vars = %d\n", nr_sel_vars );
           printf( "nr_op_vars  = %d\n", nr_op_vars );
           printf( "nr_sim_vars = %d\n", nr_sim_vars );
+          printf( "nr_res_vars = %d\n", nr_res_vars );
           printf( "tt_size     = %d\n", spec.tt_size );
           printf( "creating %d total variables\n", total_nr_vars);
         }
         
         /* declare in the solver */
         solver->set_nr_vars(total_nr_vars);
+
+        for( auto i = 0; i < get_n_value() + 1; i++ )
+        {
+          auto s = get_res_var_set( i );
+
+          std::cout << " res var for " << i;
+          for( auto& e : s )
+          {
+            std::cout << " " << e;
+          }
+          std::cout << std::endl;
+        }
       }
       
       int get_level(const spec& spec, int step_idx) const
@@ -474,9 +601,95 @@ namespace also
           ret &= add_consistency_clause_init( spec, t, svar );
         }
         
-        ret &= fix_output_sim_vars(spec, t);
+        //ret &= fix_output_sim_vars(spec, t);
 
         return ret;
+      }
+
+      std::vector<unsigned> get_number_entries_sum_equal_C()
+      {
+        auto m = get_m_value();
+        auto n = get_n_value();
+
+        std::vector<unsigned> v( n + 1 );
+
+        unsigned total = 0u; 
+        auto var = (unsigned)ceil( log2( m + n ) );
+        kitty::dynamic_truth_table tt( var );
+
+        auto num_loop = 0u;
+        do
+        {
+          auto sum = 0u;
+          
+          for( auto i = 0u; i < n; i++ )
+          {
+            sum += kitty::get_bit( tt, i + m );
+          }
+
+          v[sum]++;
+          num_loop++;
+          kitty::next_inplace( tt );
+        }while( !kitty::is_const0( tt ) && num_loop < pow( 2, m + n ) );
+
+        return v;
+      }
+
+
+      void create_problem_vector_constraints( const spec& spec )
+      {
+        std::vector<int> svars; //sum variables
+        std::vector<int> rvars; //result variables
+
+        auto v = get_number_entries_sum_equal_C();
+
+        /*std::cout << " v.size = " << v.size() << std::endl;
+        for( auto i = 0; i <= get_n_value(); i++ )
+        {
+          std::cout << " v at index " << i << " is " << v[i] << std::endl; 
+        }*/
+        
+        const auto ilast_step = spec.nr_steps - 1;
+
+        for( int i = 0u; i < get_n_value() + 1; i++ )
+        {
+          svars.clear();
+          rvars.clear();
+
+          auto sim_vars = get_sim_var_set( i );
+          for( auto const& e : sim_vars )
+          {
+            svars.push_back( get_sim_var( spec, ilast_step, e ) );
+          }
+
+          rvars = get_res_var_set( i );
+
+          std::cout << " svar: " ;
+          print_vector( svars );
+          
+          std::cout << " rvar: " ;
+          print_vector( rvars );
+
+          assert( rvars.size() == ( problem_vec.v[i] + 2 ) * ( svars.size() + 1 ) );
+
+          create_cardinality_circuit( solver, svars, rvars, problem_vec.v[i] );
+
+          std::cout << "rvar size: " << rvars.size() << std::endl;
+
+          auto res_idx =  svars.size()  * ( problem_vec.v[i] + 2 ) + problem_vec.v[i];
+          std::cout << " res_idx : " << res_idx << std::endl;
+          
+          if( svars.size() == 1 )
+          {
+            auto fi_lit = pabc::Abc_Var2Lit( svars[0], 0 );
+            (void)solver->add_clause( &fi_lit, &fi_lit + 1 );
+          }
+          else
+          {
+            auto fi_lit = pabc::Abc_Var2Lit( rvars[res_idx], 0 );
+            (void)solver->add_clause( &fi_lit, &fi_lit + 1 );
+          }
+        }
       }
       
       void create_main_clauses( const spec& spec )
@@ -485,6 +698,8 @@ namespace also
         {
           (void) create_tt_clauses( spec, t );
         }
+        
+        (void) create_problem_vector_constraints( spec );
       }
       
       //block solution
@@ -600,7 +815,13 @@ namespace also
    synth_result mig_three_sto_synthesize( spec& spec, mig3& mig3, solver_wrapper& solver, mig_three_sto_encoder& encoder )
    {
       spec.preprocess();
-      
+
+      //init the spec based on the problem vector
+      spec.nr_in   = encoder.get_m_value() + encoder.get_n_value();
+      spec.tt_size = ( 1 << spec.nr_in ) - 1; 
+
+      std::cout << " nr_in : " << spec.nr_in << " tt_size : " << spec.tt_size << std::endl;
+
       // The special case when the Boolean chain to be synthesized
       // consists entirely of trivial functions.
       if (spec.nr_triv == spec.get_nr_out()) 
