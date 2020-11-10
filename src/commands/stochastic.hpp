@@ -76,7 +76,11 @@ namespace alice
             std::cout << std::endl;
           }
 
-          stochastic_synthesis( num_vars, m, n, vector );
+        stopwatch<>::duration time{0};
+        call_with_stopwatch( time, [&]() { 
+            stochastic_synthesis( num_vars, m, n, vector ); } );
+        
+        std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
         }
         else
         {

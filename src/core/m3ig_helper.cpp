@@ -108,7 +108,7 @@ namespace also
     return ss.str();
   }
 
-  std::string print_all_expr( const spec& spec, const mig3& mig3 )
+  std::string print_all_expr( const spec& spec, mig3& mig3 )
   {
     std::stringstream ss;
 
@@ -129,6 +129,28 @@ namespace also
     }
 
     std::cout << "[expressions] " << ss.str() << std::endl;
+    
+    if( spec.get_nr_out() > 1 )
+    {
+      std::cout << "[i] There are " << spec.get_nr_out() << " functions be synthesized\n\n"; 
+
+      for( int i = 0; i < spec.get_nr_out(); i++ )
+      {
+        std::cout << "[i] Function id " << i << " is 0x" << kitty::to_hex( spec[i] ) << std::endl;
+        auto outvar = mig3.get_output(i) >> 1;
+        std::cout << "[i] PO " << i << " is " << char( outvar - 1 + 'a' ); 
+        if( mig3.get_output(i) & 1 )
+        {
+          std::cout << " and inverted\n";
+        }
+        else
+        {
+          std::cout << std::endl;
+        }
+
+        std::cout << std::endl;
+      }
+    }
     return ss.str();
   }
 

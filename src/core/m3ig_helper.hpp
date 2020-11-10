@@ -488,7 +488,7 @@ namespace also
   /* mig3 to expressions */
   std::string mig3_to_string( const spec& spec, const mig3& mig3 );
   std::string print_expr( const mig3& mig3, const int& step_idx );
-  std::string print_all_expr( const spec& spec, const mig3& mig3 );
+  std::string print_all_expr( const spec& spec, mig3& mig3 );
 
 }
 
