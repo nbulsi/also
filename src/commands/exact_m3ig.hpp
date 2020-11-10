@@ -51,73 +51,6 @@ namespace alice
       int num_steps = 1;
       float error_rate = 0.1;
 
-      std::string print_expr( const also::mig3& mig3, const int& step_idx )
-      {
-        std::stringstream ss;
-        std::vector<char> inputs;
-
-        for( auto i = 0; i < 3; i++ )
-        {
-          if( mig3.steps[step_idx][i] == 0 )
-          {
-            inputs.push_back( '0' );
-          }
-          else
-          {
-            inputs.push_back( char( 'a' + mig3.steps[step_idx][i] - 1 ) );
-          }
-        }
-
-        switch( mig3.operators[ step_idx ] )
-        {
-          default:
-            assert( false && "illegal operator id" );
-            break;
-
-          case 0:
-            ss << "<" << inputs[0] << inputs[1] << inputs[2] << "> "; 
-            break;
-          
-          case 1:
-            ss << "<!" << inputs[0] << inputs[1] << inputs[2] << "> "; 
-            break;
-
-          case 2:
-            ss << "<" << inputs[0] << "!" << inputs[1] << inputs[2] << "> "; 
-            break;
-
-          case 3:
-            ss << "<" << inputs[0] << inputs[1] << "!" << inputs[2] << "> "; 
-            break;
-        }
-
-        return ss.str();
-      }
-
-      std::string print_all_expr( const spec& spec, const also::mig3& mig3 )
-      {
-        std::stringstream ss;
-
-        char pol = spec.out_inv ? '!' : ' ';
-
-        std::cout << "[i] " << spec.nr_steps << " steps are required " << std::endl;
-        for(auto i = 0; i < spec.nr_steps; i++ )
-        {
-          if(  i == spec.nr_steps - 1 ) 
-          {
-            ss << pol;
-            ss << char( i + spec.nr_in + 'a' ) << "=" << print_expr( mig3, i ); 
-          }
-          else
-          {
-            ss << char( i + spec.nr_in + 'a' ) << "=" << print_expr( mig3, i ); 
-          }
-        }
-
-        std::cout << "[expressions] " << ss.str() << std::endl;
-        return ss.str();
-      }
-
       void enumerate_m3ig( const kitty::dynamic_truth_table& tt )
       {
         bsat_wrapper solver;
@@ -173,7 +106,6 @@ namespace alice
         {
           spec[0] = copy;
         }
-
 
         stopwatch<>::duration time{0};
         if( is_set( "cegar" ) )
