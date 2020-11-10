@@ -274,6 +274,26 @@ namespace alice
     os << "\n";
   }
   
+  ALICE_READ_FILE( xag_network, verilog, filename, cmd )
+  {
+    xag_network xag;
+    lorina::read_verilog( filename, mockturtle::verilog_reader( xag ) );
+    return xag;
+  }
+  
+  ALICE_WRITE_FILE( xag_network, verilog, xag, filename, cmd )
+  {
+     mockturtle::write_verilog( xag, filename );
+  }
+  
+  ALICE_PRINT_STORE_STATISTICS( xag_network, os, xag )
+  {
+    mockturtle::depth_view depth_xag{xag};
+    os << fmt::format( "XAG   i/o = {}/{}   gates = {}   level = {}", 
+          xag.num_pis(), xag.num_pos(), xag.num_gates(), depth_xag.depth() );
+    os << "\n";
+  }
+  
   ALICE_READ_FILE( img_network, verilog, filename, cmd )
   {
     img_network img;
@@ -358,13 +378,30 @@ namespace alice
     mig_npn_resynthesis resyn;
     auto mig = node_resynthesis<mig_network>( klut, resyn );
 
-    /* cut rewriting */
-    cut_rewriting_params cut_ps;
-    cut_ps.cut_enumeration_ps.cut_size = 4;
-    cut_rewriting( mig, resyn, cut_ps );
-    mig = cleanup_dangling( mig );
-
     return mig;
+  }
+  
+  /********************************************************************
+   * Convert from aig to xmg                                          *
+   ********************************************************************/
+  ALICE_CONVERT( aig_network, element, xmg_network )
+  {
+    aig_network aig = element;
+
+    /* LUT mapping */
+    mapping_view<aig_network, true> mapped_aig{aig};
+    lut_mapping_params ps;
+    ps.cut_enumeration_ps.cut_size = 4;
+    lut_mapping<mapping_view<aig_network, true>, true>( mapped_aig, ps );
+
+    /* collapse into k-LUT network */
+    const auto klut = *collapse_mapped_network<klut_network>( mapped_aig );
+
+    /* node resynthesis */
+    xmg_npn_resynthesis resyn;
+    auto xmg = node_resynthesis<xmg_network>( klut, resyn );
+
+    return xmg;
   }
   
   ALICE_CONVERT( mig_network, element, xmg_network )
@@ -374,12 +411,12 @@ namespace alice
     return also::xmg_from_mig( mig );
   }
   
-  ALICE_CONVERT( aig_network, element, xmg_network )
+  /*ALICE_CONVERT( aig_network, element, xmg_network )
   {
     aig_network aig = element;
 
     return also::xmg_from_aig( aig );
-  }
+  }*/
 
 
 }

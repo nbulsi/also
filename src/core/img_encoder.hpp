@@ -135,6 +135,48 @@ namespace also
     select_imp s( nr_steps, nr_in );
     return s.get_num_of_sel_vars_for_each_step( step_idx );
   }
+
+  /* create img from string */
+  img_network img_from_expr( const std::string& expr, const unsigned& num_pis )
+  {
+    img_network img;
+    std::vector<img_network::signal> sig;
+    std::stack<img_network::signal> inputs;
+
+    sig.push_back( img.get_constant( false ) );
+    for( auto i = 0u; i < num_pis; i++ )
+    {
+      sig.push_back( img.create_pi() );
+    }
+
+    for( auto i = 0ul; i < expr.size(); i++ )
+    {
+      if( expr[i] >= 'a' )
+      {
+        inputs.push( sig[ expr[i] - 'a' + 1 ] );
+      }
+
+      if( expr[i] == '0' )
+      {
+        inputs.push( sig[0] );
+      }
+      
+      if ( expr[i] == ')' )
+      {
+        assert( inputs.size() >= 2u );
+        auto x1 = inputs.top();
+        inputs.pop();
+        auto x2 = inputs.top();
+        inputs.pop();
+
+        inputs.push( img.get_node( x1 ) == 0 ? img.create_not( x2 ) : img.create_imp( x2, x1 ) );
+      }
+    }
+
+    img.create_po( inputs.top() );
+
+    return img;
+  }
   
   /******************************************************************************
    * img chain *
@@ -1510,7 +1552,7 @@ namespace also
     return img_to_string( spec, best_img );
   }
   
-  void nbu_img_encoder_test( const kitty::dynamic_truth_table& tt, const bool& enable_fanout_clauses )
+  img_network nbu_img_encoder_test( const kitty::dynamic_truth_table& tt, const bool& enable_fanout_clauses )
   {
     bsat_wrapper solver;
     spec spec;
@@ -1539,6 +1581,8 @@ namespace also
     {
       std::cout << "[i] Fail " << std::endl;
     }
+
+    return img_from_expr( img.img_to_expression(), spec[0].num_vars() );
   }
 
   std::string nbu_cog( const kitty::dynamic_truth_table& tt, const bool& enable_fanout_clauses )

@@ -25,7 +25,7 @@ namespace alice
   class lut_mapping_command : public command
   {
     public:
-      explicit lut_mapping_command( const environment::ptr& env ) : command( env, "LUT mapping" )
+      explicit lut_mapping_command( const environment::ptr& env ) : command( env, "LUT mapping : using AIG as default" )
       {
         add_option( "cut_size, -k", cut_size, "set the cut size from 2 to 8, default = 4" );
         add_flag( "--verbose, -v", "print the information" );

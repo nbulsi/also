@@ -2,32 +2,31 @@
  * Copyright (C) 2019- Ningbo University, Ningbo, China */
 
 /**
- * @file xagrs.hpp
+ * @file xagban.hpp
  *
- * @brief xag resubsitution
+ * @brief TODO
  *
- * @author Zhufei Chu
+ * @author Zhufei
  * @since  0.1
  */
 
-#ifndef XAGRS_HPP
-#define XAGRS_HPP
+#ifndef XAGBAN_HPP
+#define XAGBAN_HPP
 
-#include <mockturtle/mockturtle.hpp>
-#include <mockturtle/algorithms/resubstitution.hpp>
 #include <mockturtle/networks/xag.hpp>
+#include <mockturtle/algorithms/balancing.hpp>
+#include <mockturtle/algorithms/balancing/esop_balancing.hpp>
 
 #include "../core/misc.hpp"
 
 namespace alice
 {
 
-  class xagrs_command : public command
+  class xagban_command : public command
   {
     public:
-      explicit xagrs_command( const environment::ptr& env ) : command( env, "Performs XAG resubsitution" )
+      explicit xagban_command( const environment::ptr& env ) : command( env, "Performs XAG balancing" )
       {
-        add_flag( "-v,--verbose", ps.verbose, "show statistics" );
       }
       
       rules validity_rules() const
@@ -41,23 +40,19 @@ namespace alice
         /* derive some XAG */
          xag_network xag = store<xag_network>().current();
 
-         default_resubstitution( xag, ps, &st );
+         xag = balancing( xag, {esop_rebalancing<xag_network>{}});
+         
          xag = cleanup_dangling( xag );
          
-         std::cout << "[xagrs] "; 
+         std::cout << "[xagban] "; 
          also::print_stats( xag ); 
 
          store<xag_network>().extend(); 
          store<xag_network>().current() = xag;
       }
-    
-    private:
-      resubstitution_params ps;
-      resubstitution_stats  st;
   };
-  
-  ALICE_ADD_COMMAND( xagrs, "Rewriting" )
 
+  ALICE_ADD_COMMAND( xagban, "Rewriting" )
 
 }
 

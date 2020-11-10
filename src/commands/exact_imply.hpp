@@ -118,7 +118,10 @@ namespace alice
           {
             call_with_stopwatch( time, [&]() 
                 {
-                also::nbu_img_encoder_test( opt.function, enable_fanout_clauses );
+                auto img = also::nbu_img_encoder_test( opt.function, enable_fanout_clauses );
+                also::print_stats( img );
+                store<img_network>().extend(); 
+                store<img_network>().current() = img;
                 } );
           }
         }

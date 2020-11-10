@@ -34,7 +34,7 @@
 #include "commands/exact_maj.hpp"
 #include "commands/exprsim.hpp"
 #include "commands/xmgrw.hpp"
-#include "commands/xmgrs.hpp"
+//#include "commands/xmgrs.hpp"
 #include "commands/cutrw.hpp"
 #include "commands/xmgcost.hpp"
 #include "commands/magic.hpp"
@@ -42,6 +42,7 @@
 #include "commands/cog.hpp"
 #include "commands/test_tt.hpp"
 #include "commands/test_img.hpp"
+#include "commands/test_xagdec.hpp"
 #include "commands/imgrw.hpp"
 #include "commands/imgff.hpp"
 #include "commands/ax.hpp"
@@ -50,6 +51,8 @@
 #include "commands/xmgcost2.hpp"
 #include "commands/xagrw.hpp"
 #include "commands/test_appro.hpp"
+#include "commands/xagban.hpp"
+#include "commands/stochastic.hpp"
 
 ALICE_MAIN( also )
 
