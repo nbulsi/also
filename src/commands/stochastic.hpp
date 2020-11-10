@@ -64,11 +64,11 @@ namespace alice
 
           if( is_set( "verbose" ) )
           {
-            std::cout << " num_vars : " << num_vars << "\n" 
-                      << " m        : " << m 
-                      << " n        : " << n << "\n";
+            std::cout << "[i] num_vars : " << num_vars << "\n" 
+                      << "[i] m        : " << m << "\n" 
+                      << "[i] n        : " << n << "\n";
 
-            std::cout << "Problem vector: ";
+            std::cout << "[i] Problem vector: ";
             for( auto const& e : vector )
             {
               std::cout << e << " ";

@@ -109,16 +109,6 @@ namespace also
         return -1;
       }
       
-      /*int get_res_var(const spec& spec, int step_idx, int res_var_idx) const
-      {
-        auto offset = 0;
-        for (int i = 0; i < step_idx; i++) {
-          offset += (nr_svars_for_step(spec, i) + 1) * (1 + 2);
-        }
-
-        return res_offset + offset + res_var_idx;
-      }*/
-
       /* idx in [0,n] */
       std::vector<int> get_res_var_set( int idx ) 
       {
@@ -188,7 +178,7 @@ namespace also
       }
 
     public:
-      mig_three_sto_encoder( solver_wrapper& solver, Problem_Vector_t const& problem_vec )
+      mig_three_sto_encoder( solver_wrapper& solver, Problem_Vector_t & problem_vec )
       {
         this->solver = &solver;
         this->problem_vec = problem_vec;
@@ -209,13 +199,26 @@ namespace also
         return problem_vec.m;
       }
 
+      std::vector<unsigned> get_problem_vec()
+      {
+        return problem_vec.v;
+      }
+
+      void set_problem_vec( std::vector<unsigned> const& prob )
+      {
+        assert( problem_vec.v.size() == prob.size() );
+        for( auto i = 0; i < get_n_value() + 1; i++ )
+        {
+          problem_vec.v[i] = prob[i];
+        }
+      }
+
       ~mig_three_sto_encoder()
       {
       }
 
       void create_variables( const spec& spec )
       {
-        //std::cout << " m = " << problem_vec.m << " n = " << problem_vec.n << std::endl;
         /* number of simulation variables, s_out_in1_in2_in3 */
         sel_map = comput_select_vars_map3( spec.nr_steps, spec.nr_in );
         nr_sel_vars = sel_map.size();
@@ -230,6 +233,14 @@ namespace also
         auto v = get_number_entries_sum_equal_C();
         for( auto i = 0; i < get_n_value() + 1; i++ )
         {
+          /* check the legality */
+          if( problem_vec.v[ i ] > v[ i ] ) 
+          { 
+            std::cout << "[e] There are " << v[ i ] << " entries, but the problem needs " << problem_vec.v[ i ] << " minterms \n";
+            assert( false && "Illegal problem vector" ); 
+          }
+
+          /* compute the total result variables */
           if( i == 0) /* note that the first bit is 0 for normal function */
           {
             nr_res_vars += ( ( problem_vec.v[ i ] + 2 ) * ( v[i] - 1 + 1 ) );
@@ -249,7 +260,7 @@ namespace also
         /* total variables used in SAT formulation */
         total_nr_vars = nr_op_vars + nr_sel_vars + nr_sim_vars + nr_res_vars;
 
-        if( spec.verbosity >= 0 )
+        if( spec.verbosity > 1 )
         {
           printf( "Creating variables (mig)\n");
           printf( "nr_steps    = %d\n", spec.nr_steps );
@@ -264,18 +275,6 @@ namespace also
         
         /* declare in the solver */
         solver->set_nr_vars(total_nr_vars);
-
-        for( auto i = 0; i < get_n_value() + 1; i++ )
-        {
-          auto s = get_res_var_set( i );
-
-          std::cout << " res var for " << i;
-          for( auto& e : s )
-          {
-            std::cout << " " << e;
-          }
-          std::cout << std::endl;
-        }
       }
       
       int get_level(const spec& spec, int step_idx) const
@@ -402,8 +401,6 @@ namespace also
         const auto ilast_step = spec.nr_steps - 1;
         auto outbit = kitty::get_bit( spec[spec.synth_func(0)], t + 1);
 
-        //std::cout << "spec[ " << t + 1 << "] is " << outbit << std::endl;
-        
         if ( (spec.out_inv >> spec.synth_func(0) ) & 1 ) 
         {
           outbit = 1 - outbit;
@@ -542,15 +539,6 @@ namespace also
         return ret;
       }
       
-      bool is_element_duplicate( const std::vector<unsigned>& array )
-      {
-        auto copy = array;
-        copy.erase( copy.begin() ); //remove the first element that indicates step index
-        auto last = std::unique( copy.begin(), copy.end() );
-
-        return ( last == copy.end() ) ? false : true;
-      }
-
       bool add_consistency_clause_init( const spec& spec, const int t, std::pair<int, std::vector<unsigned>> svar )
       {
         auto ret = true;
@@ -642,12 +630,6 @@ namespace also
         std::vector<int> rvars; //result variables
 
         auto v = get_number_entries_sum_equal_C();
-
-        /*std::cout << " v.size = " << v.size() << std::endl;
-        for( auto i = 0; i <= get_n_value(); i++ )
-        {
-          std::cout << " v at index " << i << " is " << v[i] << std::endl; 
-        }*/
         
         const auto ilast_step = spec.nr_steps - 1;
 
@@ -664,22 +646,19 @@ namespace also
 
           rvars = get_res_var_set( i );
 
-          std::cout << " svar: " ;
-          print_vector( svars );
-          
-          std::cout << " rvar: " ;
-          print_vector( rvars );
+          if( spec.verbosity > 1 )
+          {
+            std::cout << " svar: " ; print_vector( svars );
+            std::cout << " rvar: " ; print_vector( rvars );
+          }
 
           assert( rvars.size() == ( problem_vec.v[i] + 2 ) * ( svars.size() + 1 ) );
 
           create_cardinality_circuit( solver, svars, rvars, problem_vec.v[i] );
 
-          std::cout << "rvar size: " << rvars.size() << std::endl;
-
           auto res_idx =  svars.size()  * ( problem_vec.v[i] + 2 ) + problem_vec.v[i];
-          std::cout << " res_idx : " << res_idx << std::endl;
           
-          if( svars.size() == 1 )
+          if( svars.size() == 1 && problem_vec.v[i] == 1 )
           {
             auto fi_lit = pabc::Abc_Var2Lit( svars[0], 0 );
             (void)solver->add_clause( &fi_lit, &fi_lit + 1 );
@@ -734,6 +713,11 @@ namespace also
       {
         assert( spec.nr_in >= 3 );
         create_variables( spec );
+
+        if( spec.verbosity > 1 )
+        {
+          std::cout << " current problem vector: "; print_vector( problem_vec.v );
+        }
 
         create_main_clauses( spec );
         
@@ -820,7 +804,7 @@ namespace also
       spec.nr_in   = encoder.get_m_value() + encoder.get_n_value();
       spec.tt_size = ( 1 << spec.nr_in ) - 1; 
 
-      std::cout << " nr_in : " << spec.nr_in << " tt_size : " << spec.tt_size << std::endl;
+      //std::cout << " nr_in : " << spec.nr_in << " tt_size : " << spec.tt_size << std::endl;
 
       // The special case when the Boolean chain to be synthesized
       // consists entirely of trivial functions.
@@ -838,6 +822,28 @@ namespace also
 
       spec.nr_steps = spec.initial_steps; 
 
+      bool flag_unnormal = false;
+      bool flag_permanate_unnormal = false;
+      auto porigin = encoder.get_problem_vec();
+      auto v = encoder.get_number_entries_sum_equal_C();
+
+      /* special case when v[0] = porigin.v[0], that means the
+       * first bit must be 1, which is not a normal function */
+      if( porigin[0] == v[0] )
+      {
+        flag_permanate_unnormal = true;
+        spec.out_inv = true;
+        std::vector<unsigned> pupdate;
+
+        for( auto i = 0; i < encoder.get_n_value() + 1; i++ )
+        {
+          pupdate.push_back( v[i] - porigin[i] );
+        }
+
+        encoder.set_problem_vec( pupdate );
+        std::cout << "[i] UNNORMAL function." << std::endl;
+      }
+
       while( true )
       {
         solver.restart();
@@ -853,13 +859,46 @@ namespace also
         if( status == success )
         {
           //encoder.show_verbose_result();
+          if( flag_unnormal ) { spec.out_inv = true; }
+
           encoder.extract_mig3( spec, mig3 );
           return success;
         }
         else if( status == failure )
         {
-          spec.nr_steps++;
-          if( spec.nr_steps == 10 )
+          /*****************************************************
+           * Due to the encoder works for normal function, we
+           * should also try the unnormal function, just redefine
+           * the problem vector, if m = 1, n = 2, the problem
+           * vector is [1,3,2], then the inveterd problem vector
+           * is [2-1=1, 4-3=1, 2-2=0]
+           * ***************************************************/
+          if( !flag_unnormal && !flag_permanate_unnormal )
+          {
+            std::cout << " Try the unnormal function\n";
+            flag_unnormal = true;
+
+            std::vector<unsigned> pupdate;
+
+            for( auto i = 0; i < encoder.get_n_value() + 1; i++ )
+            {
+              pupdate.push_back( v[i] - porigin[i] );
+            }
+
+            encoder.set_problem_vec( pupdate );
+          }
+          else
+          {
+            spec.nr_steps++;
+            flag_unnormal = false;
+
+            if( !flag_permanate_unnormal )
+            {
+              encoder.set_problem_vec( porigin );
+            }
+          }
+          
+          if( spec.nr_steps == 20 )
           {
             break;
           }
