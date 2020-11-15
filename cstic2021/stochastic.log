@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020/W32TeX) (preloaded format=pdflatex 2020.11.6)  15 NOV 2020 11:22
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020/W32TeX) (preloaded format=pdflatex 2020.11.6)  15 NOV 2020 11:56
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -690,11 +690,11 @@ Underfull \hbox (badness 2142) in paragraph at lines 71--72
  []
 
 LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 1
-27.
+28.
 (e:/texlive/2020/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
-Overfull \hbox (61.0316pt too wide) in paragraph at lines 136--156
+Overfull \hbox (61.0316pt too wide) in paragraph at lines 137--157
  [][] 
  []
 
@@ -737,7 +737,7 @@ blic/amsfonts/cm/cmsy8.pfb><e:/texlive/2020/texmf-dist/fonts/type1/urw/courier/
 ucrr8a.pfb><e:/texlive/2020/texmf-dist/fonts/type1/urw/times/utmb8a.pfb><e:/tex
 live/2020/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb><e:/texlive/2020/texmf-d
 ist/fonts/type1/urw/times/utmr8a.pfb>
-Output written on stochastic.pdf (3 pages, 197736 bytes).
+Output written on stochastic.pdf (3 pages, 197708 bytes).
 PDF statistics:
  85 PDF objects out of 1000 (max. 8388607)
  60 compressed objects within 1 object stream

@@ -61,7 +61,7 @@ cubes (i.e., product terms) to the on-set of the Boolean function. However, heur
 
 \section*{Background}
 %\subsection{TG}
-Figure. 2 shows a general form of stochastic computing circuit with combination circuit. For a function of single variable x, the stochastic number generator (SNG) generates n inputs $X_{1}, \ldots, X_{n}$, whose probability is x, where n is the highest degree of the variable $x$ in the function. SNGs usually consist of a pseudo-random number generator and a comparator.In addition, the linear feedback shift register (LFSR) generates m inputs $Y_{1}, \ldots, Y_{n}$ with probability 0.5. The stochastic bit streams of these n+m inputs are processed by a combination logic circuit.
+Figure. 2 shows a general form of stochastic circuit with combination circuit. For a function of single variable x, the stochastic number generator (SNG) generates n inputs $X_{1}, \ldots, X_{n}$, whose probability is x, where n is the highest degree of the variable $x$ in the function. SNGs usually consist of a pseudo-random number generator and a comparator. In addition, the linear feedback shift register (LFSR) generates m inputs $Y_{1}, \ldots, Y_{n}$ with probability 0.5. The stochastic bit streams of these n+m inputs are processed by a combination logic circuit.
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=3in]{fig/sc6.jpg}	
@@ -93,11 +93,12 @@ The Boolean function shown in Fig. 3 is represented in a simplified sum-of-produ
 \begin{equation}
 F=X_{2} \overline{Y_{1}}+X_{1} \overline{Y_{1}}     \overline{Y_{2}}
 \end{equation}
+
 In this way, the problem vector can form a logical circuit for stochastic computing, but there are many kinds of Boolean functions of the same problem vector. Fig. 3 is just one of the 356 Boolean functions of problem vector (0, 3, 2).
 
 
 \section*{Proposed Designs}
-Exact synthesis is the problem of finding optimal logic networks by giving a set of primitives. It is well know that the optimal size of a normal network is found via SAT formula\cite{3}. Based on the Knuth algorithm ~\cite{4}, we propose our encoding method about Majority operations. Being $a$, $b$, and $c$ the 3 inputs, each gate can realize $<a b c>$, $<\bar{a} b c>$, $<a \bar{b} c>$ or $<a b \bar{c}>$. By setting any variable to constant 0 or 1, one can behave as AND or OR, respectively. $a b$, $\bar{a} b$, $a \bar{b}$, and $a+b$ should also be considered. The defined variables~\cite{5} are constrained by a set of clauses.For each gate $r$, the operation variable  $o_{r w}$ is true if the operation of gate $r$ is $w$, where $w$ is one of the 8 possible normal majority operations.
+Exact synthesis is the problem of finding optimal logic networks by giving a set of primitives. It is well know that the optimal size of a normal network is found via SAT formula\cite{3}. Based on the Knuth algorithm ~\cite{4}, we propose our encoding method about Majority operations. Being $a$, $b$, and $c$ the 3 inputs, each gate can realize $<a b c>$, $<\bar{a} b c>$, $<a \bar{b} c>$ or $<a b \bar{c}>$. By setting any variable to constant 0 or 1, one can behave as AND or OR, respectively. $a b$, $\bar{a} b$, $a \bar{b}$, and $a+b$ should also be considered. The defined variables~\cite{5} are constrained by a set of clauses. For each gate $r$, the operation variable  $o_{r w}$ is true if the operation of gate $r$ is $w$, where $w$ is one of the 8 possible normal majority operations.
 
 For example, suppose the selection variable $S_{i a b c}$, and the input combination is (100), then we can check $o_{r 1}=<abc>$ outputs 0, while $o_{r 8}=a+b$ outputs 1. Thus the clause is added as follows.
 %$$ \bar{S}_{i a b c} \vee \bar{x}_{i t} \vee o_{r 3} \vee o_{r 4} \vee o_{r 7} \vee o_{r 8}$$
@@ -124,8 +125,8 @@ Given a problem vector, we use exact synthesis algorithm to find a solution by a
 
 
 \section*{Experimental Result}
-In this section, we apply our exact synthesis method to synthesize some common arithmetic functions by our open-source logic synthesis tool ALSO\footnote{https://github.com/nbulsi/also} command `\texttt{stochastic}'. Table. 1 show the comparions between method in\cite{2} and our method.
-The two methods use the same precision $m$ and degree of functions $n$, respectively.The mean absolute error (MAE) is listed in column 5 of the table. The results of simulation show that our approach produces better circuits in terms of area and delay.
+In this section, we apply our exact synthesis method to synthesize some common arithmetic functions by our open-source logic synthesis tool ALSO\footnote{https://github.com/nbulsi/also} command `\texttt{stochastic}'. Table. 2 show the comparions between method in\cite{2} and our method.
+The two methods use the same precision $m$ and degree of functions $n$, respectively. We also evaluate the mean absolute error (MAE) and area-delay product(ADP). The results of simulation show that our approach produces better circuits in terms of area and delay.
 
 \begin{table}[htbp]
 \setlength{\abovecaptionskip}{0.cm}
@@ -135,7 +136,7 @@ The two methods use the same precision $m$ and degree of functions $n$, respecti
 \centering
 \begin{tabular}{lcccccccccc}
 \hline
-\multirow{2}{*} {\thead[l]{Function}}   &\multirow{2}{*} {\thead[c]{m}} &\multirow{2}{*} {\thead[c]{n}} & \thead[c]{Method in \cite{2}}    & & \thead[c] {Our method} &\\
+\multirow{2}{*} {\thead[l]{Function}}   &\multirow{2}{*} {\thead[c]{m}} &\multirow{2}{*} {\thead[c]{n}} & Method in \cite{2}   & & \thead[c] {Our method} &\\
  & & &\thead[c]{Area} &\thead[c]{Delay} &\thead[c]{ADP} &\thead[c]{MAE} &\thead[c]{Area} &\thead[c]{Delay} &\thead[c]{ADP} &\thead[c]{MAE}\\
 \hline
 $\sin (x)$ &2  &4 &15 &4.5 &67.5 &0.0221  &11 &3 &33 &0.0364\\
