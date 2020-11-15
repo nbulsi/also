@@ -26,7 +26,7 @@
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
 
-\title{Stochastic Circuit Design based on Exact Synthesis\\
+\title{Stochastic Circuit Design Based on Exact Synthesis\\
 \thanks{The work was supported by NSFC under Grant 61871242.}
 }
 
@@ -42,7 +42,7 @@ The corresponding author Zhufei Chu received the B.S. degree in electronic infor
 Stochastic computing is an emerging paradigm that converts binary numbers into stochastic bitstreams to perform complex arithmetic computing using simple digital circuits. 
 Stochastic computing is highly fault-tolerant and has been used in many applications. 
 However, due to the large solution space of the problem, stochastic circuit synthesis is more complicated than the traditional logic synthesis.
-Previous methods use a heuristic method to synthesize a stochastic circuit. In this paper, a novel exact synthesis method using Boolean satisfiability (SAT) is proposed to obtain an optimal stochastic circuit represented by majority-inverter graph (MIG), which is a dedicated homogeneous logic network. The experimental results show that the proposed approach can achieve 21\% area reduction, 4\% delay improvement, with 3\% mean absolute error trade-off.  
+Previous methods use a heuristic method to synthesize a stochastic circuit. In this paper, a novel exact synthesis method using Boolean satisfiability (SAT) is proposed to obtain an optimal stochastic circuit represented by majority-inverter graphs (MIGs), which is a dedicated homogeneous logic network. The experimental results show that the proposed approach can achieve 21\% area reduction, 4\% delay improvement, with 3\% mean absolute error trade-off.  
 \vspace{2ex}
 
 \begin{IEEEkeywords}
@@ -50,38 +50,37 @@ stochastic computing; exact synthesis; logic synthesis; majority
 \end{IEEEkeywords}
 
 \section*{Introduction}
-Modern circuit development is limited by many constraints, such as voltage variations, thermal variations and soft errors. These physical phenomena are susceptible to errors, thus reliability has become an important issue. Stochastic computing has received increasing attention as an unconventional computing method for solving these problems. It is unique since it represents and processes information in probabilistic form and is highly fault-tolerant for bit flips. Stochastic computing converts numbers $x\in[0,1]$ into stochastic bitstreams containing only 0 and 1. 
-Each bit has probability $x$ of being a one and probability $1-x$ of being a zero in the bit stream. 
-Thus stochastic computing transforms a complex computing unit into a simple circuit with gate. For example, multiplication in stochastic computing can be implemented with an AND gate if the two input stochastic bit streams are independent, as shown in Fig.~\ref{fig:sto}.  
+Modern circuit development is limited by many constraints, such as voltage variations, thermal, variations and soft errors. These physical phenomena are susceptible to errors, thus reliability has become an important issue. Stochastic computing has received increasing attention as an unconventional computing method for solving these problems. It is unique since it represents and processes information in the probabilistic form and is highly fault-tolerant for bit flips. Stochastic computing converts numbers $x\in[0,1]$ into stochastic bitstreams containing only 0 and 1. 
+Each bit has probability $x$ of being a one and probability $1-x$ of being a zero in the bitstream. Thus stochastic computing transforms a complex computing unit into a simple circuit with gates. For example, multiplication in stochastic computing can be implemented with an AND gate if the two input stochastic bitstreams are independent, as shown in Fig.~\ref{fig:sto}.  
 Stochastic computing has been applied in many applications~\cite{1} such as image processing, neural networks, decoding of low-density parity-check (LDPC) code, filter design.
 
 \begin{figure}[t]
 	\centering
-	\includegraphics[width=3.5in]{fig/AND3.pdf}	
+	\includegraphics[width=3.5in]{fig/AND3.pdf}	\vspace{-3ex}
 	\caption{\label{fig:sto}AND gate performs multiplication by stochastic bitstreams.} \vspace{-2ex}
 \end{figure}
 
-In stochastic computing, many different Boolean functions can be implemented to compute the same function, which has large solution space for the synthesis of stochastic circuits. In order to adapt stochastic computing to more functions, researchers have recently proposed several synthesis methods. One of the state-of-the-art methods is a heuristic breadth-first search algorithm~\cite{2}, which is based on assigning
-cubes (i.e., product terms) to the on-set of the Boolean function. However, heuristics cannot find optimal solutions. Exact synthesis is a new approach, which is a problem of finding logical networks that represent given Boolean functions and respect given constraints. With exact synthesis it is possible to find optimum networks, e.g., in size or depth. In this paper, we use exact synthesis method to obtain an optimal stochastic computing circuit represented by majority-inverter graph (MIG). The experimental results show that the exact synthesis approach achieves improvements on area and delay, compared with the heuristic approach.
+In stochastic computing, many different Boolean functions can be implemented to compute the same function, which has large solution space for the synthesis of stochastic circuits. To adapt stochastic computing to more functions, researchers have recently proposed several synthesis methods. One of the state-of-the-art methods is a heuristic breadth-first search algorithm~\cite{2}, which is based on assigning
+cubes (i.e., product terms) to the on-set of the Boolean function. However, heuristics cannot find optimal solutions. Exact synthesis is a new approach, which is a problem of finding logical networks that represent given Boolean functions and respect given constraints. With exact synthesis, it is possible to find optimum networks, e.g., in size or depth. In this paper, we use exact synthesis method to obtain an optimal stochastic computing circuit represented by MIGs. The experimental results show that the exact synthesis approach achieves improvements in area and delay, compared with the heuristic approach.
 
 
 \section*{Background}
 %\subsection{TG}
-A general form of stochastic circuit is shown in Fig.~\ref{fig2}, which is a combinational circuit. For a function of single variable $x$, the stochastic number generator (SNG) generates $n$ inputs $X_{1}, \ldots, X_{n}$, whose probability is $x$, where $n$ is the highest degree of the variable $x$ in the function. SNGs usually consist of a pseudo-random number generator and a comparator. In addition, the linear feedback shift register (LFSR) generates $m$ inputs $Y_{1}, \ldots, Y_{m}$ with probability 0.5. The stochastic bit streams of these $n+m$ inputs are processed by a combination logic circuit.
+A general form of the stochastic circuit is shown in Fig.~\ref{fig2}, which is a combinational circuit. For a function of single variable $x$, the stochastic number generator (SNG) generates $n$ inputs $X_{1}, \ldots, X_{n}$, whose probability is $x$, where $n$ is the highest degree of the variable $x$ in the function. SNGs usually consist of a pseudo-random number generator and a comparator. In addition, the linear feedback shift register (LFSR) generates $m$ inputs $Y_{1}, \ldots, Y_{m}$ with probability 0.5. The stochastic bitstreams of these $n+m$ inputs are processed by a combination logic circuit.
 
 \begin{figure}[t]
 	\centering
-	\includegraphics[width=2.5in]{fig/sc.pdf}	
+	\includegraphics[width=3in]{fig/sc.pdf}	
 	\caption{\label{fig2}A general form of stochastic computing circuits.} \vspace{-3ex}
 \end{figure}
 
 For $i\in[0,n]$, let $G(i)$ represents the number of minterms $(X_{1}, \ldots, X_{n}, Y_{1}, \ldots, Y_{m})$ that satisfying $F(X_{1}, \ldots, X_{n}, Y_{1}, \ldots, Y_{m})=1$ and $\sum_{j=1}^{n} X_{j}=i$. $(G(0), \ldots, G(n))$ is recorded as the problem vector~\cite{2}. For example, (0, 3, 2) is a problem vector using the truth table shown in Table~\ref{tab:tt} with $n=2$ and $m=2$. Its output probability realizes the function
 \begin{equation}
-f(x)=\frac{3}{4} x(1-x)+\frac{2}{4} x^{2}.
+f(x)=\frac{3}{4} x(1-x)+\frac{2}{4} x^{2}.\vspace{-2.5ex}
 \end{equation}
 
 
-\begin{table}[b]
+\begin{table}[htbp]
 \setlength{\abovecaptionskip}{0.cm}
 \setlength{\belowcaptionskip}{0.pt}
 \setlength{\tabcolsep}{1mm}
@@ -94,20 +93,20 @@ f(x)=\frac{3}{4} x(1-x)+\frac{2}{4} x^{2}.
 \hline 11 & & & & \\
 \hline 10 & & & & \\
 \hline
-\end{tabular}\vspace{-5ex}
+\end{tabular}
 \end{table}
 
-The Boolean function shown in Table~\ref{tab:tt} is represented in a simplified sum-of-product (SOP) form.
+The Boolean function shown in Table~\ref{tab:tt} is represented in a simplified sum-of-product (SOP) form
 \begin{equation}
-F=X_{2}\bar{Y_{1}}+X_{1} \bar{Y_{1}}\bar{Y_{2}}
+F=X_{2}\bar{Y_{1}}+X_{1} \bar{Y_{1}}\bar{Y_{2}}.
 \end{equation}
 
-In this way, the problem vector can form a logical circuit for stochastic computing, but there are many kinds of Boolean functions to implement the same problem vector. Table~\ref{tab:tt} shows just one of the 356 Boolean functions of problem vector (0, 3, 2).
+In this way, the problem vector can form a logical circuit for stochastic computing, but there are many kinds of Boolean functions to implement the same problem vector. Table~\ref{tab:tt} shows just one of the 356 Boolean functions of the problem vector (0, 3, 2).
 
 
 \section*{Proposed Method}
 Exact synthesis is the problem of finding optimal logic networks by giving a set of primitives. 
-It is well know that the optimal size of a normal network is found via SAT formula~\cite{3}. Based on the Knuth algorithm ~\cite{4}, the encoding method using majority-of-three operations is proposed~\cite{6}. 
+It is well known that the optimal size of a normal network is found via the SAT formula~\cite{3}. Based on the Knuth algorithm ~\cite{4}, the encoding method using majority-of-three operations is proposed~\cite{6}. 
 
 Note that the traditional exact synthesis makes use of fixed truth table as input, the output is the optimal logic representations in size or depth.
 In this paper, since the stochastic circuit has problem vector, we add cardinality clauses to constraint the on-sets of logic function. In this way, the SAT solver can answer whether we can realize a stochastic problem vector using giving primitives. 
@@ -115,7 +114,7 @@ In this paper, since the stochastic circuit has problem vector, we add cardinali
 For example, we know that $G(2) = 2$ according to the problem vector (0, 3, 2) in Table~\ref{tab:tt}. We restrict the sum of all minterms under columns ``01'' and ``10'' to be equal to $G(2)$. 
 Let $f_{Y_1Y_2X_1X_2}$ be a minterm, then all minterms under columns ``11''
 are $f_{0011}$, $f_{0111}$, $f_{1011}$, and $f_{0011}$.
-Thus the cardinality constraint is 
+Thus the cardinality constraint is \vspace{-0.5ex}
 \begin{equation}
 f_{0011} + f_{0111} + f_{1011} + f_{0011} = 2.
 \end{equation}
@@ -143,22 +142,22 @@ Note that this constraint should be transformed into conjunction normal forms (C
 %
 %Further, clause $\bigvee_{w=1}^{8} o_{r w}$ ensure that each step should realize at least one of the 8 operations.
 
-Given a problem vector, our algorithm can find a solution to satisfy both problem vector cardinality constrains and given logical primitives. If a solution is found, it returns a MIG; otherwise, the algorithm will increase the number of gates, then restart encoding and solve until the upper limit is reached. This will ensure that the algorithm can find the MIG network with the optimal number of gates.
+Given a problem vector, our algorithm can find a solution to satisfy both problem vector cardinality constraints and given logical primitives. If a solution is found, it returns a MIG; otherwise, the algorithm will increase the number of gates, then restart encoding and solve until the upper limit is reached. This will ensure that the algorithm can find the MIGs network with the optimal number of gates.
 
 
 \section*{Experimental Result}
-In this section, we apply our exact synthesis method to synthesize several common arithmetic functions by our open-source logic synthesis tool ALSO\footnote{https://github.com/nbulsi/also} using the command `\texttt{stochastic}'. Table.~\ref{tab2} show the comparison results between method in~\cite{2} and ours.
+In this section, we apply our exact synthesis method to synthesize several common arithmetic functions by our open-source logic synthesis tool ALSO\footnote{https://github.com/nbulsi/also} using the command `\texttt{stochastic}'. Table.~\ref{tab2} shows the comparison results between the method in~\cite{2} and ours.
 The two methods use the same precision $m$ and degree of functions $n$, respectively. We also evaluate the mean absolute error (MAE) and area-delay product(ADP). 
 The results of area and delay are reported by ABC\footnote{https://github.com/berkeley-abc/abc}.
 Generally, we can achieve 21\% reduction in area, and 4\% improvement in delay. In terms of ADP, our method has 23\% reduction on average.
-The MAE is slightly increased as trade-off, which is affordable.
+The MAE is slightly increased as a trade-off, which is affordable. \vspace{-1ex}
 %The results of simulation show that our approach produces better circuits in terms of area and delay.
 
 \begin{table}[htbp]
 \setlength{\abovecaptionskip}{0.cm}
 \setlength{\belowcaptionskip}{0.pt}
 \setlength{\tabcolsep}{0.6mm}
-\caption{Comparisons of some arithmetic functions}
+\caption{Comparisons of some arithmetic functions.}
 \centering \label{tab2}
 \begin{tabularx}{\linewidth}{Xrrrrrrrrrr}
 \toprule 
@@ -176,7 +175,7 @@ $sin(\pi x)$ &5 &2 &12 &3.1 &37.2 &0.1829 &11 &3.1 &34.1 &0.1830\\
 \multicolumn{3}{c}{Average} & 1 & 1 & 1 & 1 & 0.79 & 0.96 & 0.77 & 1.03 \\
 \bottomrule
 
-\end{tabularx}
+\end{tabularx}\vspace{-3ex}
 \label{bs}
 \end{table}
 

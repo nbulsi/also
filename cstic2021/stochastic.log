@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020/W32TeX) (preloaded format=pdflatex 2020.11.6)  15 NOV 2020 18:59
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020/W32TeX) (preloaded format=pdflatex 2020.11.6)  15 NOV 2020 21:05
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -663,10 +663,10 @@ rsion <1.7>, but at most version <1.5> allowed
 <fig/AND3.pdf, id=1, 500.83109pt x 166.58235pt>
 File: fig/AND3.pdf Graphic file (type pdf)
 <use fig/AND3.pdf>
-Package pdftex.def Info: fig/AND3.pdf  used on input line 60.
+Package pdftex.def Info: fig/AND3.pdf  used on input line 59.
 (pdftex.def)             Requested size: 252.94499pt x 84.13231pt.
 
-Overfull \hbox (0.94499pt too wide) in paragraph at lines 60--61
+Overfull \hbox (0.94499pt too wide) in paragraph at lines 59--60
  [][] 
  []
 
@@ -674,13 +674,13 @@ Overfull \hbox (0.94499pt too wide) in paragraph at lines 60--61
 
 pdfTeX warning: pdflatex.exe (file ./fig/sc.pdf): PDF inclusion: found PDF vers
 ion <1.7>, but at most version <1.5> allowed
-<fig/sc.pdf, id=2, 474.8139pt x 298.11375pt>
+<fig/sc.pdf, id=2, 563.10374pt x 320.1561pt>
 File: fig/sc.pdf Graphic file (type pdf)
 <use fig/sc.pdf>
-Package pdftex.def Info: fig/sc.pdf  used on input line 74.
-(pdftex.def)             Requested size: 216.81pt x 136.12415pt.
+Package pdftex.def Info: fig/sc.pdf  used on input line 73.
+(pdftex.def)             Requested size: 216.81pt x 123.26779pt.
 
-Underfull \hbox (badness 2035) in paragraph at lines 78--79
+Underfull \hbox (badness 2035) in paragraph at lines 77--78
 []\OT1/ptm/m/n/10 For $\OML/cmm/m/it/10 i \OMS/cmsy/m/n/10 2 \OT1/cmr/m/n/10 [0
 \OML/cmm/m/it/10 ; n\OT1/cmr/m/n/10 ]$\OT1/ptm/m/n/10 , let $\OML/cmm/m/it/10 G
 \OT1/cmr/m/n/10 (\OML/cmm/m/it/10 i\OT1/cmr/m/n/10 )$ \OT1/ptm/m/n/10 rep-re-se
@@ -688,13 +688,13 @@ nts the num-ber of
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 78--79
+Underfull \hbox (badness 10000) in paragraph at lines 77--78
 \OT1/ptm/m/n/10 minterms $\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 X[]; [] ; X[]; Y[];
  [] ; Y[]\OT1/cmr/m/n/10 )$ \OT1/ptm/m/n/10 that sat-is-fy-ing
  []
 
 
-Underfull \hbox (badness 2142) in paragraph at lines 78--79
+Underfull \hbox (badness 2142) in paragraph at lines 77--78
 \OML/cmm/m/it/10 F\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 X[]; [] ; X[]; Y[]; [] ; Y[
 ]\OT1/cmr/m/n/10 ) = 1$ \OT1/ptm/m/n/10 and $[][] \OML/cmm/m/it/10 X[] \OT1/cmr
 /m/n/10 = \OML/cmm/m/it/10 i$\OT1/ptm/m/n/10 .
@@ -705,7 +705,7 @@ Underfull \hbox (badness 2142) in paragraph at lines 78--79
 
  <./fig/AND3.pdf>]
 LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 1
-46.
+49.
  (e:/texlive/2020/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
@@ -728,7 +728,7 @@ Here is how much of TeX's memory you used:
  22338 multiletter control sequences out of 15000+600000
  578242 words of font info for 121 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 30i,18n,37p,656b,387s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 30i,18n,37p,634b,389s stack positions out of 5000i,500n,10000p,200000b,80000s
 {e:/texlive/2020/texmf-dist/fonts/enc/dv
 ips/base/8r.enc}<e:/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmex
 10.pfb><e:/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><e
@@ -736,19 +736,20 @@ ips/base/8r.enc}<e:/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmex
 2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb><e:/texlive/2020/texmf
 -dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb><e:/texlive/2020/texmf-dist/font
 s/type1/public/amsfonts/cm/cmr10.pfb><e:/texlive/2020/texmf-dist/fonts/type1/pu
-blic/amsfonts/cm/cmr6.pfb><e:/texlive/2020/texmf-dist/fonts/type1/public/amsfon
-ts/cm/cmr7.pfb><e:/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.
-pfb><e:/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb><e:/t
-exlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb><e:/texlive/202
-0/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb><e:/texlive/2020/texmf-di
-st/fonts/type1/public/amsfonts/cm/cmsy8.pfb><e:/texlive/2020/texmf-dist/fonts/t
-ype1/urw/courier/ucrr8a.pfb><e:/texlive/2020/texmf-dist/fonts/type1/urw/times/u
-tmb8a.pfb><e:/texlive/2020/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb><e:/tex
-live/2020/texmf-dist/fonts/type1/urw/times/utmr8a.pfb>
-Output written on stochastic.pdf (2 pages, 283563 bytes).
+blic/amsfonts/cm/cmr5.pfb><e:/texlive/2020/texmf-dist/fonts/type1/public/amsfon
+ts/cm/cmr6.pfb><e:/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.
+pfb><e:/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb><e:/tex
+live/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb><e:/texlive/2020
+/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb><e:/texlive/2020/texmf-dis
+t/fonts/type1/public/amsfonts/cm/cmsy7.pfb><e:/texlive/2020/texmf-dist/fonts/ty
+pe1/public/amsfonts/cm/cmsy8.pfb><e:/texlive/2020/texmf-dist/fonts/type1/urw/co
+urier/ucrr8a.pfb><e:/texlive/2020/texmf-dist/fonts/type1/urw/times/utmb8a.pfb><
+e:/texlive/2020/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb><e:/texlive/2020/t
+exmf-dist/fonts/type1/urw/times/utmr8a.pfb>
+Output written on stochastic.pdf (2 pages, 290391 bytes).
 PDF statistics:
- 219 PDF objects out of 1000 (max. 8388607)
- 75 compressed objects within 1 object stream
+ 217 PDF objects out of 1000 (max. 8388607)
+ 78 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  11 words of extra memory for PDF output out of 10000 (max. 10000000)
 
