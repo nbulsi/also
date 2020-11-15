@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020/W32TeX) (preloaded format=pdflatex 2020.11.6)  15 NOV 2020 17:59
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020/W32TeX) (preloaded format=pdflatex 2020.11.6)  15 NOV 2020 18:59
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -670,11 +670,15 @@ Overfull \hbox (0.94499pt too wide) in paragraph at lines 60--61
  [][] 
  []
 
-<fig/sc.png, id=2, 350.81062pt x 213.04594pt>
-File: fig/sc.png Graphic file (type png)
-<use fig/sc.png>
-Package pdftex.def Info: fig/sc.png  used on input line 74.
-(pdftex.def)             Requested size: 216.81pt x 131.671pt.
+
+
+pdfTeX warning: pdflatex.exe (file ./fig/sc.pdf): PDF inclusion: found PDF vers
+ion <1.7>, but at most version <1.5> allowed
+<fig/sc.pdf, id=2, 474.8139pt x 298.11375pt>
+File: fig/sc.pdf Graphic file (type pdf)
+<use fig/sc.pdf>
+Package pdftex.def Info: fig/sc.pdf  used on input line 74.
+(pdftex.def)             Requested size: 216.81pt x 136.12415pt.
 
 Underfull \hbox (badness 2035) in paragraph at lines 78--79
 []\OT1/ptm/m/n/10 For $\OML/cmm/m/it/10 i \OMS/cmsy/m/n/10 2 \OT1/cmr/m/n/10 [0
@@ -701,7 +705,7 @@ Underfull \hbox (badness 2142) in paragraph at lines 78--79
 
  <./fig/AND3.pdf>]
 LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 1
-41.
+46.
  (e:/texlive/2020/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
@@ -716,11 +720,11 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[2 <./fig/sc.png>] (./stochastic.aux) ) 
+[2 <./fig/sc.pdf>] (./stochastic.aux) ) 
 Here is how much of TeX's memory you used:
- 6582 strings out of 480608
- 88464 string characters out of 5907536
- 365221 words of memory out of 5000000
+ 6581 strings out of 480608
+ 88484 string characters out of 5907536
+ 366221 words of memory out of 5000000
  22338 multiletter control sequences out of 15000+600000
  578242 words of font info for 121 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -741,10 +745,10 @@ st/fonts/type1/public/amsfonts/cm/cmsy8.pfb><e:/texlive/2020/texmf-dist/fonts/t
 ype1/urw/courier/ucrr8a.pfb><e:/texlive/2020/texmf-dist/fonts/type1/urw/times/u
 tmb8a.pfb><e:/texlive/2020/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb><e:/tex
 live/2020/texmf-dist/fonts/type1/urw/times/utmr8a.pfb>
-Output written on stochastic.pdf (2 pages, 232996 bytes).
+Output written on stochastic.pdf (2 pages, 283563 bytes).
 PDF statistics:
- 99 PDF objects out of 1000 (max. 8388607)
- 66 compressed objects within 1 object stream
+ 219 PDF objects out of 1000 (max. 8388607)
+ 75 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  11 words of extra memory for PDF output out of 10000 (max. 10000000)
 
