@@ -71,8 +71,8 @@ A general form of stochastic circuit is shown in Fig.~\ref{fig2}, which is a com
 
 \begin{figure}[t]
 	\centering
-	\includegraphics[width=3in]{fig/sc.pdf}	
-	\caption{\label{fig2}A general form of stochastic computing circuits.} \vspace{-2ex}
+	\includegraphics[width=2.5in]{fig/sc.pdf}	
+	\caption{\label{fig2}A general form of stochastic computing circuits.} \vspace{-3ex}
 \end{figure}
 
 For $i\in[0,n]$, let $G(i)$ represents the number of minterms $(X_{1}, \ldots, X_{n}, Y_{1}, \ldots, Y_{m})$ that satisfying $F(X_{1}, \ldots, X_{n}, Y_{1}, \ldots, Y_{m})=1$ and $\sum_{j=1}^{n} X_{j}=i$. $(G(0), \ldots, G(n))$ is recorded as the problem vector~\cite{2}. For example, (0, 3, 2) is a problem vector using the truth table shown in Table~\ref{tab:tt} with $n=2$ and $m=2$. Its output probability realizes the function
@@ -80,7 +80,8 @@ For $i\in[0,n]$, let $G(i)$ represents the number of minterms $(X_{1}, \ldots, X
 f(x)=\frac{3}{4} x(1-x)+\frac{2}{4} x^{2}.
 \end{equation}
 
-\begin{table}[htbp]
+
+\begin{table}[b]
 \setlength{\abovecaptionskip}{0.cm}
 \setlength{\belowcaptionskip}{0.pt}
 \setlength{\tabcolsep}{1mm}
@@ -93,7 +94,7 @@ f(x)=\frac{3}{4} x(1-x)+\frac{2}{4} x^{2}.
 \hline 11 & & & & \\
 \hline 10 & & & & \\
 \hline
-\end{tabular}
+\end{tabular}\vspace{-5ex}
 \end{table}
 
 The Boolean function shown in Table~\ref{tab:tt} is represented in a simplified sum-of-product (SOP) form.
@@ -111,11 +112,14 @@ It is well know that the optimal size of a normal network is found via SAT formu
 Note that the traditional exact synthesis makes use of fixed truth table as input, the output is the optimal logic representations in size or depth.
 In this paper, since the stochastic circuit has problem vector, we add cardinality clauses to constraint the on-sets of logic function. In this way, the SAT solver can answer whether we can realize a stochastic problem vector using giving primitives. 
 
-For example,we know that $G(1) = 3$ according to the problem vector (0, 3, 2) in Table~\ref{tab:tt}. We restrict the sum of all minterms under columns "01" and "10" to be equal to G(1). Thus the clause is added as follows
+For example, we know that $G(2) = 2$ according to the problem vector (0, 3, 2) in Table~\ref{tab:tt}. We restrict the sum of all minterms under columns ``01'' and ``10'' to be equal to $G(2)$. 
+Let $f_{Y_1Y_2X_1X_2}$ be a minterm, then all minterms under columns ``11''
+are $f_{0011}$, $f_{0111}$, $f_{1011}$, and $f_{0011}$.
+Thus the cardinality constraint is 
 \begin{equation}
-%\bigvee_${X_{1}X_{2}Y_{1}Y_{2}}$ \vee $\sum_{j=1}^{n} X_{j}=i$.
+f_{0011} + f_{0111} + f_{1011} + f_{0011} = 2.
 \end{equation}
-
+Note that this constraint should be transformed into conjunction normal forms (CNFs) which are feasible for SAT solving.
 %Given three Boolean variables, $a$, $b$, and $c$, each gate can realize $\langle abc\rangle$, $<\bar{a} b c>$, $<a \bar{b} c>$ or $<a b \bar{c}>$. By setting any variable to constant 0 or 1, one can behave as AND or OR, respectively. $a b$, $\bar{a} b$, $a \bar{b}$, and $a+b$ should also be considered. The defined variables~\cite{5} are constrained by a set of clauses. For each gate $r$, the operation variable  $o_{r w}$ is true if the operation of gate $r$ is $w$, where $w$ is one of the 8 possible normal majority operations.
 
 %For example, suppose the selection variable $S_{i a b c}$, and the input combination is (100), then we can check $o_{r 1}=<abc>$ outputs 0, while $o_{r 8}=a+b$ outputs 1. Thus the clause is added as follows.
