@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020/W32TeX) (preloaded format=pdflatex 2020.11.6)  12 NOV 2020 16:15
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020/W32TeX) (preloaded format=pdflatex 2020.11.6)  15 NOV 2020 11:22
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -650,60 +650,55 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 <fig/AND_gate.jpg, id=1, 394.47375pt x 172.39406pt>
 File: fig/AND_gate.jpg Graphic file (type jpg)
 <use fig/AND_gate.jpg>
-Package pdftex.def Info: fig/AND_gate.jpg  used on input line 61.
-(pdftex.def)             Requested size: 216.81pt x 94.75125pt.
+Package pdftex.def Info: fig/AND_gate.jpg  used on input line 54.
+(pdftex.def)             Requested size: 252.94499pt x 110.54225pt.
 
-Overfull \hbox (7.00012pt too wide) in paragraph at lines 61--62
+Overfull \hbox (0.94499pt too wide) in paragraph at lines 54--55
  [][] 
  []
 
-<fig/SC6.JPG, id=2, 335.75438pt x 201.00093pt>
-File: fig/SC6.JPG Graphic file (type jpg)
-<use fig/SC6.JPG>
-Package pdftex.def Info: fig/SC6.JPG  used on input line 81.
-(pdftex.def)             Requested size: 238.49121pt x 142.77298pt.
-
-Overfull \hbox (7.00012pt too wide) in paragraph at lines 81--82
- [][] 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 84--85
-[]\OT1/ptm/m/n/10 As shown in [2], the out-put prob-a-bil-ity of the
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 84--85
-\OT1/ptm/m/n/10 cir-cuit in Fig.3 ob-tains $\OML/cmm/m/it/10 G\OT1/cmr/m/n/10 (
-\OML/cmm/m/it/10 i\OT1/cmr/m/n/10 )$ \OT1/ptm/m/n/10 is the num-ber of
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 84--85
-\OT1/ptm/m/n/10 minterms $[]$ sat-is-fy-ing that
- []
-
-
-Underfull \hbox (badness 1881) in paragraph at lines 84--85
-\OML/cmm/m/it/10 F [] \OT1/cmr/m/n/10 = 1$ \OT1/ptm/m/n/10 and $[][] \OML/cmm/m
-/it/10 X[] \OT1/cmr/m/n/10 = \OML/cmm/m/it/10 i$\OT1/ptm/m/n/10 .
- []
-
+<fig/sc6.jpg, id=2, 335.75438pt x 201.00093pt>
+File: fig/sc6.jpg Graphic file (type jpg)
+<use fig/sc6.jpg>
+Package pdftex.def Info: fig/sc6.jpg  used on input line 67.
+(pdftex.def)             Requested size: 216.81pt x 129.79335pt.
 [1{e:/texlive/2020/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
 
  <./fig/AND_gate.jpg>]
-<fig/truth_table.jpg, id=18, 193.47281pt x 92.59593pt>
-File: fig/truth_table.jpg Graphic file (type jpg)
-<use fig/truth_table.jpg>
-Package pdftex.def Info: fig/truth_table.jpg  used on input line 97.
-(pdftex.def)             Requested size: 144.54pt x 69.1769pt.
+Underfull \hbox (badness 10000) in paragraph at lines 71--72
+[]\OT1/ptm/m/n/10 As shown in [2], the out-put prob-a-bil-ity of the
+ []
 
-Overfull \hbox (7.00012pt too wide) in paragraph at lines 97--98
+
+Underfull \hbox (badness 10000) in paragraph at lines 71--72
+\OT1/ptm/m/n/10 cir-cuit in Fig. 2 ob-tains $\OML/cmm/m/it/10 G\OT1/cmr/m/n/10 
+(\OML/cmm/m/it/10 i\OT1/cmr/m/n/10 )$ \OT1/ptm/m/n/10 is the num-ber of
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 71--72
+\OT1/ptm/m/n/10 minterms $\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 X[]; [] ; X[]; Y[];
+ [] ; Y[]\OT1/cmr/m/n/10 )$ \OT1/ptm/m/n/10 sat-is-fy-ing that
+ []
+
+
+Underfull \hbox (badness 2142) in paragraph at lines 71--72
+\OML/cmm/m/it/10 F\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 X[]; [] ; X[]; Y[]; [] ; Y[
+]\OT1/cmr/m/n/10 ) = 1$ \OT1/ptm/m/n/10 and $[][] \OML/cmm/m/it/10 X[] \OT1/cmr
+/m/n/10 = \OML/cmm/m/it/10 i$\OT1/ptm/m/n/10 .
+ []
+
+LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 1
+27.
+(e:/texlive/2020/texmf-dist/tex/latex/psnfss/ot1pcr.fd
+File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
+)
+Overfull \hbox (61.0316pt too wide) in paragraph at lines 136--156
  [][] 
  []
 
-(./stochastic.bbl)
+[2 <./fig/SC6.jpg>]
 
 ** Conference Paper **
 Before submitting the final camera ready copy, remember to:
@@ -715,31 +710,37 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[2 <./fig/SC6.jpg> <./fig/truth_table.jpg>] (./stochastic.aux) ) 
+[3
+
+] (./stochastic.aux) ) 
 Here is how much of TeX's memory you used:
- 6499 strings out of 480608
- 87467 string characters out of 5907536
- 351132 words of memory out of 5000000
- 22257 multiletter control sequences out of 15000+600000
- 577139 words of font info for 118 fonts, out of 8000000 for 9000
+ 6531 strings out of 480608
+ 87866 string characters out of 5907536
+ 361141 words of memory out of 5000000
+ 22289 multiletter control sequences out of 15000+600000
+ 578242 words of font info for 121 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 30i,18n,37p,882b,316s stack positions out of 5000i,500n,10000p,200000b,80000s
-{e:/texlive/202
-0/texmf-dist/fonts/enc/dvips/base/8r.enc}<e:/texlive/2020/texmf-dist/fonts/type
-1/public/amsfonts/cm/cmex10.pfb><e:/texlive/2020/texmf-dist/fonts/type1/public/
-amsfonts/cm/cmmi10.pfb><e:/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/
-cm/cmmi7.pfb><e:/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.p
-fb><e:/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb><e:/texl
-ive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb><e:/texlive/2020/
-texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb><e:/texlive/2020/texmf-dist
-/fonts/type1/public/amsfonts/cm/cmsy8.pfb><e:/texlive/2020/texmf-dist/fonts/typ
-e1/urw/times/utmb8a.pfb><e:/texlive/2020/texmf-dist/fonts/type1/urw/times/utmbi
-8a.pfb><e:/texlive/2020/texmf-dist/fonts/type1/urw/times/utmr8a.pfb><e:/texlive
-/2020/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on stochastic.pdf (2 pages, 171294 bytes).
+ 30i,20n,37p,883b,362s stack positions out of 5000i,500n,10000p,200000b,80000s
+{e:/texlive/2020/texmf-dist/fonts/enc/dvips/base/8r.enc}<
+e:/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><e:/texliv
+e/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><e:/texlive/2020/te
+xmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb><e:/texlive/2020/texmf-dist/f
+onts/type1/public/amsfonts/cm/cmmi7.pfb><e:/texlive/2020/texmf-dist/fonts/type1
+/public/amsfonts/cm/cmmi8.pfb><e:/texlive/2020/texmf-dist/fonts/type1/public/am
+sfonts/cm/cmr10.pfb><e:/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/
+cmr6.pfb><e:/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb><e
+:/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb><e:/texlive/2
+020/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb><e:/texlive/2020/texmf
+-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb><e:/texlive/2020/texmf-dist/font
+s/type1/public/amsfonts/cm/cmsy7.pfb><e:/texlive/2020/texmf-dist/fonts/type1/pu
+blic/amsfonts/cm/cmsy8.pfb><e:/texlive/2020/texmf-dist/fonts/type1/urw/courier/
+ucrr8a.pfb><e:/texlive/2020/texmf-dist/fonts/type1/urw/times/utmb8a.pfb><e:/tex
+live/2020/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb><e:/texlive/2020/texmf-d
+ist/fonts/type1/urw/times/utmr8a.pfb>
+Output written on stochastic.pdf (3 pages, 197736 bytes).
 PDF statistics:
- 63 PDF objects out of 1000 (max. 8388607)
- 43 compressed objects within 1 object stream
+ 85 PDF objects out of 1000 (max. 8388607)
+ 60 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 16 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 11 words of extra memory for PDF output out of 10000 (max. 10000000)
 

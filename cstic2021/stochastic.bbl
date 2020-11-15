@@ -1,28 +1,3 @@
-\begin{thebibliography}{1}
-
-\bibitem{1}
-%Alaghi~A , Qian~W , Hayes J P .
-\newblock The Promise and Challenge of Stochastic Computing.
-\newblock {\em IEEE Transactions on Computer Aided Design of Integrated Circuits \& Systems},99:1-1 2017.
-
-\bibitem{2}
-Peng ~X , Qian ~W .
-\newblock Stochastic Circuit Synthesis by Cube Assignment.
-\newblock {\em IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems}, 37:3109-3122, 2018.
-
-\bibitem{3}
-Chu~Z , Haaswijk~W , Soeken~M , et al.
-\newblock Exact Synthesis of Boolean Functions in Majority-of-Five Forms
-\newblock {\em 2019 IEEE International Symposium on Circuits and Systems (ISCAS)}, 1-5, 2019.
-
-\bibitem{4}
-D. E. Knuth.
-\newblock The Art of Computer Programming.
-\newblock In {\em },Volume 4,Fascicle 6: Satisfiability. Addison-Wesley Professional, 2015.
- 
-\bibitem{5}
-Testa~E, Soeken~M, Zografos~O, Catthoor~F, and De Micheli~G
-\newblock Exact synthesis for logic synthesis applications with complex constraints.
-\newblock In {\em International Workshop on Logic and Synthesis (IWLS) },21-27, 2017.
+\begin{thebibliography}{}
 
 \end{thebibliography}
