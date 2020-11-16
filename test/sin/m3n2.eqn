@@ -1,0 +1,10 @@
+# Equations for "/home/hexiang/abc/build/test/sin/m3n2" written by ABC on Thu Nov 12 22:45:17 2020
+INORDER = x0 x1 x2 x3 x4;
+OUTORDER = z0;
+new_n7_ = !x0 + !x3 + !x1;
+new_n8_ = !new_n7_ + !x4;
+new_n9_ = !x3;
+new_n10_ = !x1 * !x0;
+new_n11_ = !x4 * (!new_n10_ + !new_n9_);
+z0 = !new_n8_ + (!new_n11_ * !x2);
+

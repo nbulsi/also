@@ -1,0 +1,11 @@
+# Equations for "/home/hexiang/abc/build/test/log(1+x)/m5n2" written by ABC on Thu Nov 12 22:54:43 2020
+INORDER = x0 x1 x2 x3 x4 x5 x6;
+OUTORDER = z0;
+new_n9_ = !x5 + !x0;
+new_n10_ = !x1 + !x0;
+new_n11_ = !x6 + !new_n10_ + !new_n9_;
+new_n12_ = !x2;
+new_n13_ = !x3 + !x1;
+new_n14_ = !x0 + !new_n12_ + !new_n13_ + !x5;
+z0 = !new_n14_ + !new_n11_;
+

@@ -1,0 +1,10 @@
+# Equations for "/home/hexiang/abc/build/test/esp(-x)/m2n4" written by ABC on Thu Nov 12 22:50:45 2020
+INORDER = x0 x1 x2 x3 x4 x5;
+OUTORDER = z0;
+new_n8_ = !x1;
+new_n9_ = !x3;
+new_n10_ = !x4 + !x0;
+new_n11_ = (!new_n9_ * !x0) + (!new_n10_ * !x5);
+new_n12_ = !new_n11_ + !new_n8_;
+z0 = !new_n12_ + !x2;
+
