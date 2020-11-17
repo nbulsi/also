@@ -76,10 +76,16 @@ namespace alice
             std::cout << std::endl;
           }
 
-          auto mig = stochastic_synthesis( num_vars, m, n, vector );
+          stopwatch<>::duration time{0};
+          mig_network mig;
+          call_with_stopwatch( time, [&]() 
+              {
+              mig = stochastic_synthesis( num_vars, m, n, vector );
+              } );
           
           store<mig_network>().extend(); 
           store<mig_network>().current() = mig;
+          std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
         }
         else
         {
