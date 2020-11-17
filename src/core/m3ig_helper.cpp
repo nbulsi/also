@@ -132,5 +132,54 @@ namespace also
     return ss.str();
   }
 
+  mig_network mig3_to_mig_network( const spec& spec, mig3& mig3 )
+  {
+    mig_network mig;
+
+    std::vector<mig_network::signal> pis;
+
+    pis.push_back( mig.get_constant( false ) );
+    for( auto i = 0; i < spec.nr_in; i++ )
+    {
+      pis.push_back( mig.create_pi() );
+    }
+
+    for( auto i = 0; i < mig3.get_nr_steps(); i++ )
+    {
+      const auto& step = mig3.get_step_inputs( i );
+
+      auto tmp_in0 = pis[step[0]];
+      auto tmp_in1 = pis[step[1]];
+      auto tmp_in2 = pis[step[2]];
+
+      switch( mig3.get_op( i ) )
+      {
+        case 0:
+          pis.push_back( mig.create_maj( tmp_in0, tmp_in1, tmp_in2 ) );
+          break;
+        
+        case 1:
+          pis.push_back( mig.create_maj( tmp_in0 ^ true, tmp_in1, tmp_in2 ) );
+          break;
+        
+        case 2:
+          pis.push_back( mig.create_maj( tmp_in0, tmp_in1 ^ true, tmp_in2 ) );
+          break;
+        
+        case 3:
+          pis.push_back( mig.create_maj( tmp_in0, tmp_in1, tmp_in2 ^ true ) );
+          break;
+        
+        default:
+          assert( false && "ops are not known" );
+          break;
+      }
+    }
+
+    const auto driver = pis[ pis.size() - 1 ] ^ ( spec.out_inv ? true : false );
+    mig.create_po( driver );
+    return mig;
+  }
+
 }
 

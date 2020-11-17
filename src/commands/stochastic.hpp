@@ -76,7 +76,10 @@ namespace alice
             std::cout << std::endl;
           }
 
-          stochastic_synthesis( num_vars, m, n, vector );
+          auto mig = stochastic_synthesis( num_vars, m, n, vector );
+          
+          store<mig_network>().extend(); 
+          store<mig_network>().current() = mig;
         }
         else
         {
