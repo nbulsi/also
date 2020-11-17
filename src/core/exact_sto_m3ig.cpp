@@ -6,7 +6,6 @@
 #include <cmath>
 
 #include <kitty/kitty.hpp>
-#include <mockturtle/mockturtle.hpp>
 #include "exact_m3ig_sto_encoder.hpp"
 #include "exact_sto_m3ig.hpp"
 
@@ -20,8 +19,8 @@ namespace also
   {
     public:
       sto_syn_manager( unsigned const& num_vars, unsigned const& m, unsigned const& n, std::vector<unsigned> const& vector );
-      void run();
-      void preprocess();
+      mig_network run();
+      bool preprocess();
       unsigned sum_of_vector();
       unsigned count_tt_sum_of_x( unsigned const& spec_num, kitty::dynamic_truth_table const& tt_solution );
       bool validate( kitty::dynamic_truth_table const& tt );
@@ -85,7 +84,7 @@ namespace also
 
   /* check all primary inputs and its complements for trivial
    * cases */
-  void sto_syn_manager::preprocess()
+  bool sto_syn_manager::preprocess()
   {
     unsigned num_vars_m_plus_n = m + n;
 
@@ -128,6 +127,8 @@ namespace also
         }
       }
     }
+
+    return trivial;
   }
 
   /* find the number of tt entry whose sum is spec number 
@@ -166,8 +167,9 @@ namespace also
     return total;
   }
 
-  void sto_syn_manager::run()
+  mig_network sto_syn_manager::run()
   {
+    mig_network mig;
     if( verbose )
     {
       std::cout << " num_vars : " << num_vars << " \n"
@@ -182,48 +184,48 @@ namespace also
     {
       std::cout << "[i] Not trivial case, need further solve.\n";
     }
-    else
+
+    if( !preprocess() )
     {
-      return;
+      percy::spec spec;
+      also::mig3 mig3;
+
+      kitty::dynamic_truth_table tt( 4 );
+
+      kitty::create_from_hex_string( tt, "17e8" );
+      spec[0] = tt;
+      spec.verbosity = 0;
+
+      auto flag_normal = kitty::is_normal( tt );
+      if( !flag_normal ) { std::cout << "[i] Function is not normal \n"; }
+
+      //stochastic problem vector
+      Problem_Vector_t instance;
+      instance.num_vars = num_vars;
+      instance.m = m;
+      instance.n = n;
+      instance.v = vector;
+
+      percy::bsat_wrapper solver;
+      mig_three_sto_encoder encoder( solver, instance );
+
+      if( mig_three_sto_synthesize( spec, mig3, solver, encoder ) == percy::success )
+      {
+        print_all_expr( spec, mig3 );
+        mig = mig3_to_mig_network( spec, mig3 );
+      }
     }
 
-
-    percy::spec spec;
-    also::mig3 mig3;
-
-    kitty::dynamic_truth_table tt( 4 );
-
-    kitty::create_from_hex_string( tt, "17e8" );
-    spec[0] = tt;
-    spec.verbosity = 0;
-
-    auto flag_normal = kitty::is_normal( tt );
-    if( !flag_normal ) { std::cout << "[i] Function is not normal \n"; }
-    
-    //stochastic problem vector
-    Problem_Vector_t instance;
-    instance.num_vars = num_vars;
-    instance.m = m;
-    instance.n = n;
-    instance.v = vector;
-    
-    percy::bsat_wrapper solver;
-    mig_three_sto_encoder encoder( solver, instance );
-
-
-    if( mig_three_sto_synthesize( spec, mig3, solver, encoder ) == percy::success )
-    {
-      print_all_expr( spec, mig3 );
-    }
+    return mig;
   }
 
 /******************************************************************************
  * Public functions                                                           *
  ******************************************************************************/
-  void stochastic_synthesis( unsigned const& num_vars, unsigned const& m, unsigned const& n, std::vector<unsigned> const& vector )
+  mig_network stochastic_synthesis( unsigned const& num_vars, unsigned const& m, unsigned const& n, std::vector<unsigned> const& vector )
   {
     sto_syn_manager mgr( num_vars, m, n, vector );
-    mgr.run();
+    return mgr.run();
   }
 
 }

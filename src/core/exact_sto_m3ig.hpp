@@ -14,6 +14,8 @@
 #ifndef EXACT_STO_M3IG_HPP
 #define EXACT_STO_M3IG_HPP
 
+#include <mockturtle/mockturtle.hpp>
+
 namespace also
 {
   typedef struct Problem_Vector_t_ Problem_Vector_t;
@@ -26,7 +28,7 @@ namespace also
     std::vector<unsigned> v;
   };
 
-  void stochastic_synthesis( unsigned const& num_vars, unsigned const& m, unsigned const& n, std::vector<unsigned> const& vector );
+  mig_network stochastic_synthesis( unsigned const& num_vars, unsigned const& m, unsigned const& n, std::vector<unsigned> const& vector );
 
 }
 
