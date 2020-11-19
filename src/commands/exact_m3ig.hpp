@@ -86,10 +86,16 @@ namespace alice
     protected:
       void execute()
       {
-        assert( store<optimum_network>().size() >= num_functions );
+        auto store_size = store<optimum_network>().size();
+        assert( store_size >= num_functions );
 
         spec spec;
         also::mig3 mig3;
+
+        if( !is_set( "num_functions" ) )
+        {
+          num_functions = 1;
+        }
 
         //spec.verbosity = 3;
         spec.add_alonce_clauses    = true;
@@ -101,7 +107,7 @@ namespace alice
 
         for( int i = 0 ; i < num_functions; i++ )
         {
-          auto& opt = store<optimum_network>()[i];
+          auto& opt = store<optimum_network>()[store_size - i - 1];
           auto copy = opt.function;
           if( copy.num_vars()  < 3 )
           {

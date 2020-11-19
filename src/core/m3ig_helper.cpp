@@ -112,7 +112,16 @@ namespace also
   {
     std::stringstream ss;
 
-    char pol = spec.out_inv ? '!' : ' ';
+    char pol = ' ';
+    for( auto i = 0; i < spec.get_nr_out(); i++ )
+    {
+        auto outvar = mig3.get_output(i) >> 1;
+        if( outvar == spec.nr_steps - 1 && mig3.get_output(i) & 1 )
+        {
+          pol = '!';
+          break;
+        }
+    }
 
     std::cout << "[i] " << spec.nr_steps << " steps are required " << std::endl;
     for(auto i = 0; i < spec.nr_steps; i++ )
