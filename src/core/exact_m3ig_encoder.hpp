@@ -735,7 +735,7 @@ namespace also
         {
           for( int i = 0; i < spec.nr_steps; i++ )
           {
-            ret &= ( spec, h, i, t );
+            ret &= multi_fix_output_sim_vars( spec, h, i, t );
           }
         }
 
