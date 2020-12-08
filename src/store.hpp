@@ -380,7 +380,83 @@ namespace alice
 
     return mig;
   }
+
+  /* show */
+  template<>
+  bool can_show<aig_network>( std::string& extension, command& cmd )
+  {
+    extension = "dot";
   
+    return true;
+  }
+  
+  template<>
+  void show<aig_network>( std::ostream& os, const aig_network& element, const command& cmd )
+  {
+    gate_dot_drawer<aig_network> drawer;
+    write_dot( element, os, drawer );
+  }
+  
+  template<>
+  bool can_show<mig_network>( std::string& extension, command& cmd )
+  {
+    extension = "dot";
+  
+    return true;
+  }
+  
+  template<>
+  void show<mig_network>( std::ostream& os, const mig_network& element, const command& cmd )
+  {
+    gate_dot_drawer<mig_network> drawer;
+    write_dot( element, os, drawer );
+  }
+  
+  template<>
+  bool can_show<xmg_network>( std::string& extension, command& cmd )
+  {
+    extension = "dot";
+  
+    return true;
+  }
+  
+  template<>
+  void show<xmg_network>( std::ostream& os, const xmg_network& element, const command& cmd )
+  {
+    gate_dot_drawer<xmg_network> drawer;
+    write_dot( element, os, drawer );
+  }
+  
+  template<>
+  bool can_show<klut_network>( std::string& extension, command& cmd )
+  {
+    extension = "dot";
+  
+    return true;
+  }
+  
+  template<>
+  void show<klut_network>( std::ostream& os, const klut_network& element, const command& cmd )
+  {
+    gate_dot_drawer<klut_network> drawer;
+    write_dot( element, os, drawer );
+  }
+  
+  template<>
+  bool can_show<xag_network>( std::string& extension, command& cmd )
+  {
+    extension = "dot";
+  
+    return true;
+  }
+  
+  template<>
+  void show<xag_network>( std::ostream& os, const xag_network& element, const command& cmd )
+  {
+    gate_dot_drawer<xag_network> drawer;
+    write_dot( element, os, drawer );
+  }
+
   /********************************************************************
    * Convert from aig to xmg                                          *
    ********************************************************************/
