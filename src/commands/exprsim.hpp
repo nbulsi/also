@@ -27,6 +27,7 @@ namespace alice
         add_flag( "--verbose, -v", "print the information" );    
         add_option( "-e,--expression", expression, "creates truth table from expression" );
         add_flag( "-n,--new", "adds new store entry" );
+	add_option( "-m,--max_num_vars", max_num_vars, "set the maximum number of variables" );
       }
 
     protected:
@@ -41,13 +42,21 @@ namespace alice
 
          /* find max var */
          uint32_t num_vars{0u};
-         for (auto c : expression)
-         {
-           if (c >= 'a' && c <= 'p')
-           {
-             num_vars = std::max<uint32_t>( num_vars, c - 'a' + 1u );
-           }
-         }
+	 if( is_set( "max_num_vars" ) )
+	 {
+	   num_vars = max_num_vars;
+	 }
+	 else
+	 {
+	     for (auto c : expression)
+	     {
+		 if (c >= 'a' && c <= 'p')
+		 {
+		     num_vars = std::max<uint32_t>( num_vars, c - 'a' + 1u );
+		 }
+	     }
+	 }
+         
          
          kitty::dynamic_truth_table tt( num_vars );
          
@@ -66,6 +75,7 @@ namespace alice
 
     private:
       std::string expression = "";
+      uint32_t max_num_vars = 0u;
 
   };
 
