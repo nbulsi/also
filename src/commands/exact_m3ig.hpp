@@ -88,6 +88,7 @@ namespace alice
 
         spec spec;
         also::mig3 mig3;
+        mig_network mig;
 
         //spec.verbosity = 3;
         spec.add_alonce_clauses    = true;
@@ -198,6 +199,9 @@ namespace alice
                 if ( also::mig_three_synthesize( spec, mig3, solver, encoder ) == success )
                 {
                   print_all_expr( spec, mig3 );
+                  mig = mig3_to_mig_network( spec, mig3 );
+                  store<mig_network>().extend(); 
+                  store<mig_network>().current() = mig;
                 }
               } );
         }
