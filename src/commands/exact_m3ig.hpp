@@ -56,7 +56,6 @@ namespace alice
         bsat_wrapper solver;
         spec spec;
         also::mig3 mig3;
-	mig_network mig;
 
         auto copy = tt;
         if( copy.num_vars()  < 3 )
@@ -74,11 +73,8 @@ namespace alice
 
         while( also::next_solution( spec, mig3, solver, encoder ) == success )
         {
-	    print_all_expr( spec, mig3 );
-	    nr_solutions++;
-	    mig = mig3_to_mig_network( spec, mig3 );
-	    store<mig_network>().extend(); 
-	    store<mig_network>().current() = mig;
+          print_all_expr( spec, mig3 );
+          nr_solutions++;
         }
 
         std::cout << "There are " << nr_solutions << " solutions found." << std::endl;
@@ -92,7 +88,7 @@ namespace alice
 
         spec spec;
         also::mig3 mig3;
-	mig_network mig;
+        mig_network mig;
 
         //spec.verbosity = 3;
         spec.add_alonce_clauses    = true;
@@ -203,18 +199,14 @@ namespace alice
                 if ( also::mig_three_synthesize( spec, mig3, solver, encoder ) == success )
                 {
                   print_all_expr( spec, mig3 );
+                  mig = mig3_to_mig_network( spec, mig3 );
+                  store<mig_network>().extend(); 
+                  store<mig_network>().current() = mig;
                 }
               } );
         }
         
-	if(!is_set( "enumerate" ))
-	{
-	    mig = mig3_to_mig_network( spec, mig3 );
-	    store<mig_network>().extend(); 
-	    store<mig_network>().current() = mig;
-	}
-        
-	std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
+        std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
       }
 
   };
