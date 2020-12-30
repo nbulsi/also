@@ -29,7 +29,15 @@ namespace also
   std::vector<std::vector<unsigned>> get_all_permutation( const std::vector<unsigned>& vars );
       
   template <typename T>
-  void show_array( const std::vector<T>& array );
+  void show_array( const std::vector<T>& array )
+  {
+    std::cout << "Elements: ";
+    for( const auto& x : array )
+    {
+      std::cout << " " << x;
+    }
+    std::cout << std::endl;
+  }
 
   void print_sat_clause(solver_wrapper* solver, pabc::lit* begin, pabc::lit* end);
   int add_print_clause(std::vector<std::vector<int>>& clauses, pabc::lit* begin, pabc::lit* end); 

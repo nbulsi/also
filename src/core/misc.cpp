@@ -94,17 +94,6 @@ namespace also
       return v;
     }
       
-    template <typename T>
-      void show_array( const std::vector<T>& array )
-      {
-        std::cout << "Elements: ";
-        for( const auto& x : array )
-        {
-          std::cout << " " << x;
-        }
-        std::cout << std::endl;
-      }
-
     void print_sat_clause(solver_wrapper* solver, pabc::lit* begin, pabc::lit* end)
     {
       printf("Add clause:  " );

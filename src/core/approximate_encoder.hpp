@@ -144,16 +144,6 @@ namespace also
         return res_offset + h * spec.nr_steps + res_var_idx;
       }
       
-      /*int get_res_var(const spec& spec, int step_idx, int res_var_idx) const
-      {
-        auto offset = 0;
-        for (int i = 0; i < step_idx; i++) {
-          offset += (nr_svars_for_step(spec, i) + 1) * (1 + 2);
-        }
-
-        return res_offset + offset + res_var_idx;
-      }*/
-    
     public:
       approximate_encoder( solver_wrapper& solver, const int& dist )
       {
@@ -457,22 +447,22 @@ namespace also
         std::vector<unsigned> v(spec.nr_steps);
         unsigned n(0);
         std::generate(v.begin(), v.end(), [&]{ return n++; });
-
-        //show_array( v );
+        
+        std::cout << "v: ";
+        show_array( v );
 
         /* get all the combinational index */
         auto comb = get_all_combination_index( v, v.size(), spec.nr_nontriv );
         for( auto const& c : comb )
         {
-          //show_array( c );
           auto perm = get_all_permutation( c );
 
           for( auto const& p : perm )
           {
             int ctr = 0;
             assert( p.size() == spec.nr_nontriv );
-            //std::cout << "permutation: ";
-            //show_array( p );
+            std::cout << "permutation: ";
+            show_array( p );
 
             for( int h  = 0; h < spec.nr_nontriv; h++ )
             {
@@ -498,13 +488,13 @@ namespace also
                 auto value = to_decimal( spec, possible_output );
                 auto error_distance = abs( exact_decimal_vaule - value );
 
-                //std::cout << "value: " << value <<" abs : " << error_distance << std::endl;
+                std::cout << "value: " << value <<" abs : " << error_distance << std::endl;
 
                 if( error_distance > max_error_distance )
                 {
                   ctr = ctr_current;
                   /* add constraints to prevent this case */
-                  for( int h = 0; h < spec.nr_nontriv; h++ )
+                  for( int h = spec.nr_nontriv - 1; h >= 0; h-- )
                   {
                     pLits[ctr++] = pabc::Abc_Var2Lit( get_sim_var( spec, p[h], t ), kitty::get_bit( possible_output, h ) );
                   }
@@ -1072,17 +1062,6 @@ namespace also
             }
           }
         }
-
-        //printf("[i] %d nodes are required\n", spec.nr_steps );
-
-        if( dev) 
-        {
-          if( spec.out_inv )
-          {
-            printf( "[i] output is inverted\n" ); 
-          }
-          //assert( chain.satisfies_spec( spec ) );
-        }
       }
       
       /* 
@@ -1303,7 +1282,7 @@ namespace also
     bsat_wrapper solver;
     approximate_encoder encoder( solver, error_distance );
 
-    encoder.set_print_clause( true );
+    encoder.set_print_clause( false );
 
     while( true )
     {
@@ -1319,8 +1298,9 @@ namespace also
 
       if( status == success )
       {
-        encoder.show_verbose_result();
+        //encoder.show_verbose_result();
         encoder.extract_mig3( spec, mig3 );
+        print_all_expr( spec, mig3 );
         return success;
       }
       else if( status == failure )
