@@ -82,7 +82,7 @@ A method that is currently being implemented~\cite{2} is based on assigning cube
 
 \section*{\textbf{\large BACKGROUND}}
 \subsection*{\textbf{Stochastic Computing Circuits }}
-A general form of the stochastic circuit is shown in Figure ~\ref{fig2}, which is a combinational circuit. For a function of single variable $x$, the stochastic number generator (SNG) generates $n$ inputs $X_{1}, \ldots, X_{n}$, whose probability is $x$, where $n$ is the highest degree of the variable $x$ in the function. SNGs usually consist of a pseudo-random number generator and a comparator. In addition, the linear feedback shift register (LFSR) generates $m$ inputs $Y_{1}, \ldots, Y_{m}$ with probability 0.5. The stochastic bitstreams of these $n+m$ inputs are processed by a combination logic circuit.
+A general form of the stochastic circuit is shown in Figure~\ref{fig2}, which is a combinational circuit. For a function of single variable $x$, the stochastic number generator (SNG) generates $n$ independent inputs $X_{1}, \ldots, X_{n}$, whose probability is $x$, where $n$ is the highest degree of the variable $x$ in the function. SNGs typically consist of a pseudo-random number generator and a comparator. A linear feedback shift register (LFSR) generates $m$ inputs $Y_1, \ldots, Y_m$ with probability 0.5. The stochastic bitstreams of these $n+m$ inputs are processed by a combination logic circuit.
 
 \begin{figure}[t]
 	\centering
@@ -119,21 +119,24 @@ The Boolean function shown in Table~\ref{tab:tt} is represented in a simplified 
 F=X_{2}\bar{Y_{1}}+X_{1} \bar{Y_{1}}\bar{Y_{2}}.
 \end{equation}
 
-In this way, the problem vector can form a logical circuit for stochastic computing, but there are many kinds of Boolean functions to implement the same problem vector.
-The problem vector $(0, 3, 2)$ indicates $G(0)=0$, $G(1)=3$, and $G(2)=2$.
+Consequently, a problem vector can be used as a logical circuit for stochastic computation, but there are many kinds of Boolean functions for implementing the same problem vector.
+The problem vector $(0, 3, 2)$ indicates that $G(0)=0$, $G(1)=3$, and $G(2)=2$.
 As shown in Table~\ref{tab:tt}, the column `00' represents $G(0)$. Since $G(0)=0$, then all the entries under this column must be all zero.
 Similarly, the column `11' represents $G(2)$, then we should assign two (i.e. $G(2)=2$) `1's into 4 entries. Thus, there are $\binom{4}{2}=6$ potential assignments.
-Furthermore, the columns `01' and `10' represents $G(1)$, we should assign three `1's into 8 entries, which results in $\binom{8}{3}=56$ possibilities.
-Therefore, Table~\ref{tab:tt} shows just one of the $\binom{4}{2} \times \binom{8}{3} = 336$ Boolean functions of the problem vector $(0, 3, 2)$.
+Furthermore, the columns `01' and `10' represent $G(1)$, we should assign three `1's into 8 entries, which results in $\binom{8}{3}=56$ possibilities.
+Therefore, Table~\ref{tab:tt} demonstrates just one of the $\binom{4}{2} \times \binom{8}{3} = 336$ Boolean functions of the problem vector $(0, 3, 2)$.
 
-\subsection*{\textbf{Sat-based Exact Synthesis}}
-Exact synthesis is the problem of finding optimal logic networks by giving a set of primitives. 
-It is well known that the optimal size of a normal network is found via the SAT formula~\cite{3}. Based on the Knuth algorithm ~\cite{4}, the encoding method using majority-of-three operations is proposed~\cite{6}. 
+\subsection*{\textbf{SAT-based Exact Synthesis}}
+Exact synthesis is the problem of finding optimal logic networks by giving a set of primitives.
+Knuth proposed a SAT-based method for optimum Boolean evaluation~\cite{4}. 
+The aim is to answer whether if there exists an $r$-step normal Boolean chain that computes $a$ given functions $g_1$, $\ldots$, $g_a$ on $b$ variables. The concept of Boolean chain is a directed acyclic graph (DAG) in which every vertex corresponds to a $k$-input Boolean operator. 
+Given defined Boolean variables, SAT clauses are constructed to constraint correct Boolean operations and connections.
+A brief introduction is shown as the following. 
 
-1) Variables: For $1 \leq h \leq m$, $n<i \leq n+r$, and $0<t<2^{n}$, the variables used in the SAT formulation are defined in the following:
+1) Variables: For $1 \leq h \leq a$, $n<i \leq n+r$, and $0<t<2^{b}$, the variables used in the SAT formulation are defined in the following:
 \begin{equation}
 \begin{aligned}
-&x_{i t}: \quad t^{\mathrm{th}} \text { bit of } x_{i} \text { 's truth table }\\
+&x_{i t}: \quad t^{\mathrm{th}} \text { bit of } x_{i} \text{'s truth table }\\
 &\begin{aligned}
 g_{h i}: &\left[g_{h}=x_{i}\right] \\
 s_{i j k}: &\left[x_{i}=x_{j} \circ_{i} x_{k}\right] \text { for } 1 \leq j<k<i \\
@@ -142,9 +145,9 @@ f_{i p q}: & \circ_{i}(p, q) \text { for } 0 \leq p, q \leq 1, p+q>0
 \end{aligned}
 \end{equation}
 
-If function $g_{h}$ is represented by gate $x_{i}$, variable $g_{h i}$ is true. The select variables $s_{i j k}$ is true if the inputs of gate $x_{i}$ are $x_{j}$ and $x_{k}$. The variable $f_{i p q}$ is true, if the operation of gate $x_{i}$ is true for the input assignment (p, q).
+If function $g_{h}$ is represented by gate $x_{i}$, variable $g_{hi}$ is true. The select variables $s_{ijk}$ is true if the inputs of gate $x_{i}$ are $x_{j}$ and $x_{k}$. The variable $f_{ipq}$ is true, if the operation of gate $x_{i}$ is true for the input assignment (p, q).
 
-2) Clauses: Intuitively, if the gate $x_{i}$ must operate as $b \circ_{i} c=a$.  The main clauses to represent the operation constraints can be written as conjunction normal forms (CNFs), that is
+2) Clauses: Intuitively, the gate $x_{i}$ must operate as $b \circ_{i} c=a$.  The main clauses to represent the operation constraints can be written as conjunction normal forms (CNFs), that is
 \begin{equation}
 \left.\left(\bar{s}_{i j k} \vee\left(x_{i t} \oplus a\right) \vee\left(x_{j t} \oplus b\right) \vee\left(x_{k t} \oplus c\right)\right) \vee\left(f_{i b c} \oplus \bar{a}\right)\right)
 \end{equation}
@@ -152,7 +155,9 @@ Let $\left(t_{1}, \ldots, t_{n}\right)_{2}$ be the binary encoding of $t$, then 
 \begin{equation}
 \left(\bar{g}_{h i} \vee\left(\bar{x}_{i t} \oplus g_{h}\left(t_{1}, \ldots, t_{n}\right)\right)\right)
 \end{equation}
-constrain the output values to the gates they point to. Moreover, additional constraints can help to reduce the search space for the SAT solver~\cite{4}.
+constrain the output values to the gates they point to. Moreover, additional constraints can help to reduce the search space for the SAT solver~\cite{4}. For more 
+
+Based on the Knuth algorithm, the encoding method using $k$-input ($k > 2$) operations are investigated, such as majority-of-three~\cite{6} and majority-of-five~\cite{3}. For more details, please refer {\color{red} [ADD REFERENCE: SAT-Based Exact Synthesis: Encodings, Topology Families, and Parallelism]} for encoding, topology families, and parallelism techniques.
 
 \section*{\textbf{\large PROPOSED DESIGNS}}
 

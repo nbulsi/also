@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2021.1.4)  4 JAN 2021 12:36
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2021.1.4)  4 JAN 2021 16:39
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -803,11 +803,14 @@ Package pdftex.def Info: fig/sc.pdf  used on input line 89.
 
  <./fig/AND3.pdf>] [2 <./fig/sc.pdf>]
 LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 2
-12.
+17.
 
 (/usr/local/texlive/2016/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
-) [3]
+)
+Underfull \vbox (badness 2165) has occurred while \output is active []
+
+ [3]
 
 ** Conference Paper **
 Before submitting the final camera ready copy, remember to:
@@ -825,7 +828,7 @@ Before submitting the final camera ready copy, remember to:
 Here is how much of TeX's memory you used:
  8809 strings out of 479310
  127925 string characters out of 5867403
- 458766 words of memory out of 5000000
+ 457766 words of memory out of 5000000
  25834 multiletter control sequences out of 15000+600000
  446651 words of font info for 115 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -848,7 +851,7 @@ e/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/
 mf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2016/texmf-dist/fo
 nts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/
 urw/times/utmri8a.pfb>
-Output written on stochastic.pdf (4 pages, 303111 bytes).
+Output written on stochastic.pdf (4 pages, 304022 bytes).
 PDF statistics:
  219 PDF objects out of 1000 (max. 8388607)
  79 compressed objects within 1 object stream
