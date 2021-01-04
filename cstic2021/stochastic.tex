@@ -90,7 +90,7 @@ A general form of the stochastic circuit is shown in Figure ~\ref{fig2}, which i
 	\caption{\label{fig2}A general form of stochastic computing circuits.} \vspace{-2ex}
 \end{figure}
 
-For $i\in[0,n]$, let $G(i)$ represents the number of minterms $(X_{1}, \ldots, X_{n}, Y_{1}, \ldots, Y_{m})$ that satisfying $F(X_{1}, \ldots, X_{n}, Y_{1}, \ldots, Y_{m})=1$ and $\sum_{j=1}^{n} X_{j}=i$. $(G(0), \ldots, G(n))$ is recorded as the problem vector~\cite{2}. For example, (0, 3, 2) is a problem vector using the truth table shown in Table~\ref{tab:tt} with $n=2$ and $m=2$. Its output probability realizes the function
+For $i\in[0,n]$, let $G(i)$ represents the number of minterms $(X_{1}, \ldots, X_{n}, Y_{1}, \ldots, Y_{m})$ that satisfying $F(X_{1}, \ldots, X_{n}, Y_{1}, \ldots, Y_{m})=1$ and $\sum_{j=1}^{n} X_{j}=i$. $(G(0), \ldots, G(n))$ is recorded as the \emph{problem vector}~\cite{2}. For example, $(0, 3, 2)$ is a problem vector using the Karnaugh map shown in Table~\ref{tab:tt} with $n=2$ and $m=2$. Its output probability realizes the function
 \begin{equation}
 f(x)=\frac{3}{4} x(1-x)+\frac{2}{4} x^{2}.\vspace{-2ex}
 \end{equation}
@@ -100,16 +100,18 @@ f(x)=\frac{3}{4} x(1-x)+\frac{2}{4} x^{2}.\vspace{-2ex}
 \setlength{\abovecaptionskip}{0.cm}
 \setlength{\belowcaptionskip}{0.pt}
 \setlength{\tabcolsep}{1mm}
-\caption{The Truth Table of a Boolean Function With Problem Vector (0, 3, 2).}
+\caption{The Karnaugh map of a Boolean function with problem vector $(0, 3, 2)$.}
 \centering \label{tab:tt}
-\begin{tabular}{|c|c|c|c|c|}
-\hline $\mathrm{Y}_{1} \mathrm{Y}_{2} \backslash \mathrm{X}_{1} \mathrm{X}_{2}$ & 00 & 01 & 11 & 10 \\
-\hline 00 & & 1 & 1 & 1 \\
-\hline 01 & & 1 & 1 & \\
-\hline 11 & & & & \\
-\hline 10 & & & & \\
-\hline
-\end{tabular}
+\begin{tabularx}{\linewidth}{lXXXX}
+\toprule
+$\mathrm{Y}_{1} \mathrm{Y}_{2} \backslash \mathrm{X}_{1} \mathrm{X}_{2}$ & 00 & 01 & 11 & 10 \\
+\midrule
+00 &0 & 1 & 1 & 1 \\
+01 &0 & 1 & 1 &0 \\
+11 &0 & 0& 0&0 \\
+10 &0 &0 & 0&0 \\
+\bottomrule
+\end{tabularx}
 \end{table}
 
 The Boolean function shown in Table~\ref{tab:tt} is represented in a simplified sum-of-product (SOP) form
@@ -117,11 +119,14 @@ The Boolean function shown in Table~\ref{tab:tt} is represented in a simplified 
 F=X_{2}\bar{Y_{1}}+X_{1} \bar{Y_{1}}\bar{Y_{2}}.
 \end{equation}
 
-In this way, the problem vector can form a logical circuit for stochastic computing, but there are many kinds of Boolean functions to implement the same problem vector. Table~\ref{tab:tt} shows just one of the 356 Boolean functions of the problem vector (0, 3, 2).
+In this way, the problem vector can form a logical circuit for stochastic computing, but there are many kinds of Boolean functions to implement the same problem vector.
+The problem vector $(0, 3, 2)$ indicates $G(0)=0$, $G(1)=3$, and $G(2)=2$.
+As shown in Table~\ref{tab:tt}, the column `00' represents $G(0)$. Since $G(0)=0$, then all the entries under this column must be all zero.
+Similarly, the column `11' represents $G(2)$, then we should assign two (i.e. $G(2)=2$) `1's into 4 entries. Thus, there are $\binom{4}{2}=6$ potential assignments.
+Furthermore, the columns `01' and `10' represents $G(1)$, we should assign three `1's into 8 entries, which results in $\binom{8}{3}=56$ possibilities.
+Therefore, Table~\ref{tab:tt} shows just one of the $\binom{4}{2} \times \binom{8}{3} = 336$ Boolean functions of the problem vector $(0, 3, 2)$.
 
 \subsection*{\textbf{Sat-based Exact Synthesis}}
-
-
 Exact synthesis is the problem of finding optimal logic networks by giving a set of primitives. 
 It is well known that the optimal size of a normal network is found via the SAT formula~\cite{3}. Based on the Knuth algorithm ~\cite{4}, the encoding method using majority-of-three operations is proposed~\cite{6}. 
 
@@ -242,13 +247,11 @@ $sin(\pi x)$ &5 &2 &12 &3.1 &37.2 &0.1829 &11 &3.1 &34.1 &0.1830\\
 
 
 \section*{\textbf{\large SUMMARY}}
-In this paper, we proposed a method based on  exact synthesis to synthesize general stochastic circuits. In stochastic computing, many different Boolean functions can implement the same function computation, which brings great design space for synthesis of stochastic circuits. Comparing with traditional heuristic approaches, our exact synthesis algorithm can easily solve complex constraint problems, and apply MIGs to implement function computation in stochastic circuits. The algorithm considers all different constraints and demonstrates that classical heuristic logic synthesis tools may lead to solutions that do not satisfy all requirements. The experimental results show that the proposed approach can achieve 21\% area reduction, 4\% delay improvement, with 3\% mean absolute error trade-off.\vspace{-3ex}
+In this paper, we proposed a method based on  exact synthesis to synthesize general stochastic circuits. In stochastic computing, many different Boolean functions can implement the same function computation, which brings great design space for synthesis of stochastic circuits. Comparing with traditional heuristic approaches, our exact synthesis algorithm can easily solve complex constraint problems, and apply MIGs to implement function computation in stochastic circuits. The algorithm considers all different constraints and demonstrates that classical heuristic logic synthesis tools may lead to solutions that do not satisfy all requirements. The experimental results show that the proposed approach can achieve 21\% area reduction, 4\% delay improvement, with 3\% mean absolute error trade-off.
 
 In this paper, small circuits and functions of a single variable are considered, and future work will focus on the study of larger circuits and functions of multiple variables.
 
-
-
-\section*{\textbf{\large ACKNOWLEDGEMENT}} \vspace{-3ex}
+\section*{\textbf{\large ACKNOWLEDGEMENT}} \vspace{-0ex}
 The work was supported by NSFC under Grant 61871242.
 
 \small
@@ -261,23 +264,23 @@ The work was supported by NSFC under Grant 61871242.
 \bibitem{6}M. Soeken, L. G. Amarù, P. Gaillardon and G. De Micheli, IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems, vol. 36, no. 11, pp. 1842-1855, Nov. 2017.
 \end{thebibliography}
 \bibliographystyle{unsrt}
-\enlargethispage{-6.5cm}
+%\enlargethispage{-6.5cm}
 %\bibliography{refs}
 \end{document}
 
-\begin{tabular}{cccccccc}
-\hline Function & Degree & & Area & Delay & Area-delay product & Product ratio & MAE \\
-\hline \multirow{2}{*} {$\sin (x)$} & \multirow{2}{*} {7} & Cube Factor & 43 & 6.7 & 288.1 & \multirow{2}{*} {0.686} & 0.0106 \\
-& & & 56 & 7.5 & 420.0 & & 0.0107 \\
-\hline \multirow{2}{*} {$\cos (x)$} & \multirow{2}{*} {8} & Cube & 27 & 4.7 & 126.9 & \multirow{2}{*} {0.332} & 0.0075 \\
-& & Factor & 58 & 6.6 & 382.8 & & 0.0079 \\
-\hline \multirow{2}{*} {$\tanh (x)$} & \multirow{2}{*} {9} & Cube & 74 & 6.4 & 473.6 & \multirow{2}{*} {0.992} & 0.0115 \\
-& & Factor & 62 & 7.7 & 477.4 & & 0.0113 \\
-\hline \multirow{2}{*} {$\log (1+x)$} & \multirow{2}{*} {5} & Cube & 49 & 6.3 & 308.7 & \multirow{2}{*} {0.757} & 0.0172 \\
-& & Factor & 48 & 8.5 & 408.0 & & 0.0173 \\
-\hline \multirow{2}{*} {$e^{-x}$} & \multirow{2}{*} {5} & Cube & 67 & 6.6 & 422.2 & \multirow{2}{*} {1.082} & 0.0109 \\
-& & Factor & 47 & 8.3 & 390.1 & & 0.0104 \\
-\hline \multirow{2}{*} {$\sin (\pi x)$} & \multirow{2}{*} {9} & Cube & 76 & 6.6 & 501.6 & \multirow{2}{*} {1.484} & 0.0312 \\
-& & Factor & 52 & 6.5 & 338.0 & & & 0.0318 \\
-\hline
-\end{tabular}
+%\begin{tabular}{cccccccc}
+%\hline Function & Degree & & Area & Delay & Area-delay product & Product ratio & MAE \\
+%\hline \multirow{2}{*} {$\sin (x)$} & \multirow{2}{*} {7} & Cube Factor & 43 & 6.7 & 288.1 & \multirow{2}{*} {0.686} & 0.0106 \\
+%& & & 56 & 7.5 & 420.0 & & 0.0107 \\
+%\hline \multirow{2}{*} {$\cos (x)$} & \multirow{2}{*} {8} & Cube & 27 & 4.7 & 126.9 & \multirow{2}{*} {0.332} & 0.0075 \\
+%& & Factor & 58 & 6.6 & 382.8 & & 0.0079 \\
+%\hline \multirow{2}{*} {$\tanh (x)$} & \multirow{2}{*} {9} & Cube & 74 & 6.4 & 473.6 & \multirow{2}{*} {0.992} & 0.0115 \\
+%& & Factor & 62 & 7.7 & 477.4 & & 0.0113 \\
+%\hline \multirow{2}{*} {$\log (1+x)$} & \multirow{2}{*} {5} & Cube & 49 & 6.3 & 308.7 & \multirow{2}{*} {0.757} & 0.0172 \\
+%& & Factor & 48 & 8.5 & 408.0 & & 0.0173 \\
+%\hline \multirow{2}{*} {$e^{-x}$} & \multirow{2}{*} {5} & Cube & 67 & 6.6 & 422.2 & \multirow{2}{*} {1.082} & 0.0109 \\
+%& & Factor & 47 & 8.3 & 390.1 & & 0.0104 \\
+%\hline \multirow{2}{*} {$\sin (\pi x)$} & \multirow{2}{*} {9} & Cube & 76 & 6.6 & 501.6 & \multirow{2}{*} {1.484} & 0.0312 \\
+%& & Factor & 52 & 6.5 & 338.0 & & & 0.0318 \\
+%\hline
+%\end{tabular}
