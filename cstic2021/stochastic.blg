@@ -1,82 +1,53 @@
-This is BibTeX, Version 0.99d (TeX Live 2020/W32TeX)
+This is BibTeX, Version 0.99d (TeX Live 2020)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: stochastic.aux
 The style file: unsrt.bst
-Database file #1: stochastic.bib
-You're missing a field name---line 19 of file stochastic.bib
- : 
- : %title={The Promise and Challenge of Stochastic Computing},
-(Error may have been on previous line)
-I'm skipping whatever remains of this entry
-You're missing a field name---line 43 of file stochastic.bib
- : 
- : %title={Stochastic Circuit Synthesis by Cube Assignment},
-(Error may have been on previous line)
-I'm skipping whatever remains of this entry
-You're missing a field name---line 65 of file stochastic.bib
- : 
- : %title={Exact Synthesis of Boolean Functions in Majority-of-Five Forms},
-(Error may have been on previous line)
-I'm skipping whatever remains of this entry
-I was expecting a `,' or a `}'---line 95 of file stochastic.bib
- : 
- : %number={CONF},
-(Error may have been on previous line)
-I'm skipping whatever remains of this entry
-You're missing a field name---line 117 of file stochastic.bib
- :  
- :  % title={Exact Synthesis of Majority-Inverter Graphs and Its Applications},
-(Error may have been on previous line)
-I'm skipping whatever remains of this entry
-You're missing a field name---line 137 of file stochastic.bib
- : 
- : %title={SAT-Based Exact Synthesis: Encodings, Topology Families, and Parallelism},
-(Error may have been on previous line)
-I'm skipping whatever remains of this entry
-Warning--empty title in Promise-and-Challenge
-Warning--empty title in Cube-Assignment
-Warning--empty title in Majority-of-Three
-Warning--empty title in Majority-of-Five
-Warning--empty title in SAT-Based-Exact
-You've used 6 entries,
+I found no \bibdata command---while reading file stochastic.aux
+Warning--I didn't find a database entry for "Promise-and-Challenge"
+Warning--I didn't find a database entry for "Cube-Assignment"
+Warning--I didn't find a database entry for "knuth"
+Warning--I didn't find a database entry for "Majority-of-Three"
+Warning--I didn't find a database entry for "Majority-of-Five"
+Warning--I didn't find a database entry for "SAT-Based-Exact"
+You've used 0 entries,
             1791 wiz_defined-function locations,
-            481 strings with 4303 characters,
-and the built_in function-call counts, 1504 in all, are:
-= -- 115
-> -- 71
-< -- 1
-+ -- 26
-- -- 20
-* -- 132
-:= -- 235
-add.period$ -- 13
-call.type$ -- 6
+            455 strings with 3691 characters,
+and the built_in function-call counts, 18 in all, are:
+= -- 0
+> -- 0
+< -- 0
++ -- 0
+- -- 0
+* -- 2
+:= -- 7
+add.period$ -- 0
+call.type$ -- 0
 change.case$ -- 0
 chr.to.int$ -- 0
-cite$ -- 11
-duplicate$ -- 63
-empty$ -- 154
-format.name$ -- 20
-if$ -- 334
+cite$ -- 0
+duplicate$ -- 0
+empty$ -- 1
+format.name$ -- 0
+if$ -- 1
 int.to.chr$ -- 0
-int.to.str$ -- 6
-missing$ -- 7
-newline$ -- 28
-num.names$ -- 6
-pop$ -- 22
+int.to.str$ -- 0
+missing$ -- 0
+newline$ -- 3
+num.names$ -- 0
+pop$ -- 0
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 0
-skip$ -- 25
+skip$ -- 1
 stack$ -- 0
-substring$ -- 114
-swap$ -- 12
-text.length$ -- 1
+substring$ -- 0
+swap$ -- 0
+text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
 type$ -- 0
-warning$ -- 5
-while$ -- 12
-width$ -- 7
-write$ -- 57
-(There were 6 error messages)
+warning$ -- 0
+while$ -- 0
+width$ -- 0
+write$ -- 2
+(There was 1 error message)

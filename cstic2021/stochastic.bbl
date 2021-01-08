@@ -1,34 +1,3 @@
-\begin{thebibliography}{1}
-
-\bibitem{Promise-and-Challenge}
-A.~{Alaghi}, W.~{Qian}, and J.~P. {Hayes}.
-\newblock {\em IEEE Transactions on Computer-Aided Design of Integrated
-  Circuits and Systems}, 37(8):1515--1531, 2018.
-
-\bibitem{Cube-Assignment}
-X.~{Peng} and W.~{Qian}.
-\newblock {\em IEEE Transactions on Computer-Aided Design of Integrated
-  Circuits and Systems}, 37(12):3109--3122, 2018.
-
-\bibitem{knuth}
-Donald~E Knuth.
-\newblock {\em The Art of Computer Programming, Volume 4, Fascicle 6:
-  Satisfiability}.
-\newblock Addison-Wesley Professional, 2015.
-
-\bibitem{Majority-of-Three}
-M.~{Soeken}, L.~G. {Amarù}, P.~{Gaillardon}, and G.~{De Micheli}.
-\newblock {\em IEEE Transactions on Computer-Aided Design of Integrated
-  Circuits and Systems}, 36(11):1842--1855, 2017.
-
-\bibitem{Majority-of-Five}
-Z.~{Chu}, W.~{Haaswijk}, M.~{Soeken}, Y.~{Xia}, L.~{Wang}, and G.~{De Micheli}.
-\newblock In {\em 2019 IEEE International Symposium on Circuits and Systems
-  (ISCAS)}, pages 1--5, 2019.
-
-\bibitem{SAT-Based-Exact}
-W.~{Haaswijk}, M.~{Soeken}, A.~{Mishchenko}, and G.~{De Micheli}.
-\newblock {\em IEEE Transactions on Computer-Aided Design of Integrated
-  Circuits and Systems}, 39(4):871--884, 2019.
+\begin{thebibliography}{}
 
 \end{thebibliography}
