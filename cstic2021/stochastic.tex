@@ -56,7 +56,7 @@
 Stochastic computing enables computationally complex arithmetic using binary numbers converted to stochastic bitstreams. 
 A large number of applications have used stochastic computing due to its fault-tolerant nature. 
 However, stochastic circuit synthesis presents a larger solution space when compared to classical logic synthesis.
-Previous methods synthesize stochastic circuits using a heuristic method. In this paper, a novel exact synthesis method using Boolean satisfiability (SAT) is proposed to obtain an optimal stochastic circuit represented by majority-inverter graphs (MIGs). The experimental results suggest that the proposed approach can achieve 21\% area reduction, 4\% delay improvement, with 3\% mean absolute error trade-off.    
+Previous methods synthesize stochastic circuits using a heuristic method. In this paper, a novel exact synthesis method using Boolean satisfiability (SAT) is proposed to obtain an optimal stochastic circuit represented by majority-inverter graphs (MIGs). The experimental results suggest that the proposed approach can achieve 21\% area reduction, 4\% delay improvement, with a 3\% mean absolute error trade-off.    
 \vspace{2ex}
 
 %\begin{IEEEkeywords}
@@ -64,7 +64,7 @@ Previous methods synthesize stochastic circuits using a heuristic method. In thi
 %\end{IEEEkeywords}
 
 \section*{\textbf{\large INTRODUCTION}}
-Many constraints limit modern circuit development, such as voltage variations, thermal variations, and soft errors. These physical phenomena are susceptible to errors, thus reliability has become an important issue. Stochastic computing (SC) has received increasing attention as an unconventional computing method for solving these problems. SC is unique in that it represents and processes information in the probabilistic form and is highly fault-tolerant for bit flips. SC converts numbers $x\in[0,1]$ into stochastic bitstreams consisting only 0 and 1. 
+Many constraints limit modern circuit development, such as voltage variations, thermal variations, and soft errors. These physical phenomena are susceptible to errors, thus reliability has become an important issue. Stochastic computing (SC) has received increasing attention as an unconventional computing method for solving these problems. SC is unique in that it represents and processes information in the probabilistic form and is highly fault-tolerant for bit flips. SC converts numbers $x\in[0,1]$ into stochastic bitstreams consisting of only 0 and 1. 
 Each bit has a probability $x$ of being a one and probability $1-x$ of being a zero in the bitstream. The values are represented by the probability of the one in the bitstream. For example, (0,1,0,0) and (0,0,0,1) are potential representations of the value 0.25 as the digit `1' presents once in the bitstream with length four. Numbers are normally stored in long bitstreams where a few bits are flipped without a significant difference in value. By converting numbers into random bitstreams, stochastic computing transforms a complex computing unit into a simple circuit with gates. Thus many arithmetic operations can be implemented with very simple logic circuits. For example, multiplication in stochastic computing can be implemented with an AND gate if the two input stochastic bitstreams are independent, as shown in Figure ~\ref{fig:sto}. 
 Stochastic computing has been applied to many applications~\cite{Promise-and-Challenge} as image processing, neural networks, decoding LDPC code, and filter design.
 
@@ -103,16 +103,17 @@ f(x)=\frac{3}{4} x(1-x)+\frac{2}{4} x^{2}.\vspace{-2ex}
 \setlength{\tabcolsep}{1mm}
 \caption{The Karnaugh map of a Boolean function with problem vector $(0, 3, 2)$.}
 \centering \label{tab:tt}
-\begin{tabularx}{\linewidth}{lXXXX}
+\begin{tabular}{p{2cm}<{\centering} p{1.25cm}<{\centering} p{1.25cm}<{\centering} p{1.25cm}<{\centering} p{1.25cm}<{\centering}}
+%\begin{tabularx}{\linewidth}{lXXXX}
 \toprule
 $\mathrm{Y}_{1} \mathrm{Y}_{2} \backslash \mathrm{X}_{1} \mathrm{X}_{2}$ & 00 & 01 & 11 & 10 \\
 \midrule
 00 &0 & 1 & 1 & 1 \\
 01 &0 & 1 & 1 &0 \\
-11 &0 & 0& 0&0 \\
-10 &0 &0 & 0&0 \\
+11 &0 &0  &0  &0 \\
+10 &0 &0 &0   &0 \\
 \bottomrule
-\end{tabularx}
+\end{tabular}
 \end{table}
 
 The Boolean function shown in Table~\ref{tab:tt} is represented in a simplified sum-of-product (SOP) form
@@ -122,7 +123,7 @@ F=X_{2}\bar{Y_{1}}+X_{1} \bar{Y_{1}}\bar{Y_{2}}.
 
 Consequently, a problem vector can be used as a logical circuit for stochastic computation, but there are many kinds of Boolean functions for implementing the same problem vector.
 The problem vector $(0, 3, 2)$ indicates that $G(0)=0$, $G(1)=3$, and $G(2)=2$.
-As shown in Table~\ref{tab:tt}, the column ``00'' represents $G(0)$. Since $G(0)=0$, then all the entries under this column must be all zero.
+As shown in Table~\ref{tab:tt}, column ``00'' represents $G(0)$. Since $G(0)=0$, then all the entries under this column must be all zero.
 Similarly, the column ``11'' represents $G(2)$, then we should assign two (i.e. $G(2)=2$) `1's into 4 entries. Thus, there are $\binom{4}{2}=6$ potential assignments.
 Furthermore, the columns ``01'' and ``10'' represent $G(1)$, we should assign three `1's into 8 entries, which results in $\binom{8}{3}=56$ possibilities.
 Therefore, Table~\ref{tab:tt} demonstrates just one of the $\binom{4}{2} \times \binom{8}{3} = 336$ Boolean functions of the problem vector $(0, 3, 2)$.
@@ -137,7 +138,7 @@ A brief introduction is shown as the following.
 1) Variables: For $1 \leq h \leq a$, $n<i \leq n+r$, and $0<t<2^{b}$, the variables used in the SAT formulation are defined in the following:
 \begin{equation}
 \begin{aligned}
-&x_{i t}: \quad t^{\mathrm{th}} \text { bit of } x_{i} \text{'s truth table }\\
+ &x_{i t}: t^{\mathrm{th}} \text { bit of } x_{i} \text{'s truth table }\\
 &\begin{aligned}
 g_{h i}: &\left[g_{h}=x_{i}\right] \\
 s_{i j k}: &\left[x_{i}=x_{j} \circ_{i} x_{k}\right] \text { for } 1 \leq j<k<i \\
@@ -146,7 +147,7 @@ f_{i p q}: & \circ_{i}(p, q) \text { for } 0 \leq p, q \leq 1, p+q>0
 \end{aligned}
 \end{equation}
 
-If function $g_{h}$ is represented by gate $x_{i}$, variable $g_{hi}$ is true. The select variables $s_{ijk}$ is true if the inputs of gate $x_{i}$ are $x_{j}$ and $x_{k}$. The variable $f_{ipq}$ is true, if the operation of gate $x_{i}$ is true for the input assignment (p, q).
+If function $g_{h}$ is represented by gate $x_{i}$, variable $g_{hi}$ is true. The select variables $s_{ijk}$ is true if the inputs of gate $x_{i}$ are $x_{j}$ and $x_{k}$. The variable $f_{ipq}$ is true if the operation of gate $x_{i}$ is true for the input assignment (p, q).
 
 2) Clauses: Intuitively, the gate $x_{i}$ must operate as $b \circ_{i} c=a$.  The main clauses to represent the operation constraints can be written as conjunction normal forms (CNFs), that is
 \begin{equation}
@@ -177,7 +178,7 @@ In this section, we will demonstrate the optimized design of stochastic circuit 
 
 
 Note that the traditional exact synthesis outputs an optimal logic representation based on a fixed truth table as input.
-We propose cardinality clauses to constrain the logic function on-sets in the stochastic circuit, since the circuit has a problem vector. Thus, the SAT solver can answer whether we can realize a stochastic problem vector using giving primitives. 
+We propose cardinality clauses to constrain the logic function on-sets in the stochastic circuit since the circuit has a problem vector. Thus, the SAT solver can answer whether we can realize a stochastic problem vector using giving primitives. 
 
 For example, we know that $G(2) = 2$ according to the problem vector (0, 3, 2) in Table~\ref{tab:tt}. We restrict the sum of all minterms under columns ``01'' and ``10'' to be equal to $G(2)$. 
 Let $f_{Y_1Y_2X_1X_2}$ be a minterm, then all minterms under columns ``11''
@@ -189,7 +190,7 @@ f_{0011} + f_{0111} + f_{1011} + f_{0011} = 2.
 Note that this constraint should be transformed into CNFs which are feasible for SAT solving.
 
 A Boolean function is normal if it outputs zero when all of their $k$ inputs are zero, i.e., $f(0,\ldots,0)=0$.
-Because the encoder works for normal functions, we should also try the unnormal functions by redefining the problem vector. 
+Because the encoder works for normal functions, we should also try the unnormal functions by redefining the problem vector. 
 For example, if $m = 1$, $n = 2$, the problem vector is $(1,3,2)$, then the redefined problem vector is $(2-1=1, 4-3=1, 2-2=0)$. 
 We then feed both normal and unnormal Boolean function problem vectors into the SAT solver until a solution is found that meets the constraints.
 
@@ -217,15 +218,15 @@ We then feed both normal and unnormal Boolean function problem vectors into the 
 %
 %Further, clause $\bigvee_{w=1}^{8} o_{r w}$ ensure that each step should realize at least one of the 8 operations.
 \subsection*{\textbf{Algorithms }}
-Given a problem vector, our algorithm can generate a solution to satisfy both problem vector cardinality constraints and presented logical primitives based on the encoding methods described above. The initial number of gates is set as $r=0$. If a solution is found, it returns a MIG; otherwise, the algorithm will increase the number of gates ($r$), then restart encoding and solve until the upper limit is reached. This will ensure that the algorithm can find the MIG networks with the optimal number of gates.
+Given a problem vector, our algorithm can generate a solution to satisfy both problem vector cardinality constraints and present logical primitives based on the encoding methods described above. The initial number of gates is set as $r=0$. If a solution is found, it returns a MIG; otherwise, the algorithm will increase the number of gates ($r$), then restart encoding and solve until the upper limit is reached. This will ensure that the algorithm can find the MIG networks with the optimal number of gates.
 
 \section*{\textbf{\large EXPERIMENTAL RESULT}}
-In this section, we apply our exact synthesis method to synthesize several common arithmetic functions by our open-source logic synthesis tool ALSO\footnote{https://github.com/nbulsi/also} using the command `\texttt{stochastic}'.The arithmetic functions considered include trigonometric, exponential, and logarithmic functions. The method in~\cite{Cube-Assignment} is used as a comparison. It is a state-of-the-art method in synthesizing these commonly used functions based on a heuristic breadth-first search algorithm. 
+In this section, we apply our exact synthesis method to synthesize several common arithmetic functions by our open-source logic synthesis tool ALSO\footnote{https://github.com/nbulsi/also} using the command `\texttt{stochastic}'. The arithmetic functions considered include trigonometric, exponential, and logarithmic functions. The method in~\cite{Cube-Assignment} is used as a comparison. It is a state-of-the-art method in synthesizing these commonly used functions based on a heuristic breadth-first search algorithm. 
 
 Table~\ref{tab2} shows the comparison results between the method in~\cite{Cube-Assignment} and ours. For a fair comparison, the two methods use the same precision $m$ and degree of functions $n$, respectively. For each function $f(x)$, we selected 19 input points $x=0.05, 0.1,..., 0.95$ for simulation. We selected the length of the stochastic bitstreams as 10240. We additionally evaluate the mean absolute error (MAE) and area-delay product(ADP). 
 The results of area and delay are reported by ABC\footnote{https://github.com/berkeley-abc/abc}.
 
-We find that the two methods provide almost equal accuracy. However, our method reduces the area  by 21\% and delays by 4\%. In terms of ADP, our method offers a 23\% improvement on average. The MAE of the method is slightly increased, which is acceptable.
+We find that the two methods provide almost equal accuracy. However, our method reduces the area  by 21\% and delays by 4\%. In terms of ADP, our method offers a 23\% improvement on average. The MAE of the method is slightly increased, which is acceptable.
 %The results of simulation show that our approach produces better circuits in terms of area and delay.
 
 \begin{table}[htbp]
@@ -257,7 +258,7 @@ $sin(\pi x)$ &5 &2 &12 &3.1 &37.2 &0.1829 &11 &3.1 &34.1 &0.1830\\
 
 
 \section*{\textbf{\large SUMMARY}}
-In this paper, we proposed a method based on exact synthesis to synthesize general stochastic circuits. In stochastic computing, many different Boolean functions can implement the same function computation, which brings great design space. Compared with traditional heuristic approaches, our exact synthesis algorithm can solve complex constraint problems and apply MIGs to implement function computation in stochastic circuits. The experimental results show that the proposed approach can achieve 21\% area reduction, 4\% delay improvement, with 3\% mean absolute error trade-off.
+In this paper, we proposed a method based on exact synthesis to synthesize general stochastic circuits. In stochastic computing, many different Boolean functions can implement the same function computation, which brings great design space. Compared with traditional heuristic approaches, our exact synthesis algorithm can solve complex constraint problems and apply MIGs to implement function computation in stochastic circuits. The experimental results show that the proposed approach can achieve 21\% area reduction, 4\% delay improvement, with a 3\% mean absolute error trade-off.
 
 In this paper, small circuits and functions of a single variable are considered, and future work will focus on the study of larger circuits and functions of multiple variables.
 
