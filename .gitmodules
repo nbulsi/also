@@ -4,3 +4,6 @@
 [submodule "lib/mockturtle"]
 	path = lib/mockturtle
 	url = https://github.com/zfchu/mockturtle
+[submodule "lib/eigen"]
+	path = lib/eigen
+	url = https://gitlab.com/libeigen/eigen
