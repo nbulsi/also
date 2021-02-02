@@ -215,7 +215,7 @@ private:
     auto b4 = reduce_depth_xor_distribute( n );
 
     if( !( b1 | b2 | b3 | b4 ) ) { return false; }
-    
+
     return true;
   }
 
@@ -223,10 +223,10 @@ private:
   {
     if ( !ntk.is_xor3( n ) )
       return false;
-    
+
     if ( ntk.level( n ) == 0 )
       return false;
-    
+
     /* get children of top node, ordered by node level (ascending) */
     const auto ocs = ordered_children( n );
 
@@ -237,7 +237,7 @@ private:
     auto opt = ntk.create_xor( ocs[2], ntk.create_xor( ocs[0], ocs[1] ) );
     ntk.substitute_node( n, opt );
     ntk.update_levels();
-    
+
     return true;
   }
 
@@ -245,7 +245,7 @@ private:
   {
     if ( !ntk.is_xor3( n ) )
       return false;
-    
+
     if ( ntk.level( n ) == 0 )
       return false;
 
@@ -263,11 +263,11 @@ private:
     if( ntk.is_xor3( ntk.get_node( ocs[2] ) ) )
     {
       /* size optimization, do not allow area increase */
-      if( ntk.fanout_size( ntk.get_node( ocs[2] ) ) == 1 ) 
+      if( ntk.fanout_size( ntk.get_node( ocs[2] ) ) == 1 )
       {
         /* get children of last child */
         auto ocs2 = ordered_children( ntk.get_node( ocs[2] ) );
-        
+
         /* propagate inverter if necessary */
         if ( ntk.is_complemented( ocs[2] ) )
         {
@@ -275,7 +275,7 @@ private:
           ocs2[0] = !ocs2[0];
         }
 
-        if( ocs2[0].index == 0 ) 
+        if( ocs2[0].index == 0 )
         {
           auto opt = ntk.create_xor3( ocs[1], ocs2[1], ocs2[2] );
           ntk.substitute_node( n, opt );
@@ -286,15 +286,15 @@ private:
       }
 
     }
-    
+
     if( ntk.is_xor3( ntk.get_node( ocs[1] ) ) )
     {
       /* size optimization, do not allow area increase */
-      if( ntk.fanout_size( ntk.get_node( ocs[1] ) ) == 1 ) 
+      if( ntk.fanout_size( ntk.get_node( ocs[1] ) ) == 1 )
       {
         /* get children of second child */
         auto ocs2 = ordered_children( ntk.get_node( ocs[1] ) );
-        
+
         /* propagate inverter if necessary */
         if ( ntk.is_complemented( ocs[1] ) )
         {
@@ -302,7 +302,7 @@ private:
           ocs2[0] = !ocs2[0];
         }
 
-        if( ocs2[0].index == 0 ) 
+        if( ocs2[0].index == 0 )
         {
           auto opt = ntk.create_xor3( ocs[2], ocs2[1], ocs2[2] );
           ntk.substitute_node( n, opt );
@@ -313,7 +313,7 @@ private:
       }
     }
 
-    return true;
+    return false;
   }
 
   bool reduce_depth( node<Ntk> const& n )
@@ -371,8 +371,9 @@ private:
                                  ntk.create_maj( ocs[0], ocs[1], ocs2[1] ) );
       ntk.substitute_node( n, opt );
       ntk.update_levels();
+      return true;
     }
-    return true;
+    return false;
   }
 
   using candidate_t = std::tuple<signal<Ntk>, signal<Ntk>, signal<Ntk>, signal<Ntk>, bool>;
@@ -426,24 +427,25 @@ private:
     /* depth of last grand-child must be higher than depth of second child */
     if ( ntk.level( ntk.get_node( ocs2[2] ) ) + 1 <= ntk.level( ntk.get_node( ocs[1] ) ) )
       return false;
-    
+
     /* propagate inverter if necessary */
     if ( ntk.is_complemented( ocs[2] ) )
     {
       ocs2[2] = !ocs2[2];
     }
 
-    if( ocs[0] == ocs2[0] && ocs[0].index == 0 && ntk.fanout_size( ntk.get_node( ocs[2] ) ) == 1) 
+    if( ocs[0] == ocs2[0] && ocs[0].index == 0 && ntk.fanout_size( ntk.get_node( ocs[2] ) ) == 1)
     {
-      auto opt = ntk.create_xor3( ocs[0], ocs2[2], 
+      auto opt = ntk.create_xor3( ocs[0], ocs2[2],
                                   ntk.create_xor3( ocs2[0], ocs2[1], ocs[1] ) );
       ntk.substitute_node( n, opt );
       ntk.update_levels();
+      return true;
     }
 
-    return true;
+    return false;
   }
-  
+
   /* XOR complementary associativity <xy[!yz]> = <xy[xz]> */
   bool reduce_depth_xor_complementary_associativity( node<Ntk> const& n )
   {
@@ -506,7 +508,7 @@ private:
       return true;
     }
 
-    return true;
+    return false;
   }
 
   std::optional<candidate_t> xor_compl_associativity_candidate( signal<Ntk> const& v, signal<Ntk> const& w, signal<Ntk> const& x, signal<Ntk> const& y, signal<Ntk> const& z ) const
@@ -561,7 +563,7 @@ private:
     }
 
     /* consider at least two xor child nodes */
-    if ( xor_index.size() < 2 ) 
+    if ( xor_index.size() < 2 )
       return false;
 
     /* depth of last child must be (significantly) higher than depth of second child */
@@ -595,7 +597,7 @@ private:
       auto ocs1 = ordered_children( ntk.get_node( ocs[0] ) );
       auto ocs2 = ordered_children( ntk.get_node( ocs[1] ) );
       auto ocs3 = ordered_children( ntk.get_node( ocs[2] ) );
-      
+
       if ( auto cand = find_common_grand_child_three( ocs1, ocs2, ocs3 ); cand )
       {
         auto r = *cand;
@@ -631,19 +633,19 @@ private:
     }
 
     return false;
-  } 
+  }
 
   bool is_signal_equal( const signal<Ntk>& a, const signal<Ntk>& b )
   {
     return ( a == b ?  true : false );
   }
-  
+
   bool is_three_signal_equal( const signal<Ntk>& a, const signal<Ntk>& b, const signal<Ntk>& c )
   {
     return ( a == b ?  ( b == c ? true : false ): false );
   }
 
-  using children_t = std::array< signal<Ntk>, 3 >; 
+  using children_t = std::array< signal<Ntk>, 3 >;
   std::bitset<9> get_pair_pattern( const children_t& c1, const children_t& c2 )
   {
     std::bitset<9> equals;
@@ -736,11 +738,11 @@ private:
     }
 
     if( common.size() != 2 )
-      return std::nullopt; 
+      return std::nullopt;
 
     r.a = common[0u];
     r.b = common[1u];
-    
+
     for( auto i = 0u; i < 3u; i++ )
     {
       if( c1[i] != common[0u] && c1[i] != common[1u] )
@@ -752,7 +754,7 @@ private:
       {
         r.y = c2[i];
       }
-      
+
       if( c3[i] != common[0u] && c3[i] != common[1u] )
       {
         r.z = c3[i];
@@ -789,10 +791,10 @@ private:
 
     /* the signal v index must equal one of the common signal index, and one common signal is
      * constant 1 or 0 */
-    if( v.index != common[0u].index && v.index != common[1u].index ) 
+    if( v.index != common[0u].index && v.index != common[1u].index )
       return std::nullopt;
 
-    if( common[0u].index != 0 && common[1u].index != 0 ) 
+    if( common[0u].index != 0 && common[1u].index != 0 )
       return std::nullopt;
 
     /* save the records */
@@ -812,12 +814,12 @@ private:
       }
     }
 
-    if( v == !common[0u] || v == !common[1u] ) 
+    if( v == !common[0u] || v == !common[1u] )
     {
       r.z = ntk.get_constant( true );
     }
-    
-    if( v == common[0u] || v == common[1u] ) 
+
+    if( v == common[0u] || v == common[1u] )
     {
       r.z = ntk.get_constant( false );
     }

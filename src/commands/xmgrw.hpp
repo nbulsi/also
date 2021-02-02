@@ -35,7 +35,7 @@ namespace alice
         add_flag( "--only_maj", "apply mig_algebraic_depth_rewriting method" );
         add_flag( "--cec,-c", "apply equivalence checking in rewriting" );
       }
-      
+
       rules validity_rules() const
       {
         return {
@@ -75,10 +75,10 @@ namespace alice
             assert( false );
           }
 
-          depth_view depth_xmg{ xmg }; 
+          depth_view depth_xmg{ xmg };
           mig_algebraic_depth_rewriting( depth_xmg, ps_mig );
           xmg = cleanup_dangling( xmg );
-          
+
         }
         else
         {
@@ -114,35 +114,35 @@ namespace alice
 
           xmg_network xmg1, xmg2;
           xmg1 = xmg;
-          
+
           /* mig_algebraic_depth_rewriting is suitable for ntk that has majority nodes */
           depth_view depth_xmg1{ xmg };
           mig_algebraic_depth_rewriting( depth_xmg1, ps_mig );
           xmg = cleanup_dangling( xmg );
 
-          depth_view depth_xmg2{ xmg }; 
+          depth_view depth_xmg2{ xmg };
           xmg_depth_rewriting( depth_xmg2, ps_xmg );
           xmg = cleanup_dangling( xmg );
           xmg2 = xmg;
-         
+
           if( is_set( "cec" ) )
           {
             /* equivalence checking */
-            const auto miter_xmg = *miter<xmg_network>( xmg1, xmg2 ); 
+            const auto miter_xmg = *miter<xmg_network>( xmg1, xmg2 );
             equivalence_checking_stats eq_st;
             const auto result = equivalence_checking( miter_xmg, {}, &eq_st );
             assert( *result );
           }
         }
 
-        std::cout << "[xmgrw] "; 
+        std::cout << "[xmgrw] ";
         auto xmg_copy = cleanup_dangling( xmg );
         also::print_stats( xmg_copy );
-        
-        store<xmg_network>().extend(); 
+
+        store<xmg_network>().extend();
         store<xmg_network>().current() = xmg;
       }
-    
+
     private:
       mig_algebraic_depth_rewriting_params ps_mig;
       xmg_depth_rewriting_params ps_xmg;

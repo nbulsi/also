@@ -17,7 +17,7 @@
 
 namespace also
 {
-  void xmg_inv_optimization( mockturtle::xmg_network& xmg );
+    mockturtle::xmg_network xmg_inv_optimization( mockturtle::xmg_network& xmg );
 }
 
 #endif

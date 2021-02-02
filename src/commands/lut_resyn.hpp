@@ -34,11 +34,11 @@
 
 namespace alice
 {
-  
+
   class lut_resyn_command: public command
   {
     public:
-      explicit lut_resyn_command( const environment::ptr& env ) 
+      explicit lut_resyn_command( const environment::ptr& env )
                : command( env, "lut resyn using optimal networks (default:mig)" )
       {
         add_option( "cut_size, -k", cut_size, "set the cut size from 2 to 8, default = 4" );
@@ -82,11 +82,11 @@ namespace alice
             xmg_npn_resynthesis resyn;
             xmg = node_resynthesis<xmg_network>( klut, resyn );
           }
-          
+
           /* add to store */
           if( is_set( "new_entry" ) )
           {
-            store<xmg_network>().extend(); 
+            store<xmg_network>().extend();
             store<xmg_network>().current() = cleanup_dangling( xmg );
           }
         }
@@ -99,7 +99,7 @@ namespace alice
           /* add to store */
           if( is_set( "new_entry" ) )
           {
-            store<xmg_network>().extend(); 
+            store<xmg_network>().extend();
             store<xmg_network>().current() = xmg;
           }
         }
@@ -121,7 +121,7 @@ namespace alice
           /* add to store */
           if( is_set( "new_entry" ) )
           {
-            store<m5ig_network>().extend(); 
+            store<m5ig_network>().extend();
             store<m5ig_network>().current() = m5ig;
           }
         }
@@ -135,7 +135,7 @@ namespace alice
           /* add to store */
           if( is_set( "new_entry" ) )
           {
-            store<img_network>().extend(); 
+            store<img_network>().extend();
             store<img_network>().current() = img;
           }
         }
@@ -158,7 +158,7 @@ namespace alice
           std::vector<mig_network::signal> pis = {a, b, c, d, e, f};
 
           exact_mig_resynthesis<mig_network> resyn;
-          resyn( mig, maj, pis.begin(), pis.end(), [&]( auto const& f ) { 
+          resyn( mig, maj, pis.begin(), pis.end(), [&]( auto const& f ) {
               mig.create_po( f );
               } );
         }
@@ -183,7 +183,7 @@ namespace alice
           std::vector<m5ig_network::signal> pis = {a, b, c, d, e, f};
 
           exact_m5ig_resynthesis<m5ig_network> resyn;
-          resyn( m5ig, maj, pis.begin(), pis.end(), [&]( auto const& f ) { 
+          resyn( m5ig, maj, pis.begin(), pis.end(), [&]( auto const& f ) {
               m5ig.create_po( f );
               } );
         }
@@ -202,14 +202,14 @@ namespace alice
             xag_network db;
             auto opt_xags = also::load_xag_string_db( db );
             xag_lut_dec_resynthesis<xag_network> resyn( opt_xags );
-            
+
             xag = node_resynthesis<xag_network>( klut, resyn );
           }
-          
+
           /* add to store */
           if( is_set( "new_entry" ) )
           {
-            store<xag_network>().extend(); 
+            store<xag_network>().extend();
             store<xag_network>().current() = xag;
           }
         }
@@ -217,11 +217,11 @@ namespace alice
         {
           mig_npn_resynthesis resyn;
           const auto mig = node_resynthesis<mig_network>( klut, resyn );
-          
+
           /* add to store */
           if( is_set( "new_entry" ) )
           {
-            store<mig_network>().extend(); 
+            store<mig_network>().extend();
             store<mig_network>().current() = mig;
           }
         }
