@@ -5,7 +5,7 @@
  * @file m3ig_helper.hpp
  *
  * @brief Helper for m3ig chain extraction and m3ig encoder
- * selection variables generation 
+ * selection variables generation
  *
  * @author Zhufei Chu
  * @since  0.1
@@ -14,7 +14,6 @@
 #ifndef M3IG_HELPER_HPP
 #define M3IG_HELPER_HPP
 
-#include <mockturtle/mockturtle.hpp>
 #include "misc.hpp"
 
 namespace also
@@ -73,7 +72,7 @@ namespace also
 
         kitty::dynamic_truth_table maj3( kitty::dynamic_truth_table a,
                                          kitty::dynamic_truth_table b,
-                                         kitty::dynamic_truth_table c ) const 
+                                         kitty::dynamic_truth_table c ) const
         {
           return kitty::ternary_majority( a, b, c );
         }
@@ -92,11 +91,11 @@ namespace also
             auto tt_inute = kitty::create<kitty::dynamic_truth_table>(nr_in);
 
 
-            for (auto i = 0u; i < steps.size(); i++) 
+            for (auto i = 0u; i < steps.size(); i++)
             {
                 const auto& step = steps[i];
 
-                if (step[0] <= nr_in) 
+                if (step[0] <= nr_in)
                 {
                     if( step[0] == 0)
                     {
@@ -107,13 +106,13 @@ namespace also
                     {
                       create_nth_var(tt_in1, step[0] - 1);
                     }
-                } 
-                else 
+                }
+                else
                 {
                     tt_in1 = tmps[step[0] - nr_in - 1];
                 }
 
-                if (step[1] <= nr_in) 
+                if (step[1] <= nr_in)
                 {
                     if( step[1] == 0)
                     {
@@ -124,23 +123,23 @@ namespace also
                     {
                       create_nth_var(tt_in2, step[1] - 1);
                     }
-                } 
-                else 
+                }
+                else
                 {
                     tt_in2 = tmps[step[1] - nr_in - 1];
                 }
 
-                if (step[2] <= nr_in) 
+                if (step[2] <= nr_in)
                 {
                     create_nth_var(tt_in3, step[2] - 1);
-                } 
-                else 
+                }
+                else
                 {
                     tt_in3 = tmps[step[2] - nr_in - 1];
                 }
-                
+
                 kitty::clear(tt_step);
-                switch (operators[i]) 
+                switch (operators[i])
                 {
                 case 0:
                     tt_step = maj3( tt_in1, tt_in2, tt_in3 );
@@ -158,16 +157,16 @@ namespace also
                     assert( false && "ops are not known" );
                     break;
                 }
-                
+
                 tmps[i] = tt_step;
 
-                for (auto h = 0u; h < outputs.size(); h++) 
+                for (auto h = 0u; h < outputs.size(); h++)
                 {
                   //fs[h] = tt_step;
                     const auto out = outputs[h];
                     const auto var = out >> 1;
                     const auto inv = out & 1;
-                    if (var - nr_in - 1 == static_cast<int>(i)) 
+                    if (var - nr_in - 1 == static_cast<int>(i))
                     {
                         fs[h] = inv ? ~tt_step : tt_step;
                     }
@@ -191,27 +190,27 @@ namespace also
         }
 
 
-        void set_output(int out_idx, int lit) 
+        void set_output(int out_idx, int lit)
         {
             outputs[out_idx] = lit;
         }
 
         bool satisfies_spec(const percy::spec& spec)
         {
-            if (spec.nr_triv == spec.get_nr_out()) 
+            if (spec.nr_triv == spec.get_nr_out())
             {
                 return true;
             }
             auto tts = simulate();
 
             auto nr_nontriv = 0;
-            for (int i = 0; i < spec.nr_nontriv; i++) 
+            for (int i = 0; i < spec.nr_nontriv; i++)
             {
-                if ((spec.triv_flag >> i) & 1) 
+                if ((spec.triv_flag >> i) & 1)
                 {
                     continue;
                 }
-                
+
                 if( tts[nr_nontriv++] != spec[i] )
                 {
                   assert(false);
@@ -225,11 +224,11 @@ namespace also
 
         void to_expression(std::ostream& o, const int i)
         {
-            if (i < nr_in) 
+            if (i < nr_in)
             {
                 o << static_cast<char>('a' + i);
-            } 
-            else 
+            }
+            else
             {
                 const auto& step = steps[i - nr_in];
                 o << "<";
@@ -252,7 +251,7 @@ namespace also
   class comb3
   {
     private:
-      std::vector<std::vector<int>> polarity {  
+      std::vector<std::vector<int>> polarity {
         {0, 0, 0},
         {1, 0, 0},
         {0, 1, 0},
@@ -260,13 +259,13 @@ namespace also
       };
 
       kitty::static_truth_table<3> a, b, c;
-      input_type3 type; 
+      input_type3 type;
 
-      std::vector<kitty::static_truth_table<3>> all_tt; 
+      std::vector<kitty::static_truth_table<3>> all_tt;
 
     public:
       comb3( input_type3 type )
-        : type( type ) 
+        : type( type )
       {
         kitty::create_nth_var( a, 0 );
         kitty::create_nth_var( b, 1 );
@@ -420,7 +419,7 @@ namespace also
           idx_array.push_back( i );
         }
 
-        //no const & 'a' const 
+        //no const & 'a' const
         count += get_all_combination_index( idx_array, total, 3u ).size();
 
         return count;
@@ -437,7 +436,7 @@ namespace also
         return count;
       }
 
-      /* map: 0,     0         _01234 
+      /* map: 0,     0         _01234
        *      index, nr_steps, inputs ids
        **/
       std::map<int, std::vector<unsigned>> get_sel_var_map()
@@ -454,7 +453,7 @@ namespace also
           idx_array.resize( total );
           std::iota( idx_array.begin(), idx_array.end(), 0 );
 
-          //no const & 'a' const 
+          //no const & 'a' const
           for( const auto c : get_all_combination_index( idx_array, idx_array.size(), 3u ) )
           {
             auto tmp = c;
@@ -473,13 +472,13 @@ namespace also
    ******************************************************************************/
   std::map<std::vector<int>, std::vector<int>> comput_input_and_set_map3( input_type3 type );
   std::map<int, std::vector<unsigned>> comput_select_vars_map3( int nr_steps, int nr_in );
-  int comput_select_vars_for_each_step3( int nr_steps, int nr_in, int step_idx ); 
+  int comput_select_vars_for_each_step3( int nr_steps, int nr_in, int step_idx );
 
   /* mig3 to expressions */
   std::string mig3_to_string( const spec& spec, const mig3& mig3 );
   std::string print_expr( const mig3& mig3, const int& step_idx );
   std::string print_all_expr( const spec& spec, const mig3& mig3 );
-  
+
   mig_network mig3_to_mig_network( const spec& spec, mig3& mig3 );
 
 }

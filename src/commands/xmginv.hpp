@@ -23,7 +23,7 @@ namespace alice
   class xmginv_command: public command
   {
     public:
-      explicit xmginv_command( const environment::ptr& env ) 
+      explicit xmginv_command( const environment::ptr& env )
                : command( env, "inversion optimization of xmg" )
       {
         add_flag( "--verbose, -v", "print the information" );
@@ -40,11 +40,14 @@ namespace alice
       {
         /* derive some XMG */
          xmg_network xmg = store<xmg_network>().current();
-         
+         xmg_network xmg_opt;
+
          stopwatch<>::duration time{0};
-         call_with_stopwatch( time, [&]() { also::xmg_inv_optimization( xmg ); 
+         call_with_stopwatch( time, [&]() { xmg_opt = also::xmg_inv_optimization( xmg );
              } );
-         
+
+         store<xmg_network>().extend();
+         store<xmg_network>().current() = xmg_opt;
          std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
       }
 

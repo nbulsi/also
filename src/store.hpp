@@ -1,6 +1,6 @@
 /* also: Advanced Logic Synthesis and Optimization tool
- * Copyright (C) 2019- Ningbo University, Ningbo, China 
- * 
+ * Copyright (C) 2019- Ningbo University, Ningbo, China
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -66,7 +66,7 @@ namespace alice
   {
     os << "MIG PI/PO = " << element.num_pis() << "/" << element.num_pos() << "\n";
   }
-  
+
   ALICE_DESCRIBE_STORE( mig_network, element )
   {
     return fmt::format( "{} nodes", element.size() );
@@ -80,12 +80,12 @@ namespace alice
     os << fmt::format( " xmg i/o = {}/{} gates = {} ", element.num_pis(), element.num_pos(), element.num_gates() );
     os << "\n";
   }
-  
+
   ALICE_DESCRIBE_STORE( xmg_network, element )
   {
     return fmt::format( "{} nodes", element.size() );
   }
-  
+
   /* xag */
   ALICE_ADD_STORE( xag_network, "xag", "g", "xag", "xags" )
 
@@ -94,12 +94,12 @@ namespace alice
     os << fmt::format( " xag i/o = {}/{} gates = {} ", element.num_pis(), element.num_pos(), element.num_gates() );
     os << "\n";
   }
-  
+
   ALICE_DESCRIBE_STORE( xag_network, element )
   {
     return fmt::format( "{} nodes", element.size() );
   }
-  
+
   /* m5ig */
   ALICE_ADD_STORE( m5ig_network, "m5ig", "r", "m5ig", "m5igs" )
 
@@ -108,7 +108,7 @@ namespace alice
     os << fmt::format( " m5ig i/o = {}/{} gates = {} ", element.num_pis(), element.num_pos(), element.num_gates() );
     os << "\n";
   }
-  
+
   ALICE_DESCRIBE_STORE( m5ig_network, element )
   {
     return fmt::format( "{} nodes", element.size() );
@@ -122,7 +122,7 @@ namespace alice
     os << fmt::format( " img i/o = {}/{} gates = {} ", element.num_pis(), element.num_pos(), element.num_gates() );
     os << "\n";
   }
-  
+
   ALICE_DESCRIBE_STORE( img_network, element )
   {
     return fmt::format( "{} nodes", element.size() );
@@ -130,26 +130,26 @@ namespace alice
 
   /*klut network*/
   ALICE_ADD_STORE( klut_network, "lut", "l", "LUT network", "LUT networks" )
-  
+
   ALICE_PRINT_STORE( klut_network, os, element )
   {
     os << fmt::format( " klut i/o = {}/{} gates = {} ", element.num_pis(), element.num_pos(), element.num_gates() );
     os << "\n";
   }
-  
+
   ALICE_DESCRIBE_STORE( klut_network, element )
   {
     return fmt::format( "{} nodes", element.size() );
   }
-  
+
   ALICE_PRINT_STORE_STATISTICS( klut_network, os, lut )
   {
     mockturtle::depth_view depth_lut{lut};
-    os << fmt::format( "LUTs   i/o = {}/{}   gates = {}   level = {}", 
+    os << fmt::format( "LUTs   i/o = {}/{}   gates = {}   level = {}",
           lut.num_pis(), lut.num_pos(), lut.num_gates(), depth_lut.depth() );
     os << "\n";
   }
-  
+
   /* opt_network */
   class optimum_network
   {
@@ -218,15 +218,16 @@ namespace alice
     lorina::read_aiger( filename, mockturtle::aiger_reader( aig ) );
     return aig;
   }
-  
+
   ALICE_PRINT_STORE_STATISTICS( aig_network, os, aig )
   {
-    mockturtle::depth_view depth_aig{aig};
-    os << fmt::format( "AIG   i/o = {}/{}   gates = {}   level = {}", 
+    auto aig_copy = mockturtle::cleanup_dangling( aig );
+    mockturtle::depth_view depth_aig{aig_copy};
+    os << fmt::format( "AIG   i/o = {}/{}   gates = {}   level = {}",
           aig.num_pis(), aig.num_pos(), aig.num_gates(), depth_aig.depth() );
     os << "\n";
   }
-  
+
   ALICE_ADD_FILE_TYPE( verilog, "Verilog" );
 
   ALICE_READ_FILE( xmg_network, verilog, filename, cmd )
@@ -245,55 +246,58 @@ namespace alice
   {
     mockturtle::write_verilog( xmg, filename );
   }
-  
+
   ALICE_PRINT_STORE_STATISTICS( xmg_network, os, xmg )
   {
-    mockturtle::depth_view depth_xmg{xmg};
-    os << fmt::format( "XMG   i/o = {}/{}   gates = {}   level = {}", 
+    auto xmg_copy = mockturtle::cleanup_dangling( xmg );
+    mockturtle::depth_view depth_xmg{xmg_copy};
+    os << fmt::format( "XMG   i/o = {}/{}   gates = {}   level = {}",
           xmg.num_pis(), xmg.num_pos(), xmg.num_gates(), depth_xmg.depth() );
     os << "\n";
   }
-  
+
   ALICE_READ_FILE( mig_network, verilog, filename, cmd )
   {
     mig_network mig;
     lorina::read_verilog( filename, mockturtle::verilog_reader( mig ) );
     return mig;
   }
-  
+
   ALICE_WRITE_FILE( mig_network, verilog, mig, filename, cmd )
   {
      mockturtle::write_verilog( mig, filename );
   }
-  
+
   ALICE_PRINT_STORE_STATISTICS( mig_network, os, mig )
   {
-    mockturtle::depth_view depth_mig{mig};
-    os << fmt::format( "MIG   i/o = {}/{}   gates = {}   level = {}", 
+    auto mig_copy = mockturtle::cleanup_dangling( mig );
+    mockturtle::depth_view depth_mig{mig_copy};
+    os << fmt::format( "MIG   i/o = {}/{}   gates = {}   level = {}",
           mig.num_pis(), mig.num_pos(), mig.num_gates(), depth_mig.depth() );
     os << "\n";
   }
-  
+
   ALICE_READ_FILE( xag_network, verilog, filename, cmd )
   {
     xag_network xag;
     lorina::read_verilog( filename, mockturtle::verilog_reader( xag ) );
     return xag;
   }
-  
+
   ALICE_WRITE_FILE( xag_network, verilog, xag, filename, cmd )
   {
      mockturtle::write_verilog( xag, filename );
   }
-  
+
   ALICE_PRINT_STORE_STATISTICS( xag_network, os, xag )
   {
-    mockturtle::depth_view depth_xag{xag};
-    os << fmt::format( "XAG   i/o = {}/{}   gates = {}   level = {}", 
+    auto xag_copy = mockturtle::cleanup_dangling( xag );
+    mockturtle::depth_view depth_xag{xag_copy};
+    os << fmt::format( "XAG   i/o = {}/{}   gates = {}   level = {}",
           xag.num_pis(), xag.num_pos(), xag.num_gates(), depth_xag.depth() );
     os << "\n";
   }
-  
+
   ALICE_READ_FILE( img_network, verilog, filename, cmd )
   {
     img_network img;
@@ -305,54 +309,55 @@ namespace alice
     }
     return img;
   }
-  
+
   ALICE_PRINT_STORE_STATISTICS( img_network, os, img )
   {
-    mockturtle::depth_view depth_img{img};
-    os << fmt::format( "IMG   i/o = {}/{}   gates = {}   level = {}", 
+    auto img_copy = mockturtle::cleanup_dangling( img );
+    mockturtle::depth_view depth_img{img_copy};
+    os << fmt::format( "IMG   i/o = {}/{}   gates = {}   level = {}",
           img.num_pis(), img.num_pos(), img.num_gates(), depth_img.depth() );
     os << "\n";
   }
-  
+
   ALICE_ADD_FILE_TYPE( bench, "BENCH" );
-  
+
   ALICE_READ_FILE( klut_network, bench, filename, cmd )
   {
     klut_network klut;
     lorina::read_bench( filename, mockturtle::bench_reader( klut ) );
     return klut;
   }
-  
+
   ALICE_WRITE_FILE( xmg_network, bench, xmg, filename, cmd )
   {
      mockturtle::write_bench( xmg, filename );
   }
-  
+
   ALICE_WRITE_FILE( mig_network, bench, mig, filename, cmd )
   {
      mockturtle::write_bench( mig, filename );
   }
-  
+
   ALICE_WRITE_FILE( aig_network, bench, aig, filename, cmd )
   {
      mockturtle::write_bench( aig, filename );
   }
-  
+
   ALICE_WRITE_FILE( m5ig_network, bench, m5ig, filename, cmd )
   {
      mockturtle::write_bench( m5ig, filename );
   }
-  
+
   ALICE_WRITE_FILE( img_network, bench, img, filename, cmd )
   {
      mockturtle::write_bench( img, filename );
   }
-  
+
   ALICE_WRITE_FILE( xag_network, bench, xag, filename, cmd )
   {
      mockturtle::write_bench( xag, filename );
   }
-  
+
   ALICE_WRITE_FILE( klut_network, bench, klut, filename, cmd )
   {
      mockturtle::write_bench( klut, filename );
@@ -386,70 +391,70 @@ namespace alice
   bool can_show<aig_network>( std::string& extension, command& cmd )
   {
     extension = "dot";
-  
+
     return true;
   }
-  
+
   template<>
   void show<aig_network>( std::ostream& os, const aig_network& element, const command& cmd )
   {
     gate_dot_drawer<aig_network> drawer;
     write_dot( element, os, drawer );
   }
-  
+
   template<>
   bool can_show<mig_network>( std::string& extension, command& cmd )
   {
     extension = "dot";
-  
+
     return true;
   }
-  
+
   template<>
   void show<mig_network>( std::ostream& os, const mig_network& element, const command& cmd )
   {
     gate_dot_drawer<mig_network> drawer;
     write_dot( element, os, drawer );
   }
-  
+
   template<>
   bool can_show<xmg_network>( std::string& extension, command& cmd )
   {
     extension = "dot";
-  
+
     return true;
   }
-  
+
   template<>
   void show<xmg_network>( std::ostream& os, const xmg_network& element, const command& cmd )
   {
     gate_dot_drawer<xmg_network> drawer;
     write_dot( element, os, drawer );
   }
-  
+
   template<>
   bool can_show<klut_network>( std::string& extension, command& cmd )
   {
     extension = "dot";
-  
+
     return true;
   }
-  
+
   template<>
   void show<klut_network>( std::ostream& os, const klut_network& element, const command& cmd )
   {
     gate_dot_drawer<klut_network> drawer;
     write_dot( element, os, drawer );
   }
-  
+
   template<>
   bool can_show<xag_network>( std::string& extension, command& cmd )
   {
     extension = "dot";
-  
+
     return true;
   }
-  
+
   template<>
   void show<xag_network>( std::ostream& os, const xag_network& element, const command& cmd )
   {
@@ -479,14 +484,14 @@ namespace alice
 
     return xmg;
   }
-  
+
   ALICE_CONVERT( mig_network, element, xmg_network )
   {
     mig_network mig = element;
 
     return also::xmg_from_mig( mig );
   }
-  
+
   /*ALICE_CONVERT( aig_network, element, xmg_network )
   {
     aig_network aig = element;

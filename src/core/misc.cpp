@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <mockturtle/mockturtle.hpp>
 #include <percy/percy.hpp>
 #include <string>
 #include <sstream>
@@ -12,7 +11,7 @@ using namespace mockturtle;
 namespace also
 {
 
-  std::vector<std::string> split_by_delim(const std::string &s, char delim) 
+  std::vector<std::string> split_by_delim(const std::string &s, char delim)
   {
     std::vector<std::string> elems;
     split_by_delim(s, delim, std::back_inserter(elems));
@@ -53,11 +52,11 @@ namespace also
             std::rotate(k,itr2,last);
             return true;
           }
-        }   
+        }
         std::rotate(first,k,last);
         return false;
       }
-    
+
     std::vector<std::vector<unsigned>> get_all_combination_index( std::vector<unsigned>& vars,
                                                                   const unsigned& n,
                                                                   const unsigned& k )
@@ -78,7 +77,7 @@ namespace also
 
       return index;
     }
-      
+
     template <typename T>
       void show_array( const std::vector<T>& array )
       {
@@ -98,8 +97,8 @@ namespace also
           printf( "%s%d ", (*i)&1 ? "!":"", (*i)>>1 );
       printf( "\n" );
     }
-    
-    int add_print_clause(std::vector<std::vector<int>>& clauses, pabc::lit* begin, pabc::lit* end) 
+
+    int add_print_clause(std::vector<std::vector<int>>& clauses, pabc::lit* begin, pabc::lit* end)
     {
       std::vector<int> clause;
       while (begin != end) {
@@ -110,7 +109,7 @@ namespace also
 
       return 1;
     }
-    
+
     std::vector<std::string> split(const std::string& s, char delimiter)
     {
       std::vector<std::string> tokens;
@@ -123,7 +122,7 @@ namespace also
       }
       return tokens;
     }
-    
+
     std::vector<std::string> split( const std::string& str, const std::string& sep )
     {
       std::vector<std::string> result;
@@ -139,8 +138,8 @@ namespace also
 
       return result;
     }
-    
-    void to_dimacs(FILE* f, solver_wrapper* solver, std::vector<std::vector<int>>& clauses ) 
+
+    void to_dimacs(FILE* f, solver_wrapper* solver, std::vector<std::vector<int>>& clauses )
     {
       fprintf(f, "p cnf %d %d\n", solver->nr_vars(), clauses.size() );
       for (const auto& clause : clauses) {
@@ -153,6 +152,6 @@ namespace also
         fprintf(f, "0\n");
       }
     }
-    
+
 }
 
