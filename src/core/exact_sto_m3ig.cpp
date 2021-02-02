@@ -59,7 +59,7 @@ namespace also
   bool sto_syn_manager::validate( kitty::dynamic_truth_table const& tt )
   {
     unsigned j = 0u;
-    
+
     for( j = 0u; j <= n; j++ )
     {
       if( verbose )
@@ -113,7 +113,7 @@ namespace also
 
       if( num_ones == vec_sum )
       {
-        if( validate( tt ) ) 
+        if( validate( tt ) )
         {
           trivial = true;
           kitty::print_binary( tt, std::cout );
@@ -131,12 +131,12 @@ namespace also
     return trivial;
   }
 
-  /* find the number of tt entry whose sum is spec number 
+  /* find the number of tt entry whose sum is spec number
    * spec_num is in range [0,n]
    * */
   unsigned sto_syn_manager::count_tt_sum_of_x( unsigned const& spec_num, kitty::dynamic_truth_table const& tt_solution )
   {
-    unsigned total = 0u; 
+    unsigned total = 0u;
     auto var = (unsigned)ceil( log2( m + n ) );
     kitty::dynamic_truth_table tt_enum( var );
 
@@ -155,9 +155,9 @@ namespace also
         sum += kitty::get_bit( tt_enum, i + m );
       }
 
-      if( ( sum == spec_num ) && kitty::get_bit( tt_solution, num_loop ) ) 
-      { 
-        total++; 
+      if( ( sum == spec_num ) && kitty::get_bit( tt_solution, num_loop ) )
+      {
+        total++;
       }
 
       kitty::next_inplace( tt_enum );
@@ -174,7 +174,7 @@ namespace also
     {
       std::cout << " num_vars : " << num_vars << " \n"
         << " m        : " << m << " \n"
-        << " n        : " << n << " \n" 
+        << " n        : " << n << " \n"
         << " vec_sum  : " << vec_sum << " \n";
     }
 

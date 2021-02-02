@@ -1,5 +1,4 @@
 include_directories(commands)
-include_directories(maj)
 
 file(GLOB_RECURSE FILENAMES *.cpp)
 
