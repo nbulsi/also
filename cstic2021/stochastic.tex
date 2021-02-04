@@ -54,7 +54,7 @@
 \maketitle
 \section*{\textbf{\large ABSTRACT}}
 Stochastic computing enables computationally complex arithmetic using binary numbers converted to sto-chastic bitstreams. A large number of applications have used stochastic computing due to its fault-tolerant nature. However, stochastic circuit synthesis presents a larger solution space when compared to classical logic synthesis. Previous methods synthesize stochastic circuits using a heuristic method. In this paper, a novel exact synthesis method using Boolean satisfiability (SAT) is proposed to obtain an optimal stochastic circuit represented by majority-inverter graphs (MIGs). The experimental results suggest that the proposed approach can achieve 21\% area reduction, 4\% delay improvement, with a 3\% mean absolute error trade-off.    
-\vspace{2ex}
+\vspace{3ex}
 
 %\begin{IEEEkeywords}
 %stochastic computing; exact synthesis; logic synthesis; majority
@@ -65,20 +65,19 @@ Many constraints limit modern circuit development, such as voltage variations, t
 Each bit has a probability $x$ of being a one and probability $1-x$ of being a zero in the bitstream. The values are represented by the probability of the one in the bitstream. For example, (0,1,0,0) and (0,0,0,1) are potential representations of the value 0.25 as the digit `1' presents once in the bitstream with length four. Numbers are normally stored in long bitstreams where a few bits are flipped without a significant difference in value. By converting numbers into random bitstreams, SC %stochastic computing 
 transforms a complex computing unit into a simple circuit with gates. Thus many arithmetic operations can be implemented with very simple logic circuits. For example, multiplication in SC %stochastic computing
  can be implemented with an AND gate if the two input stochastic bitstreams are independent, as shown in Figure~\ref{fig:sto}. 
-Stochastic computing has been applied to many applications~\cite{Promise-and-Challenge} as image processing, neural networks, decoding LDPC code, and filter design.
+SC has been applied to many applications~\cite{Promise-and-Challenge} as image processing, neural networks, decoding LDPC code, and filter design.
+\vspace{3ex}
 
 
 \begin{figure}[t]
 	\centering
-	\includegraphics[width=3.3in]{fig/AND3.pdf}
+	\includegraphics[width=3.5in]{fig/AND3.pdf}
 	\caption{\label{fig:sto}AND gate performs multiplication by stochastic bitstreams.}  \vspace{-3.5ex}
 \end{figure}
 
 Multiple distinct Boolean functions can be used to compute the same function, which has a large solution space for the synthesize of stochastic circuits. 
 Researchers have recently proposed several approaches for synthesizing functions in SC. 
 A method that is currently being implemented~\cite{Cube-Assignment} is based on assigning cubes (i.e., product terms) to the on-set of the Boolean function. The heuristics, however, do not yield optimal solutions. Exact synthesis is a new approach to finding Boolean networks that represent Boolean functions and respect given constraints. Exact synthesis allows one to find optimum networks, e.g., in size or depth. In this paper, we employ an exact synthesis method to obtain an optimal SC circuit represented by MIGs. Experimental results have shown that the exact synthesis approach outperforms the heuristic approach in terms of area and delay.
-
-\vspace{2ex}
 
 \section*{\textbf{\large BACKGROUND}}
 \subsection*{\textbf{Stochastic Computing Circuits }}
