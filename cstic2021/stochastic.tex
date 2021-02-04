@@ -53,10 +53,7 @@
 
 \maketitle
 \section*{\textbf{\large ABSTRACT}}
-Stochastic computing enables computationally complex arithmetic using binary numbers converted to stochastic bitstreams. 
-A large number of applications have used stochastic computing due to its fault-tolerant nature. 
-However, stochastic circuit synthesis presents a larger solution space when compared to classical logic synthesis.
-Previous methods synthesize stochastic circuits using a heuristic method. In this paper, a novel exact synthesis method using Boolean satisfiability (SAT) is proposed to obtain an optimal stochastic circuit represented by majority-inverter graphs (MIGs). The experimental results suggest that the proposed approach can achieve 21\% area reduction, 4\% delay improvement, with a 3\% mean absolute error trade-off.    
+Stochastic computing enables computationally complex arithmetic using binary numbers converted to sto-chastic bitstreams. A large number of applications have used stochastic computing due to its fault-tolerant nature. However, stochastic circuit synthesis presents a larger solution space when compared to classical logic synthesis. Previous methods synthesize stochastic circuits using a heuristic method. In this paper, a novel exact synthesis method using Boolean satisfiability (SAT) is proposed to obtain an optimal stochastic circuit represented by majority-inverter graphs (MIGs). The experimental results suggest that the proposed approach can achieve 21\% area reduction, 4\% delay improvement, with a 3\% mean absolute error trade-off.    
 \vspace{2ex}
 
 %\begin{IEEEkeywords}
@@ -65,7 +62,9 @@ Previous methods synthesize stochastic circuits using a heuristic method. In thi
 
 \section*{\textbf{\large INTRODUCTION}}
 Many constraints limit modern circuit development, such as voltage variations, thermal variations, and soft errors. These physical phenomena are susceptible to errors, thus reliability has become an important issue. Stochastic computing (SC) has received increasing attention as an unconventional computing method for solving these problems. SC is unique in that it represents and processes information in the probabilistic form and is highly fault-tolerant for bit flips. SC converts numbers $x\in[0,1]$ into stochastic bitstreams consisting of only 0 and 1. 
-Each bit has a probability $x$ of being a one and probability $1-x$ of being a zero in the bitstream. The values are represented by the probability of the one in the bitstream. For example, (0,1,0,0) and (0,0,0,1) are potential representations of the value 0.25 as the digit `1' presents once in the bitstream with length four. Numbers are normally stored in long bitstreams where a few bits are flipped without a significant difference in value. By converting numbers into random bitstreams, stochastic computing transforms a complex computing unit into a simple circuit with gates. Thus many arithmetic operations can be implemented with very simple logic circuits. For example, multiplication in stochastic computing can be implemented with an AND gate if the two input stochastic bitstreams are independent, as shown in Figure ~\ref{fig:sto}. 
+Each bit has a probability $x$ of being a one and probability $1-x$ of being a zero in the bitstream. The values are represented by the probability of the one in the bitstream. For example, (0,1,0,0) and (0,0,0,1) are potential representations of the value 0.25 as the digit `1' presents once in the bitstream with length four. Numbers are normally stored in long bitstreams where a few bits are flipped without a significant difference in value. By converting numbers into random bitstreams, SC %stochastic computing 
+transforms a complex computing unit into a simple circuit with gates. Thus many arithmetic operations can be implemented with very simple logic circuits. For example, multiplication in SC %stochastic computing
+ can be implemented with an AND gate if the two input stochastic bitstreams are independent, as shown in Figure~\ref{fig:sto}. 
 Stochastic computing has been applied to many applications~\cite{Promise-and-Challenge} as image processing, neural networks, decoding LDPC code, and filter design.
 
 
