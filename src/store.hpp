@@ -181,17 +181,17 @@ namespace alice
 
   ALICE_ADD_STORE( optimum_network, "opt", "o", "network", "networks" )
 
-    ALICE_DESCRIBE_STORE( optimum_network, opt )
+  ALICE_DESCRIBE_STORE( optimum_network, opt )
+  {
+    if ( opt.network.empty() )
     {
-      if ( opt.network.empty() )
-      {
-        return fmt::format( "{}", kitty::to_hex( opt.function ) );
-      }
-      else
-      {
-        return fmt::format( "{}, optimum network computed", kitty::to_hex( opt.function ) );
-      }
+       return fmt::format( "{}", kitty::to_hex( opt.function ) );
     }
+    else
+    {
+       return fmt::format( "{}, optimum network computed", kitty::to_hex( opt.function ) );
+    }
+  }
 
   ALICE_PRINT_STORE( optimum_network, os, opt )
   {

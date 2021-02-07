@@ -59,6 +59,11 @@ namespace also
           return operators[i];
         }
 
+        bool is_output_inverted(int out_idx)
+        {
+          return outputs[out_idx] & 1;
+        }
+
         void reset(int _nr_in, int _nr_out, int _nr_steps)
         {
             assert(_nr_steps >= 0 && _nr_out >= 0);
@@ -193,6 +198,11 @@ namespace also
         void set_output(int out_idx, int lit)
         {
             outputs[out_idx] = lit;
+        }
+
+        int get_output(int out_idx)
+        {
+          return outputs[out_idx];
         }
 
         bool satisfies_spec(const percy::spec& spec)
@@ -477,7 +487,7 @@ namespace also
   /* mig3 to expressions */
   std::string mig3_to_string( const spec& spec, const mig3& mig3 );
   std::string print_expr( const mig3& mig3, const int& step_idx );
-  std::string print_all_expr( const spec& spec, const mig3& mig3 );
+  std::string print_all_expr( const spec& spec, mig3& mig3 );
 
   mig_network mig3_to_mig_network( const spec& spec, mig3& mig3 );
 
