@@ -451,7 +451,7 @@ namespace also
       {
         auto outbit = kitty::get_bit( spec[spec.synth_func( h )], t + 1 );
 
-        if( ( spec.out_inv >> spec.synth_func( 0 ) ) & 1 )
+        if( ( spec.out_inv >> spec.synth_func( h ) ) & 1 )
         {
           outbit = 1 - outbit;
         }
