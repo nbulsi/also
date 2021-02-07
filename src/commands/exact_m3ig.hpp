@@ -27,7 +27,7 @@ namespace alice
   class exact_m3ig_command: public command
   {
     public:
-      explicit exact_m3ig_command( const environment::ptr& env ) : 
+      explicit exact_m3ig_command( const environment::ptr& env ) :
                       command( env, "using exact synthesis to find optimal M3IGs" )
       {
         add_flag( "--verbose, -v",           "print the information" );
@@ -40,6 +40,7 @@ namespace alice
         add_flag( "--para_cegar_fence, -b",  "parallel cegar fence-based synthesize" );
         add_option( "--init_steps, -s", num_steps, "reset the initial steps for synthesize" );
         add_option( "--error_rate, -r", error_rate, "set the error rate for approximate synthesis" );
+        add_option( "--num_functions, -n", num_functions, "set the number of functions to be synthesized, default = 1, works for default synthesize mode" );
       }
 
       rules validity_rules() const
@@ -50,6 +51,7 @@ namespace alice
       private:
       int num_steps = 1;
       float error_rate = 0.1;
+      int num_functions = 1;
 
       void enumerate_m3ig( const kitty::dynamic_truth_table& tt )
       {
@@ -68,7 +70,7 @@ namespace alice
         }
 
         also::mig_three_encoder encoder( solver );
-        
+
         int nr_solutions = 0;
 
         while( also::next_solution( spec, mig3, solver, encoder ) == success )
@@ -84,11 +86,17 @@ namespace alice
     protected:
       void execute()
       {
-        auto& opt = store<optimum_network>().current();
+        auto store_size = store<optimum_network>().size();
+        assert( store_size >= num_functions );
 
         spec spec;
         also::mig3 mig3;
         mig_network mig;
+
+        if( !is_set( "num_functions" ) )
+        {
+            num_functions = 1;
+        }
 
         //spec.verbosity = 3;
         spec.add_alonce_clauses    = true;
@@ -98,14 +106,18 @@ namespace alice
 
         spec.initial_steps = num_steps;
 
-        auto copy = opt.function;
-        if( copy.num_vars()  < 3 )
+        for( int i = 0 ; i < num_functions; i++ )
         {
-          spec[0] = kitty::extend_to( copy, 3 );
-        }
-        else
-        {
-          spec[0] = copy;
+          auto& opt = store<optimum_network>()[store_size - i - 1];
+          auto copy = opt.function;
+          if( copy.num_vars()  < 3 )
+          {
+            spec[i] = kitty::extend_to( copy, 3 );
+          }
+          else
+          {
+            spec[i] = copy;
+          }
         }
 
         stopwatch<>::duration time{0};
@@ -113,8 +125,8 @@ namespace alice
         {
           bsat_wrapper solver;
           also::mig_three_encoder encoder( solver );
-          call_with_stopwatch( time, [&]() 
-              { 
+          call_with_stopwatch( time, [&]()
+              {
                 if ( also::mig_three_cegar_synthesize( spec, mig3, solver, encoder ) == success )
                 {
                   print_all_expr( spec, mig3 );
@@ -125,8 +137,8 @@ namespace alice
         {
           bsat_wrapper solver;
           also::mig_three_encoder encoder( solver );
-          call_with_stopwatch( time, [&]() 
-              { 
+          call_with_stopwatch( time, [&]()
+              {
                 if ( also::mig_three_cegar_approximate_synthesize( spec, mig3, solver, encoder, error_rate ) == success )
                 {
                   print_all_expr( spec, mig3 );
@@ -137,17 +149,17 @@ namespace alice
         {
           bsat_wrapper solver;
           also::mig_three_encoder encoder( solver );
-          call_with_stopwatch( time, [&]() 
-              { 
-                  enumerate_m3ig( copy );
+          call_with_stopwatch( time, [&]()
+              {
+                  enumerate_m3ig( spec[0] ); //works for only one function
               });
         }
         else if( is_set( "fence" ) )
         {
           bsat_wrapper solver;
           also::mig_three_encoder encoder( solver );
-          call_with_stopwatch( time, [&]() 
-              { 
+          call_with_stopwatch( time, [&]()
+              {
                 if ( also::mig_three_fence_synthesize( spec, mig3, solver, encoder ) == success )
                 {
                   print_all_expr( spec, mig3 );
@@ -158,8 +170,8 @@ namespace alice
         {
           bmcg_wrapper solver;
           also::mig_three_encoder encoder( solver );
-          call_with_stopwatch( time, [&]() 
-              { 
+          call_with_stopwatch( time, [&]()
+              {
                 if ( also::parallel_nocegar_mig_three_fence_synthesize( spec, mig3 ) == success )
                 {
                   print_all_expr( spec, mig3 );
@@ -170,8 +182,8 @@ namespace alice
         {
           bmcg_wrapper solver;
           also::mig_three_encoder encoder( solver );
-          call_with_stopwatch( time, [&]() 
-              { 
+          call_with_stopwatch( time, [&]()
+              {
                 if ( also::parallel_mig_three_fence_synthesize( spec, mig3 ) == success )
                 {
                   print_all_expr( spec, mig3 );
@@ -182,8 +194,8 @@ namespace alice
         {
           bsat_wrapper solver;
           also::mig_three_encoder encoder( solver );
-          call_with_stopwatch( time, [&]() 
-              { 
+          call_with_stopwatch( time, [&]()
+              {
                 if ( also::mig_three_cegar_fence_synthesize( spec, mig3, solver, encoder ) == success )
                 {
                   print_all_expr( spec, mig3 );
@@ -194,18 +206,18 @@ namespace alice
         {
           bsat_wrapper solver;
           also::mig_three_encoder encoder( solver );
-          call_with_stopwatch( time, [&]() 
-              { 
+          call_with_stopwatch( time, [&]()
+              {
                 if ( also::mig_three_synthesize( spec, mig3, solver, encoder ) == success )
                 {
                   print_all_expr( spec, mig3 );
                   mig = mig3_to_mig_network( spec, mig3 );
-                  store<mig_network>().extend(); 
+                  store<mig_network>().extend();
                   store<mig_network>().current() = mig;
                 }
               } );
         }
-        
+
         std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
       }
 
