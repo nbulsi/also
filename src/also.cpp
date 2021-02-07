@@ -1,6 +1,6 @@
 /* also: Advanced Logic Synthesis and Optimization tool
- * Copyright (C) 2019- Ningbo University, Ningbo, China 
- * 
+ * Copyright (C) 2019- Ningbo University, Ningbo, China
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -52,6 +52,7 @@
 #include "commands/xagrw.hpp"
 #include "commands/xagban.hpp"
 #include "commands/stochastic.hpp"
+#include "commands/app.hpp"
 
 ALICE_MAIN( also )
 
