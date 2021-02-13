@@ -23,12 +23,6 @@ namespace also
       mig_network mig;
       also::mig3 mig3;
 
-      kitty::dynamic_truth_table tt( 3 );
-
-      kitty::create_from_hex_string( tt, "e8" );
-      spec[0] = tt;
-      kitty::create_from_hex_string( tt, "96" );
-      spec[1] = tt;
       spec.verbosity = 0;
 
       percy::bsat_wrapper solver;

@@ -24,12 +24,35 @@ namespace alice
             explicit app_command( const environment::ptr& env ) : command( env, "approximate circuit synthesis" )
             {
               add_flag( "--verbose, -v", "verbose output" );
+              add_option( "--num_functions, -n", num_functions, "set the number of functions to be synthesized, default = 1, works for default synthesize mode" );
+            }
+
+            rules validity_rules() const
+            {
+                return { has_store_element<optimum_network>( env ) };
             }
 
         protected:
             void execute()
             {
+                auto store_size = store<optimum_network>().size();
+                assert( store_size >= num_functions );
+
                 percy::spec spec;
+
+                for( int i = 0 ; i < num_functions; i++ )
+                {
+                    auto& opt = store<optimum_network>()[store_size - i - 1];
+                    auto copy = opt.function;
+                    if( copy.num_vars()  < 3 )
+                    {
+                        spec[i] = kitty::extend_to( copy, 3 );
+                    }
+                    else
+                    {
+                        spec[i] = copy;
+                    }
+                }
                 auto mig = also::approximate_synthesis( spec );
 
                 store<mig_network>().extend();
@@ -37,6 +60,7 @@ namespace alice
             }
 
         private:
+            int num_functions = 1;
     };
 
     ALICE_ADD_COMMAND( app, "Various" )
