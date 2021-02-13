@@ -322,6 +322,60 @@ namespace also
                 printf( "**************************************\n" );
             }
 
+            void verify( const spec& spec )
+            {
+                std::vector<kitty::dynamic_truth_table> tts;
+
+                for( auto h = 0; h < spec.nr_nontriv; h++ )
+                {
+                    kitty::dynamic_truth_table tmp( spec.nr_in );
+                    for( auto i = 0; i < spec.nr_steps; i++ )
+                    {
+                        if( solver->var_value( get_out_var( spec, h, i ) ) )
+                        {
+                            for( auto j = 0; j < spec.tt_size; j++ )
+                            {
+                                if( solver->var_value( get_sim_var( spec, i , j ) ) )
+                                {
+                                    kitty::set_bit( tmp, j + 1 );
+                                }
+                            }
+                            tts.push_back( tmp );
+
+                            if( spec.verbosity )
+                            {
+                                std::cout << "[verfify] Function " << h << " : \n";
+                                std::cout << kitty::to_binary( tmp ) << std::endl;
+                            }
+                        }
+                    }
+                }
+
+                //compare to original tts
+                /* get the exact value of tt bit index t */
+                for( auto t = 0; t < spec.tt_size; t++ )
+                {
+                    auto s = get_bin_str( spec, t );
+                    auto exact_value = bin_str_to_int( s );
+
+                    //current output value
+                    std::string cs = "";
+                    for( auto h = spec.nr_nontriv - 1; h >= 0; h-- )
+                    {
+                        auto bit = kitty::get_bit( tts[h], t + 1 );
+                        cs += std::to_string( bit );
+                    }
+                    auto approximate_value = bin_str_to_int( cs );
+
+                    auto dist = also_subtract_abs( exact_value, approximate_value );
+                    if( spec.verbosity )
+                    {
+                        std::cout << "t : " << t << " exact: " << exact_value << " appro: " << approximate_value << " dist: " << dist << std::endl;
+                    }
+                    assert( dist <= 1 );
+                }
+            }
+
             void show_verbose_result()
             {
                 for( auto i = 0u; i < total_nr_vars; i++ )
@@ -964,6 +1018,7 @@ namespace also
             {
                 //encoder.show_verbose_result();
                 encoder.extract_mig3( spec, mig3 );
+                encoder.verify( spec );
                 return success;
             }
             else if( status == failure )
