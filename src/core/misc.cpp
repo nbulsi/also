@@ -78,16 +78,20 @@ namespace also
       return index;
     }
 
-    template <typename T>
-      void show_array( const std::vector<T>& array )
+    std::vector<std::vector<unsigned>> get_all_permutation( const std::vector<unsigned>& vars )
+    {
+      std::vector<std::vector<unsigned>> v;
+      auto vec_copy = vars;
+
+      std::sort( vec_copy.begin(), vec_copy.end() );
+
+      do
       {
-        std::cout << "Elements: ";
-        for( const auto& x : array )
-        {
-          std::cout << " " << x;
-        }
-        std::cout << std::endl;
-      }
+        v.push_back( vec_copy );
+      }while( std::next_permutation( vec_copy.begin(), vec_copy.end() ) );
+
+      return v;
+    }
 
     void print_sat_clause(solver_wrapper* solver, pabc::lit* begin, pabc::lit* end)
     {

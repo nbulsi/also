@@ -13,8 +13,10 @@
 #ifndef EXACT_M3IG_APP_ENCODER_HPP
 #define EXACT_M3IG_APP_ENCODER_HPP
 
+#include <cmath>
 #include <mockturtle/mockturtle.hpp>
 #include "m3ig_helper.hpp"
+#include "misc.hpp"
 
 using namespace percy;
 using namespace mockturtle;
@@ -346,6 +348,157 @@ namespace also
                 return solver->add_clause( pLits, pLits + 2 );
             }
 
+            int also_get_bit( const spec& spec, int h, int t )
+            {
+                assert( h < spec.nr_nontriv );
+
+                auto outbit = kitty::get_bit( spec[spec.synth_func( h )], t + 1 );
+
+                if( ( spec.out_inv >> spec.synth_func( h ) ) & 1 )
+                {
+                    outbit = 1 - outbit;
+                }
+
+                return outbit;
+            }
+
+            std::string get_bin_str( const spec& spec, int t )
+            {
+                std::string s = "";
+                for( auto h = spec.nr_nontriv - 1; h >= 0; h-- )
+                {
+                    auto bit = also_get_bit( spec, h, t );
+                    s += std::to_string( bit );
+                }
+                return s;
+            }
+
+            int bin_str_to_int( const std::string& s )
+            {
+                return std::bitset<64>(s).to_ullong();
+            }
+
+            int also_subtract_abs( int a, int b )
+            {
+                return std::abs( a - b );
+            }
+
+            std::vector<std::string> get_all_tt_string( const unsigned& length )
+            {
+                std::vector<std::string> v;
+                auto var = (unsigned)ceil( log2( length ) );
+                kitty::dynamic_truth_table tt( var );
+                unsigned num_loop( 0 );
+
+                do
+                {
+                    v.push_back( kitty::to_binary( tt ) );
+                    num_loop++;
+                    kitty::next_inplace( tt );
+                }while( !kitty::is_const0( tt ) && num_loop < pow( 2, length ) );
+
+                return v;
+            }
+
+            std::vector<std::string> get_tt_string_exceed_error_distance( const std::vector<std::string>& all_str,
+                                                                          const unsigned& exact_value,
+                                                                          const unsigned& error_distance_constraint )
+            {
+                std::vector<std::string> v;
+                for( const auto& tt_str : all_str )
+                {
+                    auto dist = also_subtract_abs( exact_value, bin_str_to_int( tt_str ) );
+                    if( dist > error_distance_constraint )
+                    {
+                        v.push_back( tt_str );
+                    }
+                }
+                return v;
+            }
+
+            std::vector<std::vector<unsigned>> get_all_output_combinations( const spec& spec )
+            {
+                std::vector<unsigned> v(spec.nr_steps);
+                unsigned n(0);
+                std::generate(v.begin(), v.end(), [&]{ return n++; });
+
+                return get_all_combination_index( v, v.size(), spec.nr_nontriv );
+            }
+
+            bool multi_appro_fix_output_sim_vars( const spec& spec, int t )
+            {
+                bool ret = true;
+
+                /* get the exact value of tt bit index t */
+                auto s = get_bin_str( spec, t );
+                auto decimal = bin_str_to_int( s );
+
+                if( spec.verbosity )
+                {
+                    std::cout << "exact value on tt index " << t << " is " << decimal << std::endl;
+                }
+
+                auto all_str = get_all_tt_string( spec.nr_nontriv );
+                auto strs = get_tt_string_exceed_error_distance( all_str, decimal, 1 );
+
+                /* if the possible output is not valid */
+                if( strs.size() > 0u && spec.nr_steps >= spec.nr_nontriv )
+                {
+                    auto cs = get_all_output_combinations( spec );
+
+                    for( const auto& c : cs )
+                    {
+                        auto perm = get_all_permutation( c );
+
+                        for( const auto& p : perm )
+                        {
+                            /* add clause to constraint the case */
+                            int ctr = 0;
+
+                            /* selection variables */
+                            for( int h = 0; h < spec.nr_nontriv; h++ )
+                            {
+                                pLits[ctr++] = pabc::Abc_Var2Lit( get_out_var( spec, h, p[h] ), 1 );
+
+                                if( spec.verbosity )
+                                {
+                                    std::cout << " !s_" << h << "_" << p[h] << " + ";
+                                }
+                            }
+
+                            /* all invalid tt output */
+                            int ctr_current = ctr;
+                            for( const auto& tts : strs )
+                            {
+                                ctr = ctr_current;
+
+                                for( int h = 0; h < spec.nr_nontriv; h++ )
+                                {
+                                    auto polar = ( tts[tts.size() - h - 1] - '0' );
+                                    pLits[ctr++] = pabc::Abc_Var2Lit( get_sim_var( spec, p[h], t ),   polar );
+                                    auto inv = polar ? "!" : "";
+
+                                    if( spec.verbosity )
+                                    {
+                                        std::cout << inv << " x_" << p[h] << "_" << t << " + ";
+                                    }
+                                }
+
+                                if( spec.verbosity )
+                                {
+                                    std::cout << std::endl;
+                                    std::cout << tts << " is impossible\n";
+                                }
+
+                                ret &= solver->add_clause( pLits, pLits + ctr );
+                            }
+                        }
+                    }
+                }
+
+                return ret;
+            }
+
             /*
              * for multi-output functions, create clauses:
              * (1) all outputs show have at least one output var to be
@@ -600,12 +753,19 @@ namespace also
                     ret &= add_consistency_clause_init( spec, t, svar );
                 }
 
-                for( int h = 0; h < spec.nr_nontriv; h++ )
+                if( spec.nr_steps < spec.nr_nontriv )
                 {
-                    for( int i = 0; i < spec.nr_steps; i++ )
+                    for( int h = 0; h < spec.nr_nontriv; h++ )
                     {
-                        ret &= multi_fix_output_sim_vars( spec, h, i, t );
+                        for( int i = 0; i < spec.nr_steps; i++ )
+                        {
+                            ret &= multi_fix_output_sim_vars( spec, h, i, t );
+                        }
                     }
+                }
+                else
+                {
+                    ret &= multi_appro_fix_output_sim_vars( spec, t );
                 }
 
                 return ret;
