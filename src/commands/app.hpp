@@ -25,6 +25,7 @@ namespace alice
             {
               add_flag( "--verbose, -v", "verbose output" );
               add_option( "--num_functions, -n", num_functions, "set the number of functions to be synthesized, default = 1, works for default synthesize mode" );
+              add_option( "--error_distance,-d", error_distance, "set the allowed maximum error distance" );
             }
 
             rules validity_rules() const
@@ -53,7 +54,12 @@ namespace alice
                         spec[i] = copy;
                     }
                 }
-                auto mig = also::approximate_synthesis( spec );
+
+                if( error_distance > pow( 2, num_functions ) - 1 )
+                {
+                    std::cout << "[warning] The error distance exceeds the maximum possible decimal value: " << pow( 2, num_functions ) - 1 << std::endl;
+                }
+                auto mig = also::approximate_synthesis( spec, error_distance );
 
                 store<mig_network>().extend();
                 store<mig_network>().current() = mig;
@@ -61,6 +67,7 @@ namespace alice
 
         private:
             int num_functions = 1;
+            unsigned error_distance = 0;
     };
 
     ALICE_ADD_COMMAND( app, "Various" )

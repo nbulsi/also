@@ -18,7 +18,7 @@ namespace also
 /******************************************************************************
  * Public functions                                                           *
  ******************************************************************************/
-    mig_network approximate_synthesis( percy::spec& spec )
+    mig_network approximate_synthesis( percy::spec& spec, const unsigned& dist )
     {
       mig_network mig;
       also::mig3 mig3;
@@ -26,7 +26,7 @@ namespace also
       spec.verbosity = 0;
 
       percy::bsat_wrapper solver;
-      mig_three_app_encoder encoder( solver );
+      mig_three_app_encoder encoder( solver, dist );
 
       if( mig_three_app_synthesize( spec, mig3, solver, encoder ) == percy::success )
       {

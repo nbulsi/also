@@ -75,6 +75,8 @@ namespace also
             //const int NR_SIM_TTS = 32;
             std::vector<kitty::dynamic_truth_table> sim_tts { 32 };
 
+            unsigned max_error_distance = 0;
+
             /*
              * private functions
              * */
@@ -143,9 +145,10 @@ namespace also
             }
 
         public:
-            mig_three_app_encoder( solver_wrapper& solver )
+            mig_three_app_encoder( solver_wrapper& solver, const unsigned& dist )
             {
                 vLits = pabc::Vec_IntAlloc( 128 );
+                max_error_distance = dist;
                 this->solver = &solver;
             }
 
@@ -353,6 +356,9 @@ namespace also
 
                 //compare to original tts
                 /* get the exact value of tt bit index t */
+                unsigned max_ed   = 0u;
+                unsigned total_ed = 0u;
+
                 for( auto t = 0; t < spec.tt_size; t++ )
                 {
                     auto s = get_bin_str( spec, t );
@@ -372,8 +378,19 @@ namespace also
                     {
                         std::cout << "t : " << t << " exact: " << exact_value << " appro: " << approximate_value << " dist: " << dist << std::endl;
                     }
-                    assert( dist <= 1 );
+                    assert( dist <= max_error_distance && "Verification failed" );
+
+                    total_ed += dist;
+                    if( dist > max_ed )
+                    {
+                        max_ed = dist;
+                    }
                 }
+
+                float med = total_ed / ( float )( spec.tt_size + 1 );
+                float nmed = med / ( float )( pow( 2, spec.nr_nontriv ) - 1 );
+                std::cout << "[i] MAE: " << max_ed << " Total: " << total_ed << " MED: " <<  med
+                          << " NMED: " << nmed << std::endl;
             }
 
             void show_verbose_result()
@@ -493,7 +510,7 @@ namespace also
                 }
 
                 auto all_str = get_all_tt_string( spec.nr_nontriv );
-                auto strs = get_tt_string_exceed_error_distance( all_str, decimal, 1 );
+                auto strs = get_tt_string_exceed_error_distance( all_str, decimal, max_error_distance );
 
                 /* if the possible output is not valid */
                 if( strs.size() > 0u && spec.nr_steps >= spec.nr_nontriv )
@@ -807,7 +824,7 @@ namespace also
                     ret &= add_consistency_clause_init( spec, t, svar );
                 }
 
-                if( spec.nr_steps < spec.nr_nontriv )
+                if( spec.nr_steps < spec.nr_nontriv || max_error_distance == 0u )
                 {
                     for( int h = 0; h < spec.nr_nontriv; h++ )
                     {

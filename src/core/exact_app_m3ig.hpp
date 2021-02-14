@@ -15,7 +15,7 @@
 
 namespace also
 {
-    mig_network approximate_synthesis( percy::spec& spec );
+    mig_network approximate_synthesis( percy::spec& spec, const unsigned& dist );
 }
 
 #endif
