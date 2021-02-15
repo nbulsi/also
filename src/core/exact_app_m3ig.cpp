@@ -23,8 +23,6 @@ namespace also
       mig_network mig;
       also::mig3 mig3;
 
-      spec.verbosity = 0;
-
       percy::bsat_wrapper solver;
       mig_three_app_encoder encoder( solver, dist );
 
@@ -35,6 +33,23 @@ namespace also
       }
 
       return mig;
+    }
+
+    void enumerate_app_m3ig( percy::spec& spec, const unsigned& dist )
+    {
+        also::mig3 mig3;
+        percy::bsat_wrapper solver;
+        mig_three_app_encoder encoder( solver, dist );
+
+        unsigned num_solutions = 0;
+
+        while( also::next_solution( spec, mig3, solver, encoder ) == percy::success )
+        {
+          print_all_expr( spec, mig3 );
+          num_solutions++;
+        }
+
+        std::cout << "There are " << num_solutions << " solutions found." << std::endl;
     }
 
 }

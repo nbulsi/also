@@ -1800,7 +1800,7 @@ namespace also
        {
             encoder.set_dirty(true);
             return mig_three_synthesize(spec, mig3, solver, encoder);
-        }
+       }
 
        // The special case when the Boolean chain to be synthesized
        // consists entirely of trivial functions.

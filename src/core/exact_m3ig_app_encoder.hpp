@@ -347,7 +347,7 @@ namespace also
 
                             if( spec.verbosity )
                             {
-                                std::cout << "[verfify] Function " << h << " : \n";
+                                std::cout << "[verify] Function " << h << " : \n";
                                 std::cout << kitty::to_binary( tmp ) << std::endl;
                             }
                         }
@@ -379,6 +379,10 @@ namespace also
                         std::cout << "t : " << t << " exact: " << exact_value << " appro: " << approximate_value << " dist: " << dist << std::endl;
                     }
                     assert( dist <= max_error_distance && "Verification failed" );
+                    if( dist > max_error_distance )
+                    {
+                        std::cerr << "[ERROR]: dist larger than max_error_distance\n";
+                    }
 
                     total_ed += dist;
                     if( dist > max_ed )
@@ -489,9 +493,17 @@ namespace also
 
             std::vector<std::vector<unsigned>> get_all_output_combinations( const spec& spec )
             {
-                std::vector<unsigned> v(spec.nr_steps);
-                unsigned n(0);
-                std::generate(v.begin(), v.end(), [&]{ return n++; });
+                std::vector<unsigned> v(spec.nr_steps*spec.nr_nontriv);
+                for( auto n = 0; n < spec.nr_steps; n++ )
+                {
+                    /* we generate an int vector as 001122...
+                     * such that we allow one node has multiple outputs
+                     * */
+                    for( auto m = 0; m < spec.nr_nontriv; m++ )
+                    {
+                        v.push_back( n );
+                    }
+                }
 
                 return get_all_combination_index( v, v.size(), spec.nr_nontriv );
             }
@@ -506,7 +518,7 @@ namespace also
 
                 if( spec.verbosity )
                 {
-                    std::cout << "exact value on tt index " << t << " is " << decimal << std::endl;
+                    std::cout << "[i] exact value on tt index " << t << " is " << decimal << std::endl;
                 }
 
                 auto all_str = get_all_tt_string( spec.nr_nontriv );
@@ -526,15 +538,10 @@ namespace also
                             /* add clause to constraint the case */
                             int ctr = 0;
 
-                            /* selection variables */
+                            /* output variables */
                             for( int h = 0; h < spec.nr_nontriv; h++ )
                             {
                                 pLits[ctr++] = pabc::Abc_Var2Lit( get_out_var( spec, h, p[h] ), 1 );
-
-                                if( spec.verbosity )
-                                {
-                                    std::cout << " !s_" << h << "_" << p[h] << " + ";
-                                }
                             }
 
                             /* all invalid tt output */
@@ -542,6 +549,14 @@ namespace also
                             for( const auto& tts : strs )
                             {
                                 ctr = ctr_current;
+
+                                if( spec.verbosity )
+                                {
+                                    for( int h = 0; h < spec.nr_nontriv; h++ )
+                                    {
+                                      std::cout << "!g_" << h  << "_" << p[h] + spec.nr_in + 1 << " + ";
+                                    }
+                                }
 
                                 for( int h = 0; h < spec.nr_nontriv; h++ )
                                 {
@@ -551,14 +566,21 @@ namespace also
 
                                     if( spec.verbosity )
                                     {
-                                        std::cout << inv << " x_" << p[h] << "_" << t << " + ";
+                                        if( h == spec.nr_nontriv - 1 )
+                                        {
+                                            std::cout << inv << " t_" << p[h] + spec.nr_in + 1 << "_" << t + 1 << std::endl;
+                                        }
+                                        else
+                                        {
+                                            std::cout << inv << "t_" << p[h] + spec.nr_in + 1 << "_" << t + 1 << " + ";
+                                        }
                                     }
                                 }
 
                                 if( spec.verbosity )
                                 {
                                     std::cout << std::endl;
-                                    std::cout << tts << " is impossible\n";
+                                    std::cout << tts << " is an impossible tt combination\n";
                                 }
 
                                 ret &= solver->add_clause( pLits, pLits + ctr );
@@ -576,6 +598,8 @@ namespace also
              * true,
              * g_0_3 + g_0_4
              * g_1_3 + g_1_4
+             *
+             * note one node can have multiple outputs, e.g., g_0_3 and g_1_3 both be true
              *
              * g_0_4 + g_1_4, at lease one output is the last step
              * function
@@ -853,6 +877,7 @@ namespace also
             //block solution
             bool block_solution(const spec& spec)
             {
+
                 int ctr  = 0;
                 int svar = 0;
 
@@ -865,7 +890,7 @@ namespace also
                         //std::cout << "var: " << j << std::endl;
                         if( solver->var_value( j ) )
                         {
-                            pLits[ctr++] = pabc::Abc_Var2Lit(j, 1);
+                            pLits[ctr++] = pabc::Abc_Var2Lit( j, 1 );
                             break;
                         }
                     }
@@ -873,7 +898,7 @@ namespace also
                     svar += num_svar_in_current_step;
                 }
 
-                assert(ctr == spec.nr_steps);
+                assert( ctr == spec.nr_steps );
 
                 return solver->add_clause(pLits, pLits + ctr);
             }
@@ -918,6 +943,16 @@ namespace also
                 }
 
                 return true;
+            }
+
+            bool is_dirty()
+            {
+                return dirty;
+            }
+
+            void set_dirty(bool _dirty)
+            {
+                dirty = _dirty;
             }
 
             void extract_mig3(const spec& spec, mig3& chain )
@@ -1059,21 +1094,28 @@ namespace also
     synth_result next_solution( spec& spec, mig3& mig3, solver_wrapper& solver, mig_three_app_encoder& encoder )
     {
         //spec.verbosity = 3;
+       if (!encoder.is_dirty())
+    {
+            encoder.set_dirty(true);
+            return mig_three_app_synthesize(spec, mig3, solver, encoder);
+       }
 
         // The special case when the Boolean chain to be synthesized
         // consists entirely of trivial functions.
         // In this case, only one solution exists.
-        if (spec.nr_triv == spec.get_nr_out()) {
+        if ( spec.nr_triv == spec.get_nr_out() )
+        {
             return failure;
         }
 
-        if (encoder.block_solution(spec))
+        if ( encoder.block_solution( spec ) )
         {
-            const auto status = solver.solve(spec.conflict_limit);
+            const auto status = solver.solve( spec.conflict_limit );
 
-            if (status == success)
+            if ( status == success )
             {
-                encoder.extract_mig3(spec, mig3);
+                encoder.extract_mig3( spec, mig3 );
+                encoder.verify( spec );
                 return success;
             }
             else
