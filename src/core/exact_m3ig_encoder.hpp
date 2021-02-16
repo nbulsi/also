@@ -478,9 +478,9 @@ namespace also
       {
         auto status = true;
 
-        // Every output points to an operand
         if( spec.nr_nontriv > 1 )
         {
+          // Every output points to an operand
           for( int h = 0; h < spec.nr_nontriv; h++ )
           {
             for( int i = 0; i < spec.nr_steps; i++ )
@@ -502,6 +502,22 @@ namespace also
               }
               std::cout << std::endl;
             }
+          }
+
+          // Every output can have only one be true
+          // e.g., g_0_1, g_0_2 can have at most one be true
+          // !g_0_1 + !g_0_2
+          for( int h = 0; h < spec.nr_nontriv; h++ )
+          {
+              for( int i = 0; i < spec.nr_steps - 1; i++ )
+              {
+                  for( int j = i + 1; j < spec.nr_steps; j++ )
+                  {
+                      pLits[0] = pabc::Abc_Var2Lit( get_out_var( spec, h, i ), 1 );
+                      pLits[1] = pabc::Abc_Var2Lit( get_out_var( spec, h, j ), 1 );
+                      status &= solver->add_clause( pLits, pLits + 2 );
+                  }
+              }
           }
         }
 
