@@ -8,7 +8,7 @@ from jinja2 import Environment
 #inspired from EPFL Cirkit Tool, Dr. Mathias Soeken
 
 header = """/* also: Advanced Logic Synthesis and Optimization tool
- * Copyright (C) 2019- Ningbo University, Ningbo, China */
+ * Copyright (C) 2019-2021 Ningbo University, Ningbo, China */
 """
 
 env = Environment()
