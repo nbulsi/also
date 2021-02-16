@@ -347,6 +347,7 @@ namespace also
 
                             if( spec.verbosity )
                             {
+                                std::cout << "[i] output val g_" << h << "_" << i << " is 1.\n";
                                 std::cout << "[verify] Function " << h << " : \n";
                                 std::cout << kitty::to_binary( tmp ) << std::endl;
                             }
