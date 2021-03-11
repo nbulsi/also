@@ -62,7 +62,7 @@ Stochastic computing enables computationally complex arithmetic using binary num
 
 \section*{\textbf{\large INTRODUCTION}}
 Many constraints limit modern circuit development, such as voltage variations, thermal variations, and soft errors. These physical phenomena are susceptible to errors, thus reliability has become an important issue. Stochastic computing (SC) has received increasing attention as an unconventional computing method for solving these problems. SC is unique in that it represents and processes information in the probabilistic form and is highly fault-tolerant for bit flips. SC converts numbers $x\in[0,1]$ into stochastic bitstreams consisting of only 0 and 1. 
-Each bit has a probability $x$ of being a one and probability $1-x$ of being a zero in the bitstream. The values are represented by the probability of the one in the bitstream. For example, (0,1,0,0) and (0,0,0,1) are potential representations of the value 0.25 as the digit `1' presents once in the bitstream with length four. Numbers are normally stored in long bitstreams where a few bits are flipped without a significant difference in value. By converting numbers into random bitstreams, SC %stochastic computing 
+Each bit has a probability $x$ of being a one and probability $1-x$ of being a zero in the bitstream. The values are represented by the probability of the one in the bitstream. For example, (0,1,0,0) and (0,0,0,1) are potential representations of the value 0.25 as the digit `1' presents once in the bitstream with length four. Numbers are normally stored in long bitstreams where a few bits are flipped without a significant difference in value. By converting numbers into stochastic bitstreams, SC %stochastic computing 
 transforms a complex computing unit into a simple circuit with gates. Thus many arithmetic operations can be implemented with very simple logic circuits. For example, multiplication in SC %stochastic computing
  can be implemented with an AND gate if the two input stochastic bitstreams are independent, as shown in Figure~\ref{fig:sto}. 
 SC has been applied to many applications~\cite{Promise-and-Challenge} as image processing, neural networks, decoding LDPC code, and filter design.
@@ -178,12 +178,12 @@ In this section, we will demonstrate the optimized design of stochastic circuit 
 Note that the traditional exact synthesis outputs an optimal logic representation based on a fixed truth table as input.
 We propose cardinality clauses to constrain the logic function on-sets in the stochastic circuit since the circuit has a problem vector. Thus, the SAT solver can answer whether we can realize a stochastic problem vector using giving primitives. 
 
-For example, we know that $G(2) = 2$ according to the problem vector (0, 3, 2) in Table~\ref{tab:tt}. We restrict the sum of all minterms under columns ``01'' and ``10'' to be equal to $G(2)$. 
+For example, we know that $G(2) = 2$ according to the problem vector (0, 3, 2) in Table~\ref{tab:tt}. We restrict the sum of all minterms under columns ``11'' to be equal to $G(2)$. 
 Let $f_{Y_1Y_2X_1X_2}$ be a minterm, then all minterms under columns ``11''
-are $f_{0011}$, $f_{0111}$, $f_{1011}$, and $f_{0011}$.
+are $f_{0011}$, $f_{0111}$, $f_{1011}$, and $f_{1111}$.
 Thus the cardinality constraint is \vspace{-0.5ex}
 \begin{equation}
-f_{0011} + f_{0111} + f_{1011} + f_{0011} = 2.
+f_{0011} + f_{0111} + f_{1011} + f_{1111} = 2.
 \end{equation}
 Note that this constraint should be transformed into CNFs which are feasible for SAT solving.
 

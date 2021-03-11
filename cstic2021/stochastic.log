@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020/W32TeX) (preloaded format=pdflatex 2020.12.28)  8 JAN 2021 16:47
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020/W32TeX) (preloaded format=pdflatex 2020.12.28)  11 MAR 2021 16:33
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -770,11 +770,6 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 54.
 (d:/texlive/2020/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-Underfull \hbox (badness 1783) in paragraph at lines 56--61
-\OT1/ptm/m/n/10 plex arith-metic us-ing bi-nary num-bers con-verted to
- []
-
-
 
 pdfTeX warning: pdflatex.exe (file ./fig/AND3.pdf): PDF inclusion: found PDF ve
 rsion <1.7>, but at most version <1.5> allowed
@@ -782,14 +777,11 @@ rsion <1.7>, but at most version <1.5> allowed
 File: fig/AND3.pdf Graphic file (type pdf)
 <use fig/AND3.pdf>
 Package pdftex.def Info: fig/AND3.pdf  used on input line 74.
-(pdftex.def)             Requested size: 238.49121pt x 79.32315pt.
+(pdftex.def)             Requested size: 252.94499pt x 84.13231pt.
 
-Overfull \hbox (8.02393pt too wide) in paragraph at lines 74--75
+Overfull \hbox (22.4777pt too wide) in paragraph at lines 74--75
  [][] 
  []
-
-
-Underfull \vbox (badness 5077) has occurred while \output is active []
 
 
 
@@ -798,14 +790,14 @@ ion <1.7>, but at most version <1.5> allowed
 <fig/sc.pdf, id=2, 563.10374pt x 320.1561pt>
 File: fig/sc.pdf Graphic file (type pdf)
 <use fig/sc.pdf>
-Package pdftex.def Info: fig/sc.pdf  used on input line 90.
+Package pdftex.def Info: fig/sc.pdf  used on input line 88.
 (pdftex.def)             Requested size: 216.81pt x 123.26779pt.
 [1{d:/texlive/2020/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
 
  <./fig/AND3.pdf>] [2 <./fig/sc.pdf>]
 LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 2
-24.
+22.
  (d:/texlive/2020/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
@@ -828,7 +820,7 @@ Here is how much of TeX's memory you used:
  24273 multiletter control sequences out of 15000+600000
  575617 words of font info for 112 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 41i,18n,42p,873b,452s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 41i,18n,42p,766b,452s stack positions out of 5000i,500n,10000p,200000b,80000s
 {d:/texlive/2020/texmf-dist/fonts/enc/dvips/base/8r.enc
 }<d:/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><d:/texl
 ive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><d:/texlive/2020/
@@ -845,7 +837,7 @@ ublic/amsfonts/cm/cmsy8.pfb><d:/texlive/2020/texmf-dist/fonts/type1/urw/courier
 /ucrr8a.pfb><d:/texlive/2020/texmf-dist/fonts/type1/urw/times/utmb8a.pfb><d:/te
 xlive/2020/texmf-dist/fonts/type1/urw/times/utmr8a.pfb><d:/texlive/2020/texmf-d
 ist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on stochastic.pdf (3 pages, 303749 bytes).
+Output written on stochastic.pdf (3 pages, 303689 bytes).
 PDF statistics:
  216 PDF objects out of 1000 (max. 8388607)
  77 compressed objects within 1 object stream
