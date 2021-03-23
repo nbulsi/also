@@ -33,13 +33,9 @@
 
 #pragma once
 
-#include <mockturtle.hpp>
-
 #include <fmt/format.h>
 
-using namespace mockturtle;
-
-namespace also
+namespace mockturtle
 {
 
 /*! \brief Parameters for lut_mapping.
@@ -47,9 +43,9 @@ namespace also
  * The data structure `lut_mapping_params` holds configurable parameters
  * with default arguments for `lut_mapping`.
  */
-struct lut_mapping_params
+struct xmg_lut_mapping_params
 {
-  lut_mapping_params()
+  xmg_lut_mapping_params()
   {
     cut_enumeration_ps.cut_size = 6;
     cut_enumeration_ps.cut_limit = 8;
@@ -79,7 +75,7 @@ struct lut_mapping_params
  * The data structure `lut_mapping_stats` provides data collected by running
  * `lut_mapping`.
  */
-struct lut_mapping_stats
+struct xmg_lut_mapping_stats
 {
   /*! \brief Total runtime. */
   stopwatch<>::duration time_total{0};
@@ -92,7 +88,7 @@ struct lut_mapping_stats
 
 /* function to update all cuts after cut enumeration */
 template<typename CutData>
-struct lut_mapping_update_cuts
+struct xmg_lut_mapping_update_cuts
 {
   template<typename NetworkCuts, typename Ntk>
   static void apply( NetworkCuts const& cuts, Ntk const& ntk )
@@ -106,14 +102,14 @@ namespace detail
 {
 
 template<class Ntk, bool StoreFunction, typename CutData>
-class lut_mapping_impl
+class xmg_lut_mapping_impl
 {
 public:
   using network_cuts_t = network_cuts<Ntk, StoreFunction, CutData>;
   using cut_t = typename network_cuts_t::cut_t;
 
 public:
-  lut_mapping_impl( Ntk& ntk, lut_mapping_params const& ps, lut_mapping_stats& st )
+  xmg_lut_mapping_impl( Ntk& ntk, xmg_lut_mapping_params const& ps, xmg_lut_mapping_stats& st )
       : ntk( ntk ),
         ps( ps ),
         st( st ),
@@ -123,7 +119,7 @@ public:
         delays( ntk.size() ),
         cuts( cut_enumeration<Ntk, StoreFunction, CutData>( ntk, ps.cut_enumeration_ps ) )
   {
-    lut_mapping_update_cuts<CutData>().apply( cuts, ntk );
+    xmg_lut_mapping_update_cuts<CutData>().apply( cuts, ntk );
   }
 
   void run()
@@ -161,6 +157,7 @@ private:
     return static_cast<uint32_t>( cut->data.cost );
   }
 
+  /* init the node flows and delays */
   void init_nodes()
   {
     ntk.foreach_node( [this]( auto n, auto ) {
@@ -199,6 +196,8 @@ private:
   {
     const auto coef = 1.0f / ( 1.0f + ( iteration + 1 ) * ( iteration + 1 ) );
 
+    //std::cout << "coef : " << coef << std::endl;
+
     /* compute current delay and update mapping refs */
     delay = 0;
     ntk.foreach_po( [this]( auto s ) {
@@ -208,6 +207,7 @@ private:
       if constexpr ( !ELA )
       {
         map_refs[index]++;
+        //std::cout << fmt::format( "map_refs[{}] = {}\n", index, map_refs[index] );
       }
     } );
 
@@ -228,15 +228,20 @@ private:
         for ( auto leaf : cuts.cuts( index )[0] )
         {
           map_refs[leaf]++;
+          //std::cout << fmt::format( "map_refs[{}] = {}\n", leaf, map_refs[leaf] );
         }
       }
       area++;
     }
+    
+    /* the mapping area */
+    //std::cout << fmt::format( "area = {}\n", area );
 
     /* blend flow referenes */
     for ( auto i = 0u; i < ntk.size(); ++i )
     {
       flow_refs[i] = coef * flow_refs[i] + ( 1.0f - coef ) * std::max( 1.0f, static_cast<float>( map_refs[i] ) );
+      //std::cout << fmt::format( "flow_refs[{}] = {}\n", i, flow_refs[i] );
     }
 
     ++iteration;
@@ -443,13 +448,13 @@ private:
       std::cout << fmt::format( "*** Obj = {:>3} (node = {:>3})  FlowRefs = {:5.2f}  MapRefs = {:>2}  Flow = {:5.2f}  Delay = {:>3}\n", i, ntk.index_to_node( i ), flow_refs[i], map_refs[i], flows[i], delays[i] );
       //std::cout << cuts.cuts( i );
     }
-    std::cout << fmt::format( "Level = {}  Area = {}\n", delay, area );
+    //std::cout << fmt::format( "Level = {}  Area = {}\n", delay, area );
   }
 
 private:
   Ntk& ntk;
-  lut_mapping_params const& ps;
-  lut_mapping_stats& st;
+  xmg_lut_mapping_params const& ps;
+  xmg_lut_mapping_stats& st;
 
   uint32_t iteration{0}; /* current mapping iteration */
   uint32_t delay{0};     /* current delay of the mapping */
@@ -511,7 +516,7 @@ private:
    \endverbatim
  */
 template<class Ntk, bool StoreFunction = false, typename CutData = cut_enumeration_mf_cut>
-void lut_mapping( Ntk& ntk, lut_mapping_params const& ps = {}, lut_mapping_stats* pst = nullptr )
+void xmg_lut_mapping( Ntk& ntk, xmg_lut_mapping_params const& ps = {}, xmg_lut_mapping_stats* pst = nullptr )
 {
   static_assert( is_network_type_v<Ntk>, "Ntk is not a network type" );
   static_assert( has_size_v<Ntk>, "Ntk does not implement the size method" );
@@ -527,8 +532,8 @@ void lut_mapping( Ntk& ntk, lut_mapping_params const& ps = {}, lut_mapping_stats
   static_assert( has_add_to_mapping_v<Ntk>, "Ntk does not implement the add_to_mapping method" );
   static_assert( !StoreFunction || has_set_cell_function_v<Ntk>, "Ntk does not implement the set_cell_function method" );
 
-  lut_mapping_stats st;
-  detail::lut_mapping_impl<Ntk, StoreFunction, CutData> p( ntk, ps, st );
+  xmg_lut_mapping_stats st;
+  detail::xmg_lut_mapping_impl<Ntk, StoreFunction, CutData> p( ntk, ps, st );
   p.run();
   if ( ps.verbose )
   {
