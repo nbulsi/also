@@ -94,7 +94,9 @@ namespace alice
 
         /* print information */
         std::cout << "[imgrw] "; 
-        also::print_stats( img );
+        auto img_copy = cleanup_dangling( img );
+        also::print_stats( img_copy );
+        
         store<img_network>().extend(); 
         store<img_network>().current() = img;
         
