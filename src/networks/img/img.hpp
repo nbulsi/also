@@ -519,8 +519,20 @@ public:
     }
 
     // determine potential new children of node n
-    signal child0 = ( fanin == 0u ) ? node.children[ 0 ] : node.children[ 1 ];
-    signal child1 = ( fanin == 0u ) ? node.children[ 1 ] : node.children[ 0 ];
+    //signal child0 = ( fanin == 0u ) ? node.children[ 0 ] : node.children[ 1 ];
+    //signal child1 = ( fanin == 0u ) ? node.children[ 1 ] : node.children[ 0 ];
+    signal child0, child1;
+
+    if( fanin == 0 )
+    {
+      child0 = new_signal;
+      child1 = node.children[1];
+    }
+    else
+    {
+      child0 = node.children[0];
+      child1 = new_signal;
+    }
     
     // check for trivial cases?
     if ( child0.index == child1.index )
