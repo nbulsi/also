@@ -268,6 +268,9 @@ namespace mockturtle
 
           const auto ggcs = get_children( ntk.get_node( gcs[0] ) );
 
+          if( ggcs[1].index == 0 )
+            return false;
+
           if( ntk.level( ntk.get_node( cs[1] ) ) < ntk.level( ntk.get_node( ggcs[0] ) ) + 1 )
           {
             if( ps.verbose )
