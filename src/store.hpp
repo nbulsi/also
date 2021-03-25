@@ -31,6 +31,7 @@
 #include <mockturtle/io/write_verilog.hpp>
 #include <fmt/format.h>
 #include <kitty/kitty.hpp>
+#include<mockturtle/io/write_aiger.hpp>
 
 #include "networks/m5ig/m5ig.hpp"
 #include "networks/img/img.hpp"
@@ -361,6 +362,11 @@ namespace alice
   ALICE_WRITE_FILE( klut_network, bench, klut, filename, cmd )
   {
      mockturtle::write_bench( klut, filename );
+  }
+
+  ALICE_WRITE_FILE(aig_network, aiger, aig, filename, cmd)
+  {
+	  mockturtle::write_aiger(aig, filename);
   }
 
   /********************************************************************
