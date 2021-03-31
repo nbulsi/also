@@ -526,7 +526,7 @@ namespace also
                 auto strs = get_tt_string_exceed_error_distance( all_str, decimal, max_error_distance );
 
                 /* if the possible output is not valid */
-                if( strs.size() > 0u && spec.nr_steps >= spec.nr_nontriv )
+                if( strs.size() > 0u )
                 {
                     auto cs = get_all_output_combinations( spec );
 
@@ -865,7 +865,7 @@ namespace also
                     ret &= add_consistency_clause_init( spec, t, svar );
                 }
 
-                if( spec.nr_steps < spec.nr_nontriv || max_error_distance == 0u )
+                if( max_error_distance == 0u )
                 {
                     for( int h = 0; h < spec.nr_nontriv; h++ )
                     {
