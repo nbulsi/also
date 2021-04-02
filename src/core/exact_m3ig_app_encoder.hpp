@@ -76,6 +76,7 @@ namespace also
             std::vector<kitty::dynamic_truth_table> sim_tts { 32 };
 
             unsigned max_error_distance = 0;
+            unsigned min_num_of_nodes   = 0;
 
             /*
              * private functions
@@ -145,10 +146,11 @@ namespace also
             }
 
         public:
-            mig_three_app_encoder( solver_wrapper& solver, const unsigned& dist )
+            mig_three_app_encoder( solver_wrapper& solver, const unsigned& dist, const unsigned& min )
             {
                 vLits = pabc::Vec_IntAlloc( 128 );
                 max_error_distance = dist;
+                min_num_of_nodes   = min;
                 this->solver = &solver;
             }
 
@@ -865,7 +867,8 @@ namespace also
                     ret &= add_consistency_clause_init( spec, t, svar );
                 }
 
-                if( max_error_distance == 0u )
+                if( ( spec.nr_steps < min_num_of_nodes && min_num_of_nodes != 0u )
+                      || max_error_distance == 0u ) 
                 {
                     for( int h = 0; h < spec.nr_nontriv; h++ )
                     {
