@@ -30,14 +30,14 @@ namespace also
             int nr_sel_vars;
             int nr_sim_vars;
             int nr_op_vars;
-            int nr_res_vars;
             int nr_out_vars;
+            int nr_pi_out_vars = 0;
 
             int sel_offset;
             int sim_offset;
             int op_offset;
-            int res_offset;
             int out_offset;
+            int pi_out_offset;
 
             int total_nr_vars;
 
@@ -77,6 +77,7 @@ namespace also
 
             unsigned max_error_distance = 0;
             unsigned min_num_of_nodes   = 0;
+            bool allow_projection = false;
 
             /*
              * private functions
@@ -134,23 +135,22 @@ namespace also
 
                 return out_offset + spec.nr_steps * h + i;
             }
-
-            int get_res_var(const spec& spec, int step_idx, int res_var_idx) const
+            
+            int get_pi_out_var( const spec& spec, int h, int i ) const
             {
-                auto offset = 0;
-                for (int i = 0; i < step_idx; i++) {
-                    offset += (nr_svars_for_step(spec, i) + 1) * (1 + 2);
-                }
+                assert( h < spec.nr_nontriv );
+                assert( i < spec.nr_in );
 
-                return res_offset + offset + res_var_idx;
+                return pi_out_offset + spec.nr_in * h + i;
             }
 
         public:
-            mig_three_app_encoder( solver_wrapper& solver, const unsigned& dist, const unsigned& min )
+            mig_three_app_encoder( solver_wrapper& solver, const unsigned& dist, const unsigned& min, const bool& allow )
             {
                 vLits = pabc::Vec_IntAlloc( 128 );
                 max_error_distance = dist;
                 min_num_of_nodes   = min;
+                allow_projection = allow;
                 this->solver = &solver;
             }
 
@@ -183,14 +183,24 @@ namespace also
                 /* total variables used in SAT formulation */
                 total_nr_vars = nr_op_vars + nr_sel_vars + nr_sim_vars + nr_out_vars;
 
-                if( spec.verbosity > 1 )
+                /* if allow projection */
+                if( allow_projection )
+                {
+                  nr_pi_out_vars = spec.nr_nontriv * spec.nr_in;
+                  pi_out_offset  = nr_sel_vars + nr_op_vars + nr_sim_vars + nr_out_vars;
+                  total_nr_vars  = nr_sel_vars + nr_op_vars + nr_sim_vars + nr_out_vars + nr_pi_out_vars;
+                }
+
+                if( spec.verbosity )
                 {
                     printf( "Creating variables (mig)\n");
-                    printf( "nr steps    = %d\n", spec.nr_steps );
+                    printf( "allow_projection = %d\n", allow_projection );
+                    printf( "nr_steps    = %d\n", spec.nr_steps );
                     printf( "nr_in       = %d\n", spec.nr_in );
                     printf( "nr_sel_vars = %d\n", nr_sel_vars );
                     printf( "nr_op_vars  = %d\n", nr_op_vars );
                     printf( "nr_out_vars = %d\n", nr_out_vars );
+                    printf( "nr_pi_out_vars = %d\n", nr_pi_out_vars );
                     printf( "nr_sim_vars = %d\n", nr_sim_vars );
                     printf( "tt_size     = %d\n", spec.tt_size );
                     printf( "creating %d total variables\n", total_nr_vars);
@@ -621,9 +631,23 @@ namespace also
                             pabc::Vec_IntSetEntry( vLits, i, pabc::Abc_Var2Lit( get_out_var( spec, h, i ), 0 ) );
                         }
 
-                        status &= solver->add_clause(
-                                pabc::Vec_IntArray( vLits ),
-                                pabc::Vec_IntArray( vLits ) + spec.nr_steps );
+                        if( allow_projection )
+                        {
+                          for( int i = 0; i < spec.nr_in; i++ )
+                          {
+                            pabc::Vec_IntSetEntry( vLits, i + spec.nr_steps, pabc::Abc_Var2Lit( get_pi_out_var( spec, h, i ), 0 ) );
+                          }
+                          
+                          status &= solver->add_clause(
+                              pabc::Vec_IntArray( vLits ),
+                              pabc::Vec_IntArray( vLits ) + spec.nr_steps + spec.nr_in );
+                        }
+                        else
+                        {
+                          status &= solver->add_clause(
+                              pabc::Vec_IntArray( vLits ),
+                              pabc::Vec_IntArray( vLits ) + spec.nr_steps );
+                        }
 
                         /* print clauses */
                         if( print_clause )
@@ -633,6 +657,13 @@ namespace also
                             {
                                 std::cout << " " << get_out_var( spec, h, i );
                             }
+                            if( allow_projection )
+                            {
+                              for( int i = 0; i < spec.nr_in; i++ )
+                              {
+                                std::cout << " " << get_pi_out_var( spec, h, i );
+                              }
+                            }
                             std::cout << std::endl;
                         }
                     }
@@ -640,17 +671,37 @@ namespace also
                     // Every output can have only one be true
                     // e.g., g_0_1, g_0_2 can have at most one be true
                     // !g_0_1 + !g_0_2
+                    std::vector<int> all_out_vars;
                     for( int h = 0; h < spec.nr_nontriv; h++ )
                     {
-                        for( int i = 0; i < spec.nr_steps - 1; i++ )
+                      all_out_vars.clear(); //for each nontriv function
+
+                      for( int i = 0; i < spec.nr_steps; i++ )
+                      {
+                        all_out_vars.push_back( get_out_var( spec, h, i ) );
+                      }
+
+                      if( allow_projection )
+                      {
+                        for( int i = 0; i < spec.nr_in; i++ )
                         {
-                            for( int j = i + 1; j < spec.nr_steps; j++ )
-                            {
-                                pLits[0] = pabc::Abc_Var2Lit( get_out_var( spec, h, i ), 1 );
-                                pLits[1] = pabc::Abc_Var2Lit( get_out_var( spec, h, j ), 1 );
-                                status &= solver->add_clause( pLits, pLits + 2 );
-                            }
+                          all_out_vars.push_back( get_pi_out_var( spec, h, i ) );
                         }
+                      }
+
+                      auto size = all_out_vars.size();
+                      if( size > 1u )
+                      {
+                        for( int i = 0; i < size - 1; i++ )
+                        {
+                          for( int j = i + 1; j < size; j++ )
+                          {
+                            pLits[0] = pabc::Abc_Var2Lit( all_out_vars[i], 1 );
+                            pLits[1] = pabc::Abc_Var2Lit( all_out_vars[j], 1 );
+                            status &= solver->add_clause( pLits, pLits + 2 );
+                          }
+                        }
+                      }
                     }
                 }
 

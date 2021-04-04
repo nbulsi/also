@@ -18,13 +18,13 @@ namespace also
 /******************************************************************************
  * Public functions                                                           *
  ******************************************************************************/
-    mig_network approximate_synthesis( percy::spec& spec, const unsigned& dist, const unsigned& min )
+    mig_network approximate_synthesis( percy::spec& spec, const unsigned& dist, const unsigned& min, const bool& allow )
     {
       mig_network mig;
       also::mig3 mig3;
 
       percy::bsat_wrapper solver;
-      mig_three_app_encoder encoder( solver, dist, min );
+      mig_three_app_encoder encoder( solver, dist, min, allow );
 
       if( mig_three_app_synthesize( spec, mig3, solver, encoder ) == percy::success )
       {
@@ -35,11 +35,11 @@ namespace also
       return mig;
     }
 
-    void enumerate_app_m3ig( percy::spec& spec, const unsigned& dist, const unsigned& min )
+    void enumerate_app_m3ig( percy::spec& spec, const unsigned& dist, const unsigned& min, const bool& allow )
     {
         also::mig3 mig3;
         percy::bsat_wrapper solver;
-        mig_three_app_encoder encoder( solver, dist, min );
+        mig_three_app_encoder encoder( solver, dist, min, allow );
 
         unsigned num_solutions = 0;
 

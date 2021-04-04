@@ -15,8 +15,8 @@
 
 namespace also
 {
-    mig_network approximate_synthesis( percy::spec& spec, const unsigned& dist, const unsigned& min );
-    void enumerate_app_m3ig( percy::spec& spec, const unsigned& dist, const unsigned& min );
+    mig_network approximate_synthesis( percy::spec& spec, const unsigned& dist, const unsigned& min, const bool& allow );
+    void enumerate_app_m3ig( percy::spec& spec, const unsigned& dist, const unsigned& min, const bool& allow );
 }
 
 #endif
