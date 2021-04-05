@@ -25,8 +25,10 @@ namespace alice
             {
               add_flag( "--verbose, -v", "verbose output" );
               add_flag( "--enumerate, -e", "enumerate all the solutions" );
+              add_flag( "--allow_projection, -a", "allow projection from pi to po" );
               add_option( "--num_functions, -n", num_functions, "set the number of functions to be synthesized, default = 1, works for default synthesize mode" );
               add_option( "--error_distance,-d", error_distance, "set the allowed maximum error distance" );
+              add_option( "--min_num_nodes, -m", min_num_of_nodes, "set the allowed minimum number of network nodes" );
             }
 
             rules validity_rules() const
@@ -58,17 +60,19 @@ namespace alice
 
                 if( error_distance > pow( 2, num_functions ) - 1 )
                 {
-                    std::cout << "[warning] The error distance exceeds the maximum possible decimal value: " << pow( 2, num_functions ) - 1 << std::endl;
+                  std::cout << "[warning] The error distance exceeds the maximum possible decimal value: " << pow( 2, num_functions ) - 1 << std::endl;
                 }
 
                 spec.verbosity = is_set( "verbose" ) ? 1 : 0;
+                bool allow = is_set( "allow_projection" ) ? true : false;
+
                 if( is_set( "enumerate" ) )
                 {
-                    also::enumerate_app_m3ig( spec, error_distance );
+                    also::enumerate_app_m3ig( spec, error_distance, min_num_of_nodes, allow );
                 }
                 else
                 {
-                    auto mig = also::approximate_synthesis( spec, error_distance );
+                    auto mig = also::approximate_synthesis( spec, error_distance, min_num_of_nodes, allow );
 
                     store<mig_network>().extend();
                     store<mig_network>().current() = mig;
@@ -78,6 +82,8 @@ namespace alice
         private:
             int num_functions = 1;
             unsigned error_distance = 0;
+            unsigned min_num_of_nodes = 0;
+            bool allow_projection = false;
     };
 
     ALICE_ADD_COMMAND( app, "Various" )
