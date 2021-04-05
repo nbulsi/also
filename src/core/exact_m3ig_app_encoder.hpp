@@ -31,12 +31,14 @@ namespace also
             int nr_sim_vars;
             int nr_op_vars;
             int nr_out_vars;
+            int nr_pi_sim_vars = 0;
             int nr_pi_out_vars = 0;
 
             int sel_offset;
             int sim_offset;
             int op_offset;
             int out_offset;
+            int pi_sim_offset;
             int pi_out_offset;
 
             int total_nr_vars;
@@ -143,6 +145,14 @@ namespace also
 
                 return pi_out_offset + spec.nr_in * h + i;
             }
+            
+            int get_pi_sim_var( const spec& spec, int pi_idx, int t ) const
+            {
+                assert( t < spec.tt_size );
+                assert( pi_idx < spec.nr_in );
+
+                return pi_sim_offset + spec.tt_size * pi_idx + t;
+            }
 
         public:
             mig_three_app_encoder( solver_wrapper& solver, const unsigned& dist, const unsigned& min, const bool& allow )
@@ -188,7 +198,10 @@ namespace also
                 {
                   nr_pi_out_vars = spec.nr_nontriv * spec.nr_in;
                   pi_out_offset  = nr_sel_vars + nr_op_vars + nr_sim_vars + nr_out_vars;
-                  total_nr_vars  = nr_sel_vars + nr_op_vars + nr_sim_vars + nr_out_vars + nr_pi_out_vars;
+
+                  nr_pi_sim_vars = spec.nr_in * spec.tt_size;
+                  pi_sim_offset  = nr_sel_vars + nr_op_vars + nr_sim_vars + nr_out_vars + nr_pi_out_vars;
+                  total_nr_vars  = nr_sel_vars + nr_op_vars + nr_sim_vars + nr_out_vars + nr_pi_out_vars + nr_pi_sim_vars;
                 }
 
                 if( spec.verbosity )
@@ -344,6 +357,7 @@ namespace also
                 for( auto h = 0; h < spec.nr_nontriv; h++ )
                 {
                     kitty::dynamic_truth_table tmp( spec.nr_in );
+
                     for( auto i = 0; i < spec.nr_steps; i++ )
                     {
                         if( solver->var_value( get_out_var( spec, h, i ) ) )
@@ -365,7 +379,28 @@ namespace also
                             }
                         }
                     }
+
+                    if( allow_projection )
+                    {
+                      for( auto i = 0; i < spec.nr_in; i++ )
+                      {
+                        if( solver->var_value( get_pi_out_var( spec, h, i ) ) )
+                        {
+                          kitty::create_nth_var( tmp, i );
+                          tts.push_back( tmp );
+
+                          if( spec.verbosity )
+                          {
+                            std::cout << "[i] output val g_" << h << "_pi_" << i << " is 1.\n";
+                            std::cout << "[verify] Function " << h << " : \n";
+                            std::cout << kitty::to_binary( tmp ) << std::endl;
+                          }
+                        }
+                      }
+                    }
                 }
+
+                assert( tts.size() == spec.nr_nontriv );
 
                 //compare to original tts
                 /* get the exact value of tt bit index t */
@@ -520,6 +555,23 @@ namespace also
 
                 return get_all_combination_index( v, v.size(), spec.nr_nontriv );
             }
+            
+            std::vector<std::vector<unsigned>> get_projection_all_output_combinations( const spec& spec )
+            {
+                std::vector<unsigned> v( ( spec.nr_steps + spec.nr_in ) * spec.nr_nontriv );
+                for( auto n = 0; n < spec.nr_steps + spec.nr_in; n++ )
+                {
+                    /* we generate an int vector as 001122...
+                     * such that we allow one node has multiple outputs
+                     * */
+                    for( auto m = 0; m < spec.nr_nontriv; m++ )
+                    {
+                        v.push_back( n );
+                    }
+                }
+
+                return get_all_combination_index( v, v.size(), spec.nr_nontriv );
+            }
 
             bool multi_appro_fix_output_sim_vars( const spec& spec, int t )
             {
@@ -574,7 +626,7 @@ namespace also
                                 for( int h = 0; h < spec.nr_nontriv; h++ )
                                 {
                                     auto polar = ( tts[tts.size() - h - 1] - '0' );
-                                    pLits[ctr++] = pabc::Abc_Var2Lit( get_sim_var( spec, p[h], t ),   polar );
+                                    pLits[ctr++] = pabc::Abc_Var2Lit( get_sim_var( spec, p[h], t ), polar );
                                     auto inv = polar ? "!" : "";
 
                                     if( spec.verbosity )
@@ -585,7 +637,7 @@ namespace also
                                         }
                                         else
                                         {
-                                            std::cout << inv << "t_" << p[h] + spec.nr_in + 1 << "_" << t + 1 << " + ";
+                                            std::cout << inv << " t_" << p[h] + spec.nr_in + 1 << "_" << t + 1 << " + ";
                                         }
                                     }
                                 }
@@ -603,6 +655,122 @@ namespace also
                 }
 
                 return ret;
+            }
+
+            bool fix_pi_sim_vars( const spec& spec, int pi_idx, int t )
+            {
+              assert( pi_idx < spec.nr_in );
+
+              kitty::dynamic_truth_table pi( spec.nr_in );
+              kitty::create_nth_var( pi, pi_idx );
+              auto outbit = kitty::get_bit( pi, t + 1 );
+              
+              const auto sim_var = get_pi_sim_var( spec, pi_idx, t );
+              pabc::lit sim_lit = pabc::Abc_Var2Lit( sim_var, 1 - outbit );
+              
+              return solver->add_clause( &sim_lit, &sim_lit + 1 );
+            }
+            
+            bool multi_appro_projection_fix_output_sim_vars( const spec& spec, int t )
+            {
+              bool ret = true;
+              
+              /* get the exact value of tt bit index t */
+              auto s = get_bin_str( spec, t );
+              auto decimal = bin_str_to_int( s );
+
+              if( spec.verbosity )
+              {
+                std::cout << "[i] exact value on tt index " << t << " is " << decimal << std::endl;
+              }
+
+              auto all_str = get_all_tt_string( spec.nr_nontriv );
+              auto strs = get_tt_string_exceed_error_distance( all_str, decimal, max_error_distance );
+
+              /* if the possible output is not valid */
+              if( strs.size() > 0u )
+              {
+                auto cs = get_projection_all_output_combinations( spec );
+
+                for( const auto& c : cs )
+                {
+                  auto perm = get_all_permutation( c );
+
+                  for( const auto& p : perm )
+                  {
+                    /* add clause to constraint the case */
+                    int ctr = 0;
+                    
+                    /* output variables */
+                    for( int h = 0; h < spec.nr_nontriv; h++ )
+                    {
+                      if( p[h] >= spec.nr_in )
+                      {
+                        auto tmp = p[h] - spec.nr_in;
+                        pLits[ctr++] = pabc::Abc_Var2Lit( get_out_var( spec, h, tmp ), 1 );
+                      }
+                      else
+                      {
+                        pLits[ctr++] = pabc::Abc_Var2Lit( get_pi_out_var( spec, h, p[h] ), 1 );
+                      }
+                    }
+
+                    /* all invalid tt output */
+                    int ctr_current = ctr;
+                    for( const auto& tts : strs )
+                    {
+                      ctr = ctr_current;
+
+                      if( spec.verbosity )
+                      {
+                        for( int h = 0; h < spec.nr_nontriv; h++ )
+                        {
+                          std::cout << "!g_" << h  << "_" << p[h] << " + ";
+                        }
+                      }
+
+                      for( int h = 0; h < spec.nr_nontriv; h++ )
+                      {
+                        auto polar = ( tts[tts.size() - h - 1] - '0' );
+
+                        if( p[h] >= spec.nr_in )
+                        {
+                          auto tmp = p[h] - spec.nr_in;
+                          pLits[ctr++] = pabc::Abc_Var2Lit( get_sim_var( spec, tmp, t ),  polar );
+                        }
+                        else
+                        {
+                          pLits[ctr++] = pabc::Abc_Var2Lit( get_pi_sim_var( spec, p[h], t ),  polar );
+                        }
+
+                        auto inv = polar ? "!" : "";
+
+                        if( spec.verbosity )
+                        {
+                          if( h == spec.nr_nontriv - 1 )
+                          {
+                            std::cout << inv << " t_" << p[h] << "_" << t + 1 << std::endl;
+                          }
+                          else
+                          {
+                            std::cout << inv << " t_" << p[h] << "_" << t + 1 << " + ";
+                          }
+                        }
+                      }
+
+                      if( spec.verbosity )
+                      {
+                        std::cout << std::endl;
+                        std::cout << tts << " is an impossible tt combination\n";
+                      }
+
+                      ret &= solver->add_clause( pLits, pLits + ctr );
+                    }
+                  }
+                }
+              }
+
+              return ret;
             }
 
             /*
@@ -931,7 +1099,19 @@ namespace also
                 }
                 else
                 {
-                    ret &= multi_appro_fix_output_sim_vars( spec, t );
+                    if( allow_projection )
+                    {
+                      ret &= multi_appro_projection_fix_output_sim_vars( spec, t );
+                      
+                      for( int i = 0; i < spec.nr_in; i++ )
+                      {
+                        ret &= fix_pi_sim_vars( spec, i, t );
+                      }
+                    }
+                    else
+                    {
+                      ret &= multi_appro_fix_output_sim_vars( spec, t );
+                    }
                 }
 
                 return ret;
@@ -1072,6 +1252,7 @@ namespace also
                 //set outputs
                 auto triv_count = 0;
                 auto nontriv_count = 0;
+                bool flag_po = false;
                 for( int h = 0; h < spec.get_nr_out(); h++ )
                 {
                     if( ( spec.triv_flag >> h ) & 1 )
@@ -1082,6 +1263,28 @@ namespace also
                             printf( "[i] PO %d is a trivial function.\n" );
                         }
                         continue;
+                    }
+
+                    if( allow_projection )
+                    {
+                      flag_po = false;
+                      for( int i = 0; i < spec.nr_in; i++ )
+                      {
+                        if( solver->var_value( get_pi_out_var( spec, h, i ) ) )
+                        {
+                          chain.set_output( h, ( i + 1 ) << 1 );
+                          
+                          if( spec.verbosity > 2 )
+                          {
+                            printf("[i] PO %d is PI %d\n", h, i + 1 );
+                          }
+                          nontriv_count++;
+                          flag_po = true;
+                          break;
+                        }
+                      }
+
+                      if( flag_po ) continue;
                     }
 
                     for( int i = 0; i < spec.nr_steps; i++ )
