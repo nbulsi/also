@@ -161,6 +161,16 @@ namespace also
                 max_error_distance = dist;
                 min_num_of_nodes   = min;
                 allow_projection = allow;
+
+                // There is a conflict when projection is
+                // allowed and mim_num_of_nodes is set at the
+                // same time, avoid it
+                if( min_num_of_nodes != 0u && allow_projection ) 
+                {
+                  allow_projection = false;
+                  std::cout << "[warning]: allow projection cannot be enabled when min_num_of_nodes is set\n";
+                }
+
                 this->solver = &solver;
             }
 
@@ -1369,7 +1379,7 @@ namespace also
     {
         //spec.verbosity = 3;
        if (!encoder.is_dirty())
-    {
+       {
             encoder.set_dirty(true);
             return mig_three_app_synthesize(spec, mig3, solver, encoder);
        }
