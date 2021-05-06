@@ -91,7 +91,7 @@ namespace alice
           also::print_stats( m5ig );
 
           store<m5ig_network>().extend(); 
-          store<m5ig_network>().current() = m5ig;
+          store<m5ig_network>().current() = cleanup_dangling( m5ig );
         }
         else if( is_set( "m3ig_npn" ) )
         {
@@ -108,7 +108,7 @@ namespace alice
           also::print_stats( mig );
 
           store<mig_network>().extend(); 
-          store<mig_network>().current() = mig;
+          store<mig_network>().current() = cleanup_dangling( mig );
         }
         else if( is_set( "xag_npn_lut" ) )
         {
@@ -132,7 +132,7 @@ namespace alice
           also::print_stats( xag );
 
           store<xag_network>().extend(); 
-          store<xag_network>().current() = xag;
+          store<xag_network>().current() = cleanup_dangling( xag );
         }
         else if( is_set( "xag_npn" ) )
         {
@@ -151,7 +151,7 @@ namespace alice
           also::print_stats( xag );
 
           store<xag_network>().extend(); 
-          store<xag_network>().current() = xag;
+          store<xag_network>().current() = cleanup_dangling( xag );
         }
         else if( is_set( "img_fc" ) )
         {
@@ -176,7 +176,7 @@ namespace alice
           std::cout << "fcost: " << fcost1 << " to " << fcost2 << std::endl;
 
           store<img_network>().extend(); 
-          store<img_network>().current() = img;
+          store<img_network>().current() = cleanup_dangling( img );
         }
         else if( is_set( "img_all" ) )
         {
@@ -193,7 +193,7 @@ namespace alice
           also::print_stats( img );
           
           store<img_network>().extend(); 
-          store<img_network>().current() = img;
+          store<img_network>().current() = cleanup_dangling( img );
         }
         else
         {
