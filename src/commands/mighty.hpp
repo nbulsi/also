@@ -35,8 +35,11 @@
 #ifndef MIGHTY_HPP
 #define MIGHTY_HPP
 
-#include <mockturtle/mockturtle.hpp>
+#include <mockturtle/networks/mig.hpp>
+#include <mockturtle/views/depth_view.hpp>
+#include <mockturtle/algorithms/mig_algebraic_rewriting.hpp>
 #include <mockturtle/algorithms/mig_resub.hpp>
+#include "../core/misc.hpp"
 
 namespace alice
 {
@@ -71,8 +74,6 @@ namespace alice
       {
         mig_network mig = store<mig_network>().current();
 
-        print_stats( mig );
-        
         /* parameters */
         ps.allow_area_increase = !is_set( "area_aware" );
 
@@ -94,8 +95,6 @@ namespace alice
         mig_algebraic_depth_rewriting( depth_mig, ps );
         mig = cleanup_dangling( mig );
         
-        print_stats( mig );
-        
         /* resubstituion */
         using view_t = depth_view<fanout_view<mig_network>>;
         fanout_view<mig_network> fanout_view{mig};
@@ -104,22 +103,13 @@ namespace alice
         mig_resubstitution( resub_view );
 
         mig = cleanup_dangling( mig );
-        print_stats( mig );
-        /*resubstitution_params ps_resub;
-        ps_resub.verbose = false;
-        resubstitution( mig, ps_resub );
-
-        mig = cleanup_dangling( mig );
-        print_stats( mig );*/
         
-        /* refactoring */
-        /*akers_resynthesis resyn;
-        refactoring_params ps;
-        ps.verbose = false;
-        refactoring( mig, resyn, ps );
+        std::cout << "[mighty] ";
+        auto mig_copy = cleanup_dangling( mig );
+        also::print_stats( mig_copy );
 
-        mig = cleanup_dangling( mig );
-        print_stats( mig );*/
+        store<mig_network>().extend();
+        store<mig_network>().current() = mig;
       }
     
     private:
