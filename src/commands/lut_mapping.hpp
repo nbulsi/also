@@ -19,6 +19,8 @@
 #include "../core/cut_enumeration/img_cut.hpp"
 #include "../core/cut_enumeration/xmg_cut.hpp"
 
+#include "../core/xmg_lut_mapping.hpp"
+
 namespace alice
 {
 
@@ -31,6 +33,7 @@ namespace alice
         add_flag( "--verbose, -v", "print the information" );
         add_flag( "--satlut, -s",  "satlut mapping" );
         add_flag( "--xmg, -x",  "LUT mapping for XMG" );
+        add_flag( "--xag, -g",  "LUT mapping for XAG" );
         add_flag( "--mig, -m",  "LUT mapping for MIG" );
         add_flag( "--opt_img, -o",  "Using optimal IMG size for 3-input function as the cost function" );
         add_flag( "--opt_xmg, -p",  "Using optimal XMG size/depth for 4-input function as the cost function" );
@@ -46,10 +49,12 @@ namespace alice
           /* derive some XMG */
           assert( store<xmg_network>().size() > 0 );
           xmg_network xmg = store<xmg_network>().current();
+        
+          xmg_lut_mapping_params xmg_ps;
 
           mapping_view<xmg_network, true> mapped_xmg{xmg};
-          ps.cut_enumeration_ps.cut_size = cut_size;
-          lut_mapping<mapping_view<xmg_network, true>, true>( mapped_xmg, ps );
+          xmg_ps.cut_enumeration_ps.cut_size = cut_size;
+          xmg_lut_mapping<mapping_view<xmg_network, true>, true>( mapped_xmg, xmg_ps );
           
           /* collapse into k-LUT network */
           auto klut = *collapse_mapped_network<klut_network>( mapped_xmg );
@@ -69,6 +74,21 @@ namespace alice
           
           /* collapse into k-LUT network */
           const auto klut = *collapse_mapped_network<klut_network>( mapped_mig );
+          store<klut_network>().extend(); 
+          store<klut_network>().current() = klut;
+        }
+        else if( is_set( "xag" ) )
+        {
+          /* derive some XAG */
+          assert( store<xag_network>().size() > 0 );
+          xag_network xag = store<xag_network>().current();
+
+          mapping_view<xag_network, true> mapped_xag{xag};
+          ps.cut_enumeration_ps.cut_size = cut_size;
+          lut_mapping<mapping_view<xag_network, true>, true>( mapped_xag, ps );
+          
+          /* collapse into k-LUT network */
+          const auto klut = *collapse_mapped_network<klut_network>( mapped_xag );
           store<klut_network>().extend(); 
           store<klut_network>().current() = klut;
         }
