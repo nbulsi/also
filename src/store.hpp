@@ -216,7 +216,10 @@ namespace alice
   ALICE_READ_FILE( aig_network, aiger, filename, cmd )
   {
     aig_network aig;
-    lorina::read_aiger( filename, mockturtle::aiger_reader( aig ) );
+    if( lorina::read_aiger( filename, mockturtle::aiger_reader( aig ) ) != lorina::return_code::success )
+    {
+      std::cout << "[w] parse error\n";
+    }
     return aig;
   }
 
@@ -235,8 +238,7 @@ namespace alice
   {
     xmg_network xmg;
 
-    lorina::diagnostic_engine diag;
-    if ( lorina::read_verilog( filename, mockturtle::verilog_reader( xmg ), &diag ) != lorina::return_code::success )
+    if ( lorina::read_verilog( filename, mockturtle::verilog_reader( xmg ) ) != lorina::return_code::success )
     {
       std::cout << "[w] parse error\n";
     }
@@ -260,7 +262,10 @@ namespace alice
   ALICE_READ_FILE( mig_network, verilog, filename, cmd )
   {
     mig_network mig;
-    lorina::read_verilog( filename, mockturtle::verilog_reader( mig ) );
+    if( lorina::read_verilog( filename, mockturtle::verilog_reader( mig ) ) != lorina::return_code::success )
+    {
+      std::cout << "[w] parse error\n";
+    }
     return mig;
   }
 
@@ -281,7 +286,11 @@ namespace alice
   ALICE_READ_FILE( xag_network, verilog, filename, cmd )
   {
     xag_network xag;
-    lorina::read_verilog( filename, mockturtle::verilog_reader( xag ) );
+    if( lorina::read_verilog( filename, mockturtle::verilog_reader( xag ) ) != lorina::return_code::success )
+    {
+      std::cout << "[w] parse error\n";
+    }
+ 
     return xag;
   }
 
@@ -303,8 +312,7 @@ namespace alice
   {
     img_network img;
 
-    lorina::diagnostic_engine diag;
-    if ( lorina::read_verilog( filename, img_verilog_reader( img ), &diag ) != lorina::return_code::success )
+    if ( lorina::read_verilog( filename, img_verilog_reader( img ) ) != lorina::return_code::success )
     {
       std::cout << "[w] parse error\n";
     }
@@ -325,7 +333,10 @@ namespace alice
   ALICE_READ_FILE( klut_network, bench, filename, cmd )
   {
     klut_network klut;
-    lorina::read_bench( filename, mockturtle::bench_reader( klut ) );
+    if( lorina::read_bench( filename, mockturtle::bench_reader( klut ) ) != lorina::return_code::success )
+    {
+      std::cout << "[w] parse error\n";
+    }
     return klut;
   }
 
