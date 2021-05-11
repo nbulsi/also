@@ -28,11 +28,11 @@ namespace alice
     public:
       explicit techmap_command( const environment::ptr& env ) : command( env, "Standard cell mapping : using AIG as default" )
       {
-        add_flag( "--xmg, -x",  "LUT mapping for XMG" );
-        add_flag( "--mig, -m",  "LUT mapping for MIG" );
+        add_flag( "--xmg, -x",  "Standard cell mapping for XMG" );
+        add_flag( "--mig, -m",  "Standard cell mapping for MIG" );
         add_flag( "--verbose, -v", "print the information" );
       }
-      
+
       rules validity_rules() const
       {
         return { has_store_element<std::vector<mockturtle::gate>>( env ) };
