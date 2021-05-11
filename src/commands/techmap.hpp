@@ -60,7 +60,7 @@ namespace alice
 
             auto res = mockturtle::tech_map( xmg, lib, ps, &st );
 
-            std::cout << fmt::format( "Mapped into {} gates, area = {}, delay = {}\n", res.num_gates(), st.area, st.delay );
+            std::cout << fmt::format( "Mapped XMG into #gates = {}, area = {:.2f}, delay = {:.2f}\n", res.num_gates(), st.area, st.delay );
           }
         }
         else if( is_set( "mig" ) )
@@ -75,7 +75,7 @@ namespace alice
 
             auto res = mockturtle::tech_map( mig, lib, ps, &st );
 
-            std::cout << fmt::format( "Mapped into {} gates, area = {}, delay = {}\n", res.num_gates(), st.area, st.delay );
+            std::cout << fmt::format( "Mapped MIG into #gates = {}, area = {:.2f}, delay = {:.2f}\n", res.num_gates(), st.area, st.delay );
           }
         }
         else
@@ -90,7 +90,7 @@ namespace alice
 
             auto res = mockturtle::tech_map( aig, lib, ps, &st );
 
-            std::cout << fmt::format( "Mapped into {} gates, area = {}, delay = {}\n", res.num_gates(), st.area, st.delay );
+            std::cout << fmt::format( "Mapped AIG into #gates = {}, area = {:.2f}, delay = {:.2f}\n", res.num_gates(), st.area, st.delay );
           }
         }
       }
