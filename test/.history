@@ -1,0 +1,15 @@
+read_aiger ./benchmarks/bar.aig
+lut_mapping
+lut_resyn -nx
+ps -m
+quit
+read_aiger ./benchmarks/bar.aig
+lut_mapping
+lut_resyn -nx
+ps -m
+quit
+read_aiger ./benchmarks/bar.aig
+lut_mapping
+lut_resyn -ng
+ps -g
+quit
