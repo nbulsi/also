@@ -275,7 +275,6 @@ src/CMakeFiles/also.dir/also.cpp.o: ../lib/mockturtle/lib/percy/percy/solvers/so
 src/CMakeFiles/also.dir/also.cpp.o: ../lib/mockturtle/lib/percy/percy/spec.hpp
 src/CMakeFiles/also.dir/also.cpp.o: ../lib/mockturtle/lib/percy/percy/tt_utils.hpp
 src/CMakeFiles/also.dir/also.cpp.o: ../src/also.cpp
-src/CMakeFiles/also.dir/also.cpp.o: ../src/commands/aa.hpp
 src/CMakeFiles/also.dir/also.cpp.o: ../src/commands/app.hpp
 src/CMakeFiles/also.dir/also.cpp.o: ../src/commands/ax.hpp
 src/CMakeFiles/also.dir/also.cpp.o: ../src/commands/cog.hpp
@@ -285,6 +284,7 @@ src/CMakeFiles/also.dir/also.cpp.o: ../src/commands/exact_m3ig.hpp
 src/CMakeFiles/also.dir/also.cpp.o: ../src/commands/exact_m5ig.hpp
 src/CMakeFiles/also.dir/also.cpp.o: ../src/commands/exact_maj.hpp
 src/CMakeFiles/also.dir/also.cpp.o: ../src/commands/exprsim.hpp
+src/CMakeFiles/also.dir/also.cpp.o: ../src/commands/heuristic.hpp
 src/CMakeFiles/also.dir/also.cpp.o: ../src/commands/imgff.hpp
 src/CMakeFiles/also.dir/also.cpp.o: ../src/commands/imgrw.hpp
 src/CMakeFiles/also.dir/also.cpp.o: ../src/commands/load.hpp

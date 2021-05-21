@@ -276,7 +276,6 @@ src/CMakeFiles/also.dir/also.cpp.o
  ../lib/mockturtle/lib/percy/percy/spec.hpp
  ../lib/mockturtle/lib/percy/percy/tt_utils.hpp
  /home/hexiang/also/src/also.cpp
- /home/hexiang/also/src/commands/aa.hpp
  /home/hexiang/also/src/commands/app.hpp
  /home/hexiang/also/src/commands/ax.hpp
  /home/hexiang/also/src/commands/cog.hpp
@@ -286,6 +285,7 @@ src/CMakeFiles/also.dir/also.cpp.o
  /home/hexiang/also/src/commands/exact_m5ig.hpp
  /home/hexiang/also/src/commands/exact_maj.hpp
  /home/hexiang/also/src/commands/exprsim.hpp
+ /home/hexiang/also/src/commands/heuristic.hpp
  /home/hexiang/also/src/commands/imgff.hpp
  /home/hexiang/also/src/commands/imgrw.hpp
  /home/hexiang/also/src/commands/load.hpp

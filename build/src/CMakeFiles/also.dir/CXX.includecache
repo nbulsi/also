@@ -4709,20 +4709,10 @@ commands/app.hpp
 /home/hexiang/also/src/commands/app.hpp
 commands/xmgban.hpp
 /home/hexiang/also/src/commands/xmgban.hpp
-commands/aa.hpp
-/home/hexiang/also/src/commands/aa.hpp
+commands/heuristic.hpp
+/home/hexiang/also/src/commands/heuristic.hpp
 commands/test.hpp
 /home/hexiang/also/src/commands/test.hpp
-
-/home/hexiang/also/src/commands/aa.hpp
-mockturtle/mockturtle.hpp
--
-sstream
--
-../core/sto/node.h
-/home/hexiang/also/src/core/sto/node.h
-chrono
--
 
 /home/hexiang/also/src/commands/app.hpp
 ../core/exact_app_m3ig.hpp
@@ -4821,6 +4811,16 @@ percy/percy.hpp
 /home/hexiang/also/src/commands/exprsim.hpp
 ../store.hpp
 /home/hexiang/also/src/store.hpp
+
+/home/hexiang/also/src/commands/heuristic.hpp
+mockturtle/mockturtle.hpp
+-
+sstream
+-
+../core/sto/node.h
+/home/hexiang/also/src/core/sto/node.h
+chrono
+-
 
 /home/hexiang/also/src/commands/imgff.hpp
 ../core/misc.hpp
@@ -5280,6 +5280,12 @@ unordered_set
 iostream
 -
 algorithm
+-
+
+/home/hexiang/also/src/core/sto/node.cpp
+node.h
+/home/hexiang/also/src/core/sto/node.h
+stdlib.h
 -
 
 /home/hexiang/also/src/core/sto/node.h
