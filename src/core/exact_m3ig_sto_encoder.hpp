@@ -808,6 +808,8 @@ namespace also
 
       // The special case when the Boolean chain to be synthesized
       // consists entirely of trivial functions.
+      //std::cout<<"spec.get_nr_in():  "<<spec.get_nr_in()<<std::endl;
+      //std::cout<<"spec.get_nr_out():  "<<spec.get_nr_out()<<std::endl;
       if (spec.nr_triv == spec.get_nr_out()) 
       {
         spec.nr_steps = 0;
@@ -817,6 +819,7 @@ namespace also
           mig3.set_output(h, (spec.triv_func(h) << 1) +
               ((spec.out_inv >> h) & 1));
         }
+        
         return success;
       }
 
@@ -897,7 +900,7 @@ namespace also
               encoder.set_problem_vec( porigin );
             }
           }
-          
+         // std::cout<<"spec.nr_steps:  "<<spec.nr_steps<<std::endl;
           if( spec.nr_steps == 20 )
           {
             break;
@@ -909,7 +912,7 @@ namespace also
         }
 
       }
-
+	std::cout<<"success:  "<<success<<std::endl;
       return success;
    }
 

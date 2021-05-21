@@ -86,6 +86,7 @@ namespace also
    * cases */
   bool sto_syn_manager::preprocess()
   {
+	  //std::cout<<"sto_syn_manager::preprocess()"<<std::endl;
     unsigned num_vars_m_plus_n = m + n;
 
     /* consts */
@@ -164,7 +165,9 @@ namespace also
       num_loop++;
     }while( !kitty::is_const0( tt_enum ) && num_loop < pow( 2, m + n ) );
 
+    std::cout<<"count_tt_sum_of_x: total:  "<<total<<std::endl;//when f=e;f=f;f=g.....
     return total;
+    
   }
 
   mig_network sto_syn_manager::run()
@@ -196,6 +199,8 @@ namespace also
       spec[0] = tt;
       spec.verbosity = 0;
 
+		//kitty::print_binary(spec[0],std::cout);
+
       auto flag_normal = kitty::is_normal( tt );
       if( !flag_normal ) { std::cout << "[i] Function is not normal \n"; }
 
@@ -211,6 +216,7 @@ namespace also
 
       if( mig_three_sto_synthesize( spec, mig3, solver, encoder ) == percy::success )
       {
+		  //kitty::print_binary(spec[3],std::cout);
         print_all_expr( spec, mig3 );
         mig = mig3_to_mig_network( spec, mig3 );
       }

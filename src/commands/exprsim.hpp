@@ -37,6 +37,7 @@ namespace alice
          
          if ( opt_ntks.empty() || is_set( "new" ) )
          {
+			 std::cout<<"test1"<<std::endl;
            opt_ntks.extend();
          }
 
@@ -45,6 +46,7 @@ namespace alice
          
          for (auto c : expression)
          {
+			 std::cout<<"test2"<<std::endl;
            if (c >= 'a' && c <= 'p')
            {
              num_vars = std::max<uint32_t>( num_vars, c - 'a' + 1u );
@@ -60,6 +62,7 @@ namespace alice
 
          if ( kitty::create_from_expression( tt, expression ) )
          {
+			 std::cout<<"test3"<<std::endl;
            optimum_network opt;
            opt.function = tt;
            opt.network  = expression;

@@ -81,14 +81,25 @@ namespace also
         inputs.push_back( char( 'a' + mig3.steps[step_idx][i] - 1 ) );
       }
     }
-
+    
+    //std::cout<<"step_idx:  "<<step_idx<<std::endl;//which times, not which gate
+    for(std::vector<char>::iterator it=inputs.begin();it!=inputs.end();it++)
+    {
+		std::cout<<*it<<" ";
+		}
+	std::cout<<std::endl;//inputs save result of expression
+	//std::cout<<"   mig3.operators[ step_idx ] :  "<<    mig3.operators[ step_idx ] <<std::endl;
+    
     switch( mig3.operators[ step_idx ] )
     {
+		        //std::cout<<"here"<<std::endl;//can't operate
+
       default:
         assert( false && "illegal operator id" );
         break;
 
       case 0:
+      	//std::cout<<"   mig3.operators[ 0] " <<std::endl;
         ss << "<" << inputs[0] << inputs[1] << inputs[2] << "> ";
         break;
 
@@ -129,14 +140,19 @@ namespace also
       if(  i == spec.nr_steps - 1 )
       {
         ss << pol;
+        //std::cout<<"pol:  "<<pol<<std::endl;
+       // std::cout<<"spec.nr_in:  "<<spec.nr_in<<std::endl;//numbers of input
+
         ss << char( i + spec.nr_in + 'a' ) << "=" << print_expr( mig3, i );
       }
       else
       {
+		 // std::cout<<"test"<<std::endl;
         ss << char( i + spec.nr_in + 'a' ) << "=" << print_expr( mig3, i );
       }
     }
 
+	//kitty::print_binary(spec[0],std::cout);
     std::cout << "[expressions] " << ss.str() << std::endl;
     if( spec.get_nr_out() > 1 )
     {
@@ -181,10 +197,11 @@ namespace also
       auto tmp_in0 = pis[step[0]];
       auto tmp_in1 = pis[step[1]];
       auto tmp_in2 = pis[step[2]];
-
+		//std::cout<<"mig3.get_op( i ): "<<mig3.get_op( i )<<std::endl;
       switch( mig3.get_op( i ) )
       {
         case 0:
+       // std::cout<<"pis: "<<mig.create_maj( tmp_in0, tmp_in1, tmp_in2 ).data<<std::endl;
           pis.push_back( mig.create_maj( tmp_in0, tmp_in1, tmp_in2 ) );
           break;
 
@@ -208,6 +225,7 @@ namespace also
 
     const auto driver = pis[ pis.size() - 1 ] ^ ( spec.out_inv ? true : false );
     mig.create_po( driver );
+    //std::cout<<"mig.create_po( driver ): "<<mig.create_po( driver )<<std::endl;
     return mig;
   }
 

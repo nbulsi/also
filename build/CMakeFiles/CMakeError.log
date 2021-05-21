@@ -1,0 +1,188 @@
+Performing C++ SOURCE FILE Test HAS_FCOLOR_DIAGNOSTICS failed with the following output:
+Change Dir: /home/hexiang/also/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_6f145/fast"
+/usr/bin/make -f CMakeFiles/cmTC_6f145.dir/build.make CMakeFiles/cmTC_6f145.dir/build
+make[1]: Entering directory '/home/hexiang/also/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_6f145.dir/src.cxx.o
+/usr/local/bin/c++    -DHAS_FCOLOR_DIAGNOSTICS   -fcolor-diagnostics -std=gnu++17 -o CMakeFiles/cmTC_6f145.dir/src.cxx.o -c /home/hexiang/also/build/CMakeFiles/CMakeTmp/src.cxx
+c++: error: unrecognized command line option '-fcolor-diagnostics'
+CMakeFiles/cmTC_6f145.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_6f145.dir/src.cxx.o' failed
+make[1]: *** [CMakeFiles/cmTC_6f145.dir/src.cxx.o] Error 1
+make[1]: Leaving directory '/home/hexiang/also/build/CMakeFiles/CMakeTmp'
+Makefile:121: recipe for target 'cmTC_6f145/fast' failed
+make: *** [cmTC_6f145/fast] Error 2
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test HAS_WNO_gnu-anonymous-struct failed with the following output:
+Change Dir: /home/hexiang/also/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_7bfe6/fast"
+/usr/bin/make -f CMakeFiles/cmTC_7bfe6.dir/build.make CMakeFiles/cmTC_7bfe6.dir/build
+make[1]: Entering directory '/home/hexiang/also/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_7bfe6.dir/src.cxx.o
+/usr/local/bin/c++    -DHAS_WNO_gnu-anonymous-struct   -Wno-gnu-anonymous-struct -std=gnu++17 -o CMakeFiles/cmTC_7bfe6.dir/src.cxx.o -c /home/hexiang/also/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>: warning: ISO C++11 requires whitespace after the macro name
+cc1plus: warning: unrecognized command line option '-Wno-gnu-anonymous-struct'
+Linking CXX executable cmTC_7bfe6
+/opt/cmake-3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_7bfe6.dir/link.txt --verbose=1
+/usr/local/bin/c++   -DHAS_WNO_gnu-anonymous-struct    CMakeFiles/cmTC_7bfe6.dir/src.cxx.o  -o cmTC_7bfe6 
+make[1]: Leaving directory '/home/hexiang/also/build/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test HAS_WNO_nested-anon-types failed with the following output:
+Change Dir: /home/hexiang/also/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_5ea37/fast"
+/usr/bin/make -f CMakeFiles/cmTC_5ea37.dir/build.make CMakeFiles/cmTC_5ea37.dir/build
+make[1]: Entering directory '/home/hexiang/also/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_5ea37.dir/src.cxx.o
+/usr/local/bin/c++    -DHAS_WNO_nested-anon-types   -Wno-nested-anon-types -std=gnu++17 -o CMakeFiles/cmTC_5ea37.dir/src.cxx.o -c /home/hexiang/also/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>: warning: ISO C++11 requires whitespace after the macro name
+cc1plus: warning: unrecognized command line option '-Wno-nested-anon-types'
+Linking CXX executable cmTC_5ea37
+/opt/cmake-3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5ea37.dir/link.txt --verbose=1
+/usr/local/bin/c++   -DHAS_WNO_nested-anon-types    CMakeFiles/cmTC_5ea37.dir/src.cxx.o  -o cmTC_5ea37 
+make[1]: Leaving directory '/home/hexiang/also/build/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test HAS_WNO_unused-lambda-capture failed with the following output:
+Change Dir: /home/hexiang/also/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_e78a6/fast"
+/usr/bin/make -f CMakeFiles/cmTC_e78a6.dir/build.make CMakeFiles/cmTC_e78a6.dir/build
+make[1]: Entering directory '/home/hexiang/also/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_e78a6.dir/src.cxx.o
+/usr/local/bin/c++    -DHAS_WNO_unused-lambda-capture   -Wno-unused-lambda-capture -std=gnu++17 -o CMakeFiles/cmTC_e78a6.dir/src.cxx.o -c /home/hexiang/also/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>: warning: ISO C++11 requires whitespace after the macro name
+cc1plus: warning: unrecognized command line option '-Wno-unused-lambda-capture'
+Linking CXX executable cmTC_e78a6
+/opt/cmake-3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e78a6.dir/link.txt --verbose=1
+/usr/local/bin/c++   -DHAS_WNO_unused-lambda-capture    CMakeFiles/cmTC_e78a6.dir/src.cxx.o  -o cmTC_e78a6 
+make[1]: Leaving directory '/home/hexiang/also/build/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test HAS_WNO_unused-private-field failed with the following output:
+Change Dir: /home/hexiang/also/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_0756e/fast"
+/usr/bin/make -f CMakeFiles/cmTC_0756e.dir/build.make CMakeFiles/cmTC_0756e.dir/build
+make[1]: Entering directory '/home/hexiang/also/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_0756e.dir/src.cxx.o
+/usr/local/bin/c++    -DHAS_WNO_unused-private-field   -Wno-unused-private-field -std=gnu++17 -o CMakeFiles/cmTC_0756e.dir/src.cxx.o -c /home/hexiang/also/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>: warning: ISO C++11 requires whitespace after the macro name
+cc1plus: warning: unrecognized command line option '-Wno-unused-private-field'
+Linking CXX executable cmTC_0756e
+/opt/cmake-3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0756e.dir/link.txt --verbose=1
+/usr/local/bin/c++   -DHAS_WNO_unused-private-field    CMakeFiles/cmTC_0756e.dir/src.cxx.o  -o cmTC_0756e 
+make[1]: Leaving directory '/home/hexiang/also/build/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test HAS_WNO_inconsistent-missing-override failed with the following output:
+Change Dir: /home/hexiang/also/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_e5914/fast"
+/usr/bin/make -f CMakeFiles/cmTC_e5914.dir/build.make CMakeFiles/cmTC_e5914.dir/build
+make[1]: Entering directory '/home/hexiang/also/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_e5914.dir/src.cxx.o
+/usr/local/bin/c++    -DHAS_WNO_inconsistent-missing-override   -Wno-inconsistent-missing-override -std=gnu++17 -o CMakeFiles/cmTC_e5914.dir/src.cxx.o -c /home/hexiang/also/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>: warning: ISO C++11 requires whitespace after the macro name
+cc1plus: warning: unrecognized command line option '-Wno-inconsistent-missing-override'
+Linking CXX executable cmTC_e5914
+/opt/cmake-3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e5914.dir/link.txt --verbose=1
+/usr/local/bin/c++   -DHAS_WNO_inconsistent-missing-override    CMakeFiles/cmTC_e5914.dir/src.cxx.o  -o cmTC_e5914 
+make[1]: Leaving directory '/home/hexiang/also/build/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test HAS_WNO_range-loop-analysis failed with the following output:
+Change Dir: /home/hexiang/also/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_db2a7/fast"
+/usr/bin/make -f CMakeFiles/cmTC_db2a7.dir/build.make CMakeFiles/cmTC_db2a7.dir/build
+make[1]: Entering directory '/home/hexiang/also/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_db2a7.dir/src.cxx.o
+/usr/local/bin/c++    -DHAS_WNO_range-loop-analysis   -Wno-range-loop-analysis -std=gnu++17 -o CMakeFiles/cmTC_db2a7.dir/src.cxx.o -c /home/hexiang/also/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>: warning: ISO C++11 requires whitespace after the macro name
+cc1plus: warning: unrecognized command line option '-Wno-range-loop-analysis'
+Linking CXX executable cmTC_db2a7
+/opt/cmake-3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_db2a7.dir/link.txt --verbose=1
+/usr/local/bin/c++   -DHAS_WNO_range-loop-analysis    CMakeFiles/cmTC_db2a7.dir/src.cxx.o  -o cmTC_db2a7 
+make[1]: Leaving directory '/home/hexiang/also/build/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test HAS_WNO_tautological-overlap-compare failed with the following output:
+Change Dir: /home/hexiang/also/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_13445/fast"
+/usr/bin/make -f CMakeFiles/cmTC_13445.dir/build.make CMakeFiles/cmTC_13445.dir/build
+make[1]: Entering directory '/home/hexiang/also/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_13445.dir/src.cxx.o
+/usr/local/bin/c++    -DHAS_WNO_tautological-overlap-compare   -Wno-tautological-overlap-compare -std=gnu++17 -o CMakeFiles/cmTC_13445.dir/src.cxx.o -c /home/hexiang/also/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>: warning: ISO C++11 requires whitespace after the macro name
+cc1plus: warning: unrecognized command line option '-Wno-tautological-overlap-compare'
+Linking CXX executable cmTC_13445
+/opt/cmake-3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_13445.dir/link.txt --verbose=1
+/usr/local/bin/c++   -DHAS_WNO_tautological-overlap-compare    CMakeFiles/cmTC_13445.dir/src.cxx.o  -o cmTC_13445 
+make[1]: Leaving directory '/home/hexiang/also/build/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test HAS_WNO_macro-redefined failed with the following output:
+Change Dir: /home/hexiang/also/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_f029f/fast"
+/usr/bin/make -f CMakeFiles/cmTC_f029f.dir/build.make CMakeFiles/cmTC_f029f.dir/build
+make[1]: Entering directory '/home/hexiang/also/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_f029f.dir/src.cxx.o
+/usr/local/bin/c++    -DHAS_WNO_macro-redefined   -Wno-macro-redefined -std=gnu++17 -o CMakeFiles/cmTC_f029f.dir/src.cxx.o -c /home/hexiang/also/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>: warning: ISO C++11 requires whitespace after the macro name
+cc1plus: warning: unrecognized command line option '-Wno-macro-redefined'
+Linking CXX executable cmTC_f029f
+/opt/cmake-3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f029f.dir/link.txt --verbose=1
+/usr/local/bin/c++   -DHAS_WNO_macro-redefined    CMakeFiles/cmTC_f029f.dir/src.cxx.o  -o cmTC_f029f 
+make[1]: Leaving directory '/home/hexiang/also/build/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }
+Determining if the pthread_create exist failed with the following output:
+Change Dir: /home/hexiang/also/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_18d10/fast"
+/usr/bin/make -f CMakeFiles/cmTC_18d10.dir/build.make CMakeFiles/cmTC_18d10.dir/build
+make[1]: Entering directory '/home/hexiang/also/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_18d10.dir/CheckSymbolExists.cxx.o
+/usr/local/bin/c++    -std=gnu++17 -o CMakeFiles/cmTC_18d10.dir/CheckSymbolExists.cxx.o -c /home/hexiang/also/build/CMakeFiles/CMakeTmp/CheckSymbolExists.cxx
+Linking CXX executable cmTC_18d10
+/opt/cmake-3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_18d10.dir/link.txt --verbose=1
+/usr/local/bin/c++       CMakeFiles/cmTC_18d10.dir/CheckSymbolExists.cxx.o  -o cmTC_18d10 
+/usr/local/lib/gcc/x86_64-pc-linux-gnu/8.2.0/../../../../x86_64-pc-linux-gnu/bin/ld: CMakeFiles/cmTC_18d10.dir/CheckSymbolExists.cxx.o: in function `main':
+CheckSymbolExists.cxx:(.text+0x16): undefined reference to `pthread_create'
+collect2: 错误：ld 返回 1
+CMakeFiles/cmTC_18d10.dir/build.make:86: recipe for target 'cmTC_18d10' failed
+make[1]: *** [cmTC_18d10] Error 1
+make[1]: Leaving directory '/home/hexiang/also/build/CMakeFiles/CMakeTmp'
+Makefile:121: recipe for target 'cmTC_18d10/fast' failed
+make: *** [cmTC_18d10/fast] Error 2
+
+File /home/hexiang/also/build/CMakeFiles/CMakeTmp/CheckSymbolExists.cxx:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+

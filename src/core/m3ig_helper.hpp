@@ -144,18 +144,24 @@ namespace also
                 }
 
                 kitty::clear(tt_step);
+               //std::cout<<" switch (operators[i]):  "<< operators[i] <<std::endl;
+
                 switch (operators[i])
                 {
                 case 0:
+               // std::cout<<"switch (operators[i])"<<std::endl;
                     tt_step = maj3( tt_in1, tt_in2, tt_in3 );
                     break;
                 case 1:
+                //std::cout<<"switch (operators[i])"<<std::endl;
                     tt_step = maj3( ~tt_in1, tt_in2, tt_in3 );
                     break;
                 case 2:
+                //std::cout<<"switch (operators[i])"<<std::endl;
                     tt_step = maj3( tt_in1, ~tt_in2, tt_in3 );
                     break;
                 case 3:
+               // std::cout<<"switch (operators[i])"<<std::endl;
                     tt_step = maj3( tt_in1, tt_in2, ~tt_in3 );
                     break;
                 default:
@@ -188,6 +194,7 @@ namespace also
             int fanin3,
             int op)
         {
+			//std::cout<<"void set_step()"<<std::endl;
             steps[i][0] = fanin1;
             steps[i][1] = fanin2;
             steps[i][2] = fanin3;

@@ -1,0 +1,3 @@
+temp.pla:  pi = 4  po = 1  latch = 0  node = 1  level = 1
+SOP (100.0%):  cubes = 1  lits = 2  lits(ff) = 2
+MDD (  0.0%):  nodes(bdd) = 0
