@@ -7,7 +7,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/also.dir/core/m3ig_helper.cpp.o"
   "CMakeFiles/also.dir/core/misc.cpp.o"
   "CMakeFiles/also.dir/core/nni_inv.cpp.o"
-  "CMakeFiles/also.dir/core/sto/node.cpp.o"
+  "CMakeFiles/also.dir/core/node.cpp.o"
   "CMakeFiles/also.dir/core/xmg_inv.cpp.o"
   "CMakeFiles/also.dir/networks/img/img_compl_rw.cpp.o"
   "../bin/also.pdb"

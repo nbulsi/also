@@ -12,7 +12,7 @@ set(CMAKE_DEPENDS_CHECK_CXX
   "/home/hexiang/also/src/core/m3ig_helper.cpp" "/home/hexiang/also/build/src/CMakeFiles/also.dir/core/m3ig_helper.cpp.o"
   "/home/hexiang/also/src/core/misc.cpp" "/home/hexiang/also/build/src/CMakeFiles/also.dir/core/misc.cpp.o"
   "/home/hexiang/also/src/core/nni_inv.cpp" "/home/hexiang/also/build/src/CMakeFiles/also.dir/core/nni_inv.cpp.o"
-  "/home/hexiang/also/src/core/sto/node.cpp" "/home/hexiang/also/build/src/CMakeFiles/also.dir/core/sto/node.cpp.o"
+  "/home/hexiang/also/src/core/node.cpp" "/home/hexiang/also/build/src/CMakeFiles/also.dir/core/node.cpp.o"
   "/home/hexiang/also/src/core/xmg_inv.cpp" "/home/hexiang/also/build/src/CMakeFiles/also.dir/core/xmg_inv.cpp.o"
   "/home/hexiang/also/src/networks/img/img_compl_rw.cpp" "/home/hexiang/also/build/src/CMakeFiles/also.dir/networks/img/img_compl_rw.cpp.o"
   )

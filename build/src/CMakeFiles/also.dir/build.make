@@ -161,18 +161,18 @@ src/CMakeFiles/also.dir/core/nni_inv.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/also.dir/core/nni_inv.cpp.s"
 	cd /home/hexiang/also/build/src && /usr/local/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/hexiang/also/src/core/nni_inv.cpp -o CMakeFiles/also.dir/core/nni_inv.cpp.s
 
-src/CMakeFiles/also.dir/core/sto/node.cpp.o: src/CMakeFiles/also.dir/flags.make
-src/CMakeFiles/also.dir/core/sto/node.cpp.o: ../src/core/sto/node.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/hexiang/also/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object src/CMakeFiles/also.dir/core/sto/node.cpp.o"
-	cd /home/hexiang/also/build/src && /usr/local/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/also.dir/core/sto/node.cpp.o -c /home/hexiang/also/src/core/sto/node.cpp
+src/CMakeFiles/also.dir/core/node.cpp.o: src/CMakeFiles/also.dir/flags.make
+src/CMakeFiles/also.dir/core/node.cpp.o: ../src/core/node.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/hexiang/also/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object src/CMakeFiles/also.dir/core/node.cpp.o"
+	cd /home/hexiang/also/build/src && /usr/local/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/also.dir/core/node.cpp.o -c /home/hexiang/also/src/core/node.cpp
 
-src/CMakeFiles/also.dir/core/sto/node.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/also.dir/core/sto/node.cpp.i"
-	cd /home/hexiang/also/build/src && /usr/local/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/hexiang/also/src/core/sto/node.cpp > CMakeFiles/also.dir/core/sto/node.cpp.i
+src/CMakeFiles/also.dir/core/node.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/also.dir/core/node.cpp.i"
+	cd /home/hexiang/also/build/src && /usr/local/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/hexiang/also/src/core/node.cpp > CMakeFiles/also.dir/core/node.cpp.i
 
-src/CMakeFiles/also.dir/core/sto/node.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/also.dir/core/sto/node.cpp.s"
-	cd /home/hexiang/also/build/src && /usr/local/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/hexiang/also/src/core/sto/node.cpp -o CMakeFiles/also.dir/core/sto/node.cpp.s
+src/CMakeFiles/also.dir/core/node.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/also.dir/core/node.cpp.s"
+	cd /home/hexiang/also/build/src && /usr/local/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/hexiang/also/src/core/node.cpp -o CMakeFiles/also.dir/core/node.cpp.s
 
 src/CMakeFiles/also.dir/core/xmg_inv.cpp.o: src/CMakeFiles/also.dir/flags.make
 src/CMakeFiles/also.dir/core/xmg_inv.cpp.o: ../src/core/xmg_inv.cpp
@@ -210,7 +210,7 @@ also_OBJECTS = \
 "CMakeFiles/also.dir/core/m3ig_helper.cpp.o" \
 "CMakeFiles/also.dir/core/misc.cpp.o" \
 "CMakeFiles/also.dir/core/nni_inv.cpp.o" \
-"CMakeFiles/also.dir/core/sto/node.cpp.o" \
+"CMakeFiles/also.dir/core/node.cpp.o" \
 "CMakeFiles/also.dir/core/xmg_inv.cpp.o" \
 "CMakeFiles/also.dir/networks/img/img_compl_rw.cpp.o"
 
@@ -225,7 +225,7 @@ bin/also: src/CMakeFiles/also.dir/core/exact_sto_m3ig.cpp.o
 bin/also: src/CMakeFiles/also.dir/core/m3ig_helper.cpp.o
 bin/also: src/CMakeFiles/also.dir/core/misc.cpp.o
 bin/also: src/CMakeFiles/also.dir/core/nni_inv.cpp.o
-bin/also: src/CMakeFiles/also.dir/core/sto/node.cpp.o
+bin/also: src/CMakeFiles/also.dir/core/node.cpp.o
 bin/also: src/CMakeFiles/also.dir/core/xmg_inv.cpp.o
 bin/also: src/CMakeFiles/also.dir/networks/img/img_compl_rw.cpp.o
 bin/also: src/CMakeFiles/also.dir/build.make

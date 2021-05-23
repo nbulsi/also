@@ -6,7 +6,9 @@
 #include <mockturtle/mockturtle.hpp>
 
 #include <sstream>
-#include "../core/sto/node.h"
+#include "../core/node.h"
+//#include "./sto.hpp"
+#include "../core/exact_sto_m3ig.hpp"
 #include <chrono>
 //#include "../core/aig2xmg.hpp"
 
@@ -28,8 +30,8 @@ namespace alice
 
 	using namespace std;
 
-//int main(int argc, char* argv[])
-//int main( )
+// int main(int int argc, char* argv[])
+// int main( )
 
     // first line: number of variables, n and accuracy m
     // second line: degrees
@@ -37,6 +39,7 @@ namespace alice
 
     int variableNumber;
     int accuracy;
+    int n;
     vector<int> degrees;
     int temp;
 
@@ -46,7 +49,7 @@ namespace alice
     getline(ifs, line); // first line
     stringstream ss;
     ss << line;
-    ss >> variableNumber >> accuracy;
+    ss >> variableNumber ;
     ss.str(string());
     ss.clear();
     getline(ifs, line); // second line  
@@ -56,11 +59,11 @@ namespace alice
     ss.clear();
     getline(ifs, line); // third line
     ss << line;
-
     while (ss >> temp)
     {
         degrees.push_back(temp);
     }
+    //n=degrees[0];
 
    assert(degrees.size() == variableNumber);
     
@@ -82,20 +85,28 @@ namespace alice
         ss.str(string());
         ss.clear();
         ss << line;
-        MintermVector problemVector;
+       std::vector<int> problemVector;
+       std::vector<unsigned> vector ;
         while (ss >> temp)
         {
             problemVector.push_back(temp);
+            //vector.push_back(temp);
         }
         
         cout << "problemVector:  " ;
-        for (vector<int>::iterator it = problemVector.begin(); it != problemVector.end(); it++)
+        for(int i=0;i<problemVector.size();i++)
         {
-            cout << *it <<" ";
-        }
-        cout << endl;
-
-        auto solutionTree = SolutionTree(problemVector, degrees, accuracy, caseCount);
+		std::cout<<	problemVector[i]<<"  ";
+		}
+       cout << endl;
+        /*
+        mig_network mig;
+        mig = stochastic_synthesis( variableNumber, accuracy, n, vector );
+		default_simulator<kitty::dynamic_truth_table> sim( accuracy+n );
+		const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
+		kitty::print_binary(tt, std::cout); 
+		*/
+        auto solutionTree = SolutionTree(problemVector, degrees, accuracy, caseCount,variableNumber );
         auto start = chrono::system_clock::now();
         solutionTree.ProcessTree();
         auto end = chrono::system_clock::now();

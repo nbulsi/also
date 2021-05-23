@@ -341,32 +341,32 @@ core/nni_inv.cpp.s:
 	cd /home/hexiang/also/build && $(MAKE) -f src/CMakeFiles/also.dir/build.make src/CMakeFiles/also.dir/core/nni_inv.cpp.s
 .PHONY : core/nni_inv.cpp.s
 
-core/sto/node.o: core/sto/node.cpp.o
+core/node.o: core/node.cpp.o
 
-.PHONY : core/sto/node.o
+.PHONY : core/node.o
 
 # target to build an object file
-core/sto/node.cpp.o:
-	cd /home/hexiang/also/build && $(MAKE) -f src/CMakeFiles/also.dir/build.make src/CMakeFiles/also.dir/core/sto/node.cpp.o
-.PHONY : core/sto/node.cpp.o
+core/node.cpp.o:
+	cd /home/hexiang/also/build && $(MAKE) -f src/CMakeFiles/also.dir/build.make src/CMakeFiles/also.dir/core/node.cpp.o
+.PHONY : core/node.cpp.o
 
-core/sto/node.i: core/sto/node.cpp.i
+core/node.i: core/node.cpp.i
 
-.PHONY : core/sto/node.i
+.PHONY : core/node.i
 
 # target to preprocess a source file
-core/sto/node.cpp.i:
-	cd /home/hexiang/also/build && $(MAKE) -f src/CMakeFiles/also.dir/build.make src/CMakeFiles/also.dir/core/sto/node.cpp.i
-.PHONY : core/sto/node.cpp.i
+core/node.cpp.i:
+	cd /home/hexiang/also/build && $(MAKE) -f src/CMakeFiles/also.dir/build.make src/CMakeFiles/also.dir/core/node.cpp.i
+.PHONY : core/node.cpp.i
 
-core/sto/node.s: core/sto/node.cpp.s
+core/node.s: core/node.cpp.s
 
-.PHONY : core/sto/node.s
+.PHONY : core/node.s
 
 # target to generate assembly for a file
-core/sto/node.cpp.s:
-	cd /home/hexiang/also/build && $(MAKE) -f src/CMakeFiles/also.dir/build.make src/CMakeFiles/also.dir/core/sto/node.cpp.s
-.PHONY : core/sto/node.cpp.s
+core/node.cpp.s:
+	cd /home/hexiang/also/build && $(MAKE) -f src/CMakeFiles/also.dir/build.make src/CMakeFiles/also.dir/core/node.cpp.s
+.PHONY : core/node.cpp.s
 
 core/xmg_inv.o: core/xmg_inv.cpp.o
 
@@ -455,9 +455,9 @@ help:
 	@echo "... core/nni_inv.o"
 	@echo "... core/nni_inv.i"
 	@echo "... core/nni_inv.s"
-	@echo "... core/sto/node.o"
-	@echo "... core/sto/node.i"
-	@echo "... core/sto/node.s"
+	@echo "... core/node.o"
+	@echo "... core/node.i"
+	@echo "... core/node.s"
 	@echo "... core/xmg_inv.o"
 	@echo "... core/xmg_inv.i"
 	@echo "... core/xmg_inv.s"

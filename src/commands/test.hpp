@@ -21,8 +21,10 @@ namespace alice
     protected:
       void execute()
       {
+		  int nr=4;
 		  std::cout<<"just test"<<std::endl;
 		  system("./also -c \"stochastic -f vector.txt;\" > tempres.txt");
+		  system("./abc -c \"read_pla temp.pla;print_kmap;write_pla -M nr test.pla;\" > tempres.txt");
       }
   };
 
