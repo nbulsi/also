@@ -121,6 +121,7 @@ public:
     // it contains all of the assignment sets -- by "multiplication" we can get them
     vector<set<string>> FindAssignmentSetsOfStringForCubeDecomposition(vector<vector<set<string>>> assignmentSetsVector) const;
     vector<set<string>> FindAssignmentSetsOfStringForCubeDecompositionHelper(vector<vector<set<string>>> remainingAssignmentSetsVector, vector<set<string>> currentAssignmentSets) const;
+	
 
 
     // data
@@ -193,5 +194,6 @@ vector<CubeDecomposition> PossibleCubeDecompositionsHelper( int remainingLog2Cub
 vector<MintermVector> PossibleLineCubeVectors( int log2CubeSize,  int degree);
 
 vector<set<string>> BuildAssignmentSet(set<string> basicAssignmentSet,  int countOfZero,  int countOfOne);
+AssMat process_truthtalbe(AssMat originalAssMat,string stringtt );
 
 #endif

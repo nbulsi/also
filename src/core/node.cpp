@@ -4,6 +4,7 @@
 #include<stdlib.h>
 #include <fstream>
 #include<string>
+#include<algorithm>
 
 using namespace mockturtle;
 using namespace also;
@@ -273,19 +274,24 @@ vector<Node> SolutionTree::ProcessNode(Node currentNode)
             //auto newAssMat = AssignMatrixByEspresso(currentNode._assignedAssMat, cubeDecomposition);
             vector<AssMat> newAssMatVec;
 			vec.assign(totalCubeVector.begin(),totalCubeVector.end());
+			bool sto_flag =1;	
             if (currentNode._level == 0)
-            {
-				//unsigned num_vars = variableNumber;
-				//unsigned m= _accuracy;
-				//unsigned n= _degrees;
-			 
-	    mig_network mig;
-        mig = stochastic_synthesis( num_vars, m, n, vec );
-		default_simulator<kitty::dynamic_truth_table> sim( m+n );
-		const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
-		kitty::print_binary(tt, std::cout); 
-		std::cout<<std::endl;
+            {	
+				 
+					mig_network mig;
+					mig = stochastic_synthesis( num_vars, m, n, vec );
+					default_simulator<kitty::dynamic_truth_table> sim( m+n );
+					const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
+					kitty::print_binary(tt, std::cout); 
+					std::cout<<std::endl;
+					string stringtt = to_binary(tt);
+					//process_truthtalbe(stringtt );
+					newAssMatVec.push_back(process_truthtalbe(currentNode._assignedAssMat,stringtt ));
+					
+				if(sto_flag == 0)
+				{
                 newAssMatVec.push_back(AssignMatrixByEspresso(currentNode._assignedAssMat, cubeDecomposition));//only choose the first AssignMatrix that meets the cube vector
+				}
             }
             else
             {
@@ -1425,6 +1431,50 @@ vector<set<string>> BuildAssignmentSet(set<string> basicAssignmentSet, int count
         ret.push_back(tempAssignmentSet);
     }
     return ret;
+}
+
+AssMat process_truthtalbe(AssMat originalAssMat,string stringtt )
+{
+	
+	/*for(int i=0;i<stt.size()/2;i++)
+	{
+		auto tmp=stt[i];
+		stt[i]=stt[stt.size()-1-i];
+		stt[stt.size()-1-i]=tmp;
+	}*/
+	/*for(int i=0;i<stt.size();i++)
+	{
+		str[i] =stt[stt.size()-1-i];
+	}*/
+	auto retret=vector<string>();	
+	string stt,X,Y,tmp;
+	int m=2,n=2;
+	stt.assign(stringtt);
+	reverse(stt.begin(),stt.end());
+	
+	std::cout<<"stringtt:  "<<stt<<std::endl;
+	std::cout<<"stt:  "<<stt<<std::endl;
+	for(int i=0;i<stt.size();i++)
+	{
+		if(stt[i]=='1')
+		{
+		tmp = IntToBin(i,3);
+		reverse(tmp.begin(),tmp.end());
+		X=tmp.substr(0,m);
+		Y=tmp.substr(m,n);
+		auto Xp=BinToInt(X);
+		auto Yp=BinToInt(Y);
+		originalAssMat[Xp][Yp]='1';
+			 
+			 cout << tmp << endl;
+			 cout << X << endl;
+			 cout << Y << endl;
+			 retret.push_back(tmp);		
+			
+		}
+	}
+	return originalAssMat;
+	
 }
 
 //Node::Node(AssMat newAssMat, MintermVector newProblemVector, int newLevel, unordered_multiset<CubeDecomposition> newAssignedCubeDecompositions, CubeDecomposition lastAssignedCubeDecomposition, int literalCount)
