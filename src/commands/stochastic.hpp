@@ -14,6 +14,7 @@
 #define STOCHASTIC_HPP
 
 #include <fstream>
+#include<string>
 #include "../core/exact_sto_m3ig.hpp"
 
 namespace alice
@@ -24,14 +25,14 @@ namespace alice
     public:
       explicit stochastic_command( const environment::ptr& env ) : command( env, "stochastic circuit synthesis" )
       {
-        add_option( "filename, -f", filename, "the input txt file name" );
-        add_flag( "--verbose, -v", "verbose output" );
+      add_option( "filename, -f", filename, "the input txt file name" );
+      add_flag( "--verbose, -v", "verbose output" );
       }
     
     protected:
       void execute()
       {
-        std::string line;
+       std::string line;
         std::ifstream myfile( filename );
 
         if( myfile.is_open() )
@@ -60,7 +61,18 @@ namespace alice
           }
 
           myfile.close();
+          
+            std::cout << " num_vars : " << num_vars << "\n" 
+                      << " m        : " << m << "\n" 
+                      << " n        : " << n << "\n";
 
+            std::cout << " Problem vector: ";
+            for( auto const& e : vector )
+            {
+              std::cout << e << " ";
+            }
+            std::cout << std::endl;
+          
 
           if( is_set( "verbose" ) )
           {
@@ -85,6 +97,17 @@ namespace alice
           
           store<mig_network>().extend(); 
           store<mig_network>().current() = mig;
+	
+	  default_simulator<kitty::dynamic_truth_table> sim( m+n );
+ 	 const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
+	// const auto tt = simulate<kitty::static_truth_table<3u>>( mig )[0];
+	kitty::print_binary(tt, std::cout);
+	std::cout<<std::endl;
+	//string str=tt;
+	std::cout <<std::endl;
+	std::cout <<"tt: 0x"<< kitty::to_hex(tt ) << std::endl; 
+
+
           std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
         }
         else
