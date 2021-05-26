@@ -32,6 +32,8 @@
 #include <fmt/format.h>
 #include <kitty/kitty.hpp>
 #include<mockturtle/io/write_aiger.hpp>
+#include <mockturtle/io/genlib_reader.hpp>
+#include <lorina/genlib.hpp>
 
 #include "networks/m5ig/m5ig.hpp"
 #include "networks/img/img.hpp"
@@ -206,6 +208,42 @@ namespace alice
     {
       os << fmt::format( "optimum network: {}\n", opt.network );
     }
+  }
+
+  /* genlib */
+  ALICE_ADD_STORE( std::vector<mockturtle::gate>, "genlib", "f", "GENLIB", "GENLIBs" )
+
+  ALICE_PRINT_STORE( std::vector<mockturtle::gate>, os, element )
+  {
+    os << "GENLIB gate size = " << element.size() << "\n";
+  }
+
+  ALICE_DESCRIBE_STORE( std::vector<mockturtle::gate>, element )
+  {
+    return fmt::format( "{} gates", element.size() );
+  }
+
+  ALICE_ADD_FILE_TYPE( genlib, "Genlib" );
+  
+  ALICE_READ_FILE( std::vector<mockturtle::gate>, genlib, filename, cmd )
+  {
+    std::vector<mockturtle::gate> gates;
+    if( lorina::read_genlib( filename, mockturtle::genlib_reader( gates ) ) != lorina::return_code::success )
+    {
+      std::cout << "[w] parse error\n";
+    }
+    return gates;
+  }
+  
+  ALICE_WRITE_FILE( std::vector<mockturtle::gate>, genlib, gates, filename, cmd )
+  {
+    std::cout << "[e] not supported" << std::endl;
+  }
+  
+  ALICE_PRINT_STORE_STATISTICS( std::vector<mockturtle::gate>, os, gates )
+  {
+    os << fmt::format( "Entered genlib library with {} gates", gates.size() );
+    os << "\n";
   }
 
   /********************************************************************
