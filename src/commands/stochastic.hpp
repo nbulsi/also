@@ -25,8 +25,8 @@ namespace alice
     public:
       explicit stochastic_command( const environment::ptr& env ) : command( env, "stochastic circuit synthesis" )
       {
-      add_option( "filename, -f", filename, "the input txt file name" );
-      add_flag( "--verbose, -v", "verbose output" );
+        add_option( "filename, -f", filename, "the input txt file name" );
+        add_flag( "--verbose, -v", "verbose output" );
       }
     
     protected:

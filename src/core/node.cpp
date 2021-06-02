@@ -1,10 +1,10 @@
 //#include "./exact_sto_m3ig.hpp"
 #include "../../lib/mockturtle/include/mockturtle/networks/mig.hpp"
-#include "node.h"
-#include<stdlib.h>
+#include "node.hpp"
+#include <stdlib.h>
 #include <fstream>
-#include<string>
-#include<algorithm>
+#include <string>
+#include <algorithm>
 
 using namespace mockturtle;
 using namespace also;
