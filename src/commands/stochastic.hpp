@@ -99,13 +99,10 @@ namespace alice
           store<mig_network>().current() = mig;
 	
 	  default_simulator<kitty::dynamic_truth_table> sim( m+n );
- 	 const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
-	// const auto tt = simulate<kitty::static_truth_table<3u>>( mig )[0];
-	kitty::print_binary(tt, std::cout);
-	std::cout<<std::endl;
-	//string str=tt;
-	std::cout <<std::endl;
-	std::cout <<"tt: 0x"<< kitty::to_hex(tt ) << std::endl; 
+	  const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
+	  kitty::print_binary(tt, std::cout);
+	  std::cout<<std::endl;
+	  std::cout <<"tt: 0x"<< kitty::to_hex(tt ) << std::endl; 
 
 
           std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );

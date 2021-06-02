@@ -804,7 +804,6 @@ namespace also
       spec.nr_in   = encoder.get_m_value() + encoder.get_n_value();
       spec.tt_size = ( 1 << spec.nr_in ) - 1; 
 
-      //std::cout << " nr_in : " << spec.nr_in << " tt_size : " << spec.tt_size << std::endl;
 
       // The special case when the Boolean chain to be synthesized
       // consists entirely of trivial functions.

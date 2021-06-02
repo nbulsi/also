@@ -183,10 +183,7 @@ namespace also
     if( trivial == false )
     {
       std::cout << "[i] Not trivial case, need further solve.\n";
-    }
-
-    if( !preprocess() )
-    {
+ 
       percy::spec spec;
       also::mig3 mig3;
 

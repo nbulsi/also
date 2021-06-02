@@ -19,7 +19,7 @@
 #include <unordered_map>
 #include <sstream>
 #include <set>
-#include "hash_extend.h"
+#include "hash_extend.hpp"
 #include<climits>
 //#include "../../lib/mockturtle/include/mockturtle/algorithms/simulation.hpp"
 //#include <mockturtle/mockturtle.hpp>
@@ -92,7 +92,7 @@ public:
 
     // constructor
     // TODO: complete the constructor
-    SolutionTree(vector< int> initialProblemVector, vector< int> degrees,  int accuracy,  int caseNumber,int variableNumber);
+    SolutionTree(vector< int> initialProblemVector, vector< int> degrees,  int accuracy,int variableNumber);
 
     // process the tree
     void ProcessTree();
@@ -125,7 +125,6 @@ public:
 
 
     // data
-     int _caseNumber;
      int _log2LengthOfTotalCube; // d1 + d2 + ...
     vector< int> _degrees;
      int _accuracy;
@@ -194,6 +193,6 @@ vector<CubeDecomposition> PossibleCubeDecompositionsHelper( int remainingLog2Cub
 vector<MintermVector> PossibleLineCubeVectors( int log2CubeSize,  int degree);
 
 vector<set<string>> BuildAssignmentSet(set<string> basicAssignmentSet,  int countOfZero,  int countOfOne);
-AssMat process_truthtalbe(AssMat originalAssMat,string stringtt );
+AssMat process_truthtalbe( AssMat originalAssMat, string stringtt, unsigned m, unsigned n );
 
 #endif

@@ -10,19 +10,18 @@ using namespace mockturtle;
 using namespace also;
 unordered_map< int, vector<CubeDecomposition>> unorderedMapOfPossibleCubeDecompositionVector;
 
-SolutionTree::SolutionTree(vector< int> initialProblemVector, vector< int> degrees,  int accuracy,  int caseNumber,int variableNumber )
+SolutionTree::SolutionTree(vector< int> initialProblemVector, vector< int> degrees,  int accuracy, int variableNumber )
 {
-    // NOTE: _log2LengthOfTotalCube equals to d1 + d2 + ... + dk
-    _log2LengthOfTotalCube = 0;
-    for (auto d : degrees)
-    {
-        _log2LengthOfTotalCube += d;
-    }
-    _degrees = degrees;
-    _accuracy = accuracy;
-    _caseNumber = caseNumber;
-    _minLiteralCount = INT_MAX;
-    num_vars = (unsigned)variableNumber;
+	// NOTE: _log2LengthOfTotalCube equals to d1 + d2 + ... + dk
+	_log2LengthOfTotalCube = 0;
+	for (auto d : degrees)
+	{
+		_log2LengthOfTotalCube += d;
+	}
+	_degrees = degrees;
+	_accuracy = accuracy;
+	_minLiteralCount = INT_MAX;
+	num_vars = (unsigned)variableNumber;
 	m= (unsigned)_accuracy;
 	n= (unsigned)_log2LengthOfTotalCube;
 
@@ -46,8 +45,6 @@ SolutionTree::SolutionTree(vector< int> initialProblemVector, vector< int> degre
 
 void SolutionTree::ProcessTree()
 {
-   ofstream re("result.txt");
-    //re << "-------------------------------SolutionTree::ProcessNodeVector----------------------------------" << endl;
     auto processedNodeNumber =  int(_nodeVector.size());
 
     while (!_nodeVector.empty())
@@ -62,75 +59,22 @@ void SolutionTree::ProcessTree()
         processedNodeNumber +=  int(_nodeVector.size());
     }
 
-    //cout << "Node processed: " << processedNodeNumber << endl << endl;
 
     assert(IsZeroMintermVector(_optimalNode._remainingProblemVector));
     assert(!_optimalNode._assignedAssMat.empty());
 
     // Display the result
-    cout << "BEGIN: display final result" << endl;
-    //cout << "The matrix is" << endl;
-    //for (auto line : _optimalNode._assignedAssMat)
-    //{
-    //    cout << line << endl;
-    //}
-    //cout << "The assigned cube decompositions are" << endl;
-    //for (auto cDcmp : _optimalNode._assignedCubeDecompositions)
-    //{
-    //    cout << "2^" << cDcmp.first;
-    //    for (auto c : cDcmp.second)
-    //    {
-    //        cout << " X [ ";
-    //        for (auto m : c)
-    //        {
-    //            cout << m << " ";
-    //        }
-    //        cout << "]";
-    //    }
-    //    cout << endl;
-    //}
+    //cout << "BEGIN: display final result" << endl;
+
     cout << "The minimum literal number is " << _minLiteralCount << endl;
-    auto result = ofstream("result.txt", ofstream::app);
-    result << "The minimum literal number is " << _minLiteralCount << endl;
-    result.close();
-    //cout << "The branch number is " << _nodeNumber << endl;
-    //cout << "END: display final result" << endl;
-    //cout << endl;
-
-    //// write the .pla file
-    //stringstream ss;
-    //ss << "pla\\";
-    //ss.fill('0');
-    //ss.width(2);
-    //ss << _caseNumber << ".pla";
-    //auto plaFile = ofstream(ss.str());
-    //plaFile << ".i " << _log2LengthOfTotalCube + _accuracy << endl;
-    //plaFile << ".o 1" << endl;
-
-    //for (auto line = 0; line < int(_optimalNode._assignedAssMat.size()); ++line)
-    //{
-    //    for (auto col = 0; col < int(_optimalNode._assignedAssMat[line].size()); ++col)
-    //    {
-    //        if (_optimalNode._assignedAssMat[line][col] == '0') continue;
-    //        plaFile << IntToBin(col, _log2LengthOfTotalCube - 1) << IntToBin(line, _accuracy - 1) << " 1" << endl;
-    //    }
-    //}
-    //plaFile << ".e" << endl;
 
     // process the _optimalNodes vector
     cout << "Solution number: " << _optimalNodes.size() << endl << endl;
 
-    auto r = ofstream("result.txt", ofstream::app);
-    r << "Solution number: " << _optimalNodes.size() << endl << endl;
-    r.close();
 
     for (auto sol = 0; sol < _optimalNodes.size(); ++sol)
     {
         stringstream ss;
-        ss << "pla\\case-";
-        ss.fill('0');
-        ss.width(2);
-        ss << _caseNumber << "\\";
         ss << "solution-";
         ss.fill('0');
         ss.width(3);
@@ -144,8 +88,8 @@ void SolutionTree::ProcessTree()
             for (auto col = 0; col <  int(_optimalNodes[sol]._assignedAssMat[line].size()); ++col)
             {
                 if (_optimalNodes[sol]._assignedAssMat[line][col] == '0') continue;
-                plaFile  << IntToBin(col, _log2LengthOfTotalCube - 1) << IntToBin(line, _accuracy - 1) << " 1" << endl;////竖
-                //plaFile << IntToBin(line, _accuracy - 1) << IntToBin(col, _log2LengthOfTotalCube - 1) << " 1" << endl;////横
+                plaFile  << IntToBin(col, _log2LengthOfTotalCube - 1) << IntToBin(line, _accuracy - 1) << " 1" << endl;
+                //plaFile << IntToBin(line, _accuracy - 1) << IntToBin(col, _log2LengthOfTotalCube - 1) << " 1" << endl;////horizontal
             }
         }
         plaFile << ".e" << endl;
@@ -170,11 +114,6 @@ vector<Node> SolutionTree::ProcessNode(Node currentNode)
     {
         mintermCount += i;
     }
-    cout << "mintermCount:" << mintermCount << endl;
-
-    auto result = ofstream("result.txt", ofstream::app);
-    result << "mintermCount:" << mintermCount << endl;
-    result.close();
 
     // then, we find the maximal possible cubes
 
@@ -211,14 +150,7 @@ vector<Node> SolutionTree::ProcessNode(Node currentNode)
             // the total vector:
             // (v0, v1, v2)X(u0, u1)=(w00, w10, w20, w01, w11, w21)
             auto totalCubeVector = multiply( int(pow(2, cubeDecomposition.first)), multiply(cubeDecomposition.second));
-			//unsigned int m=_accuracy;
-			//unsigned int n=_degrees;
-			//mig_network mig;
-			//mig= stochastic_synthesis( 1, m, n, totalCubeVector );
-			//default_simulator<kitty::dynamic_truth_table> sim( m+n );
-			//const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
-			// const auto tt = simulate<kitty::static_truth_table<3u>>( mig )[0];
-			//kitty::print_binary(tt, std::cout);
+
 
             // checking the capacity constraint
             if (!CapacityConstraintSatisfied(currentNode._remainingProblemVector, totalCubeVector))
@@ -276,47 +208,37 @@ vector<Node> SolutionTree::ProcessNode(Node currentNode)
 			vec.assign(totalCubeVector.begin(),totalCubeVector.end());
 			bool sto_flag =1;	
             if (currentNode._level == 0)
-            {	
-				 
-					mig_network mig;
-					mig = stochastic_synthesis( num_vars, m, n, vec );
-					default_simulator<kitty::dynamic_truth_table> sim( m+n );
-					const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
-					kitty::print_binary(tt, std::cout); 
-					std::cout<<std::endl;
-					string stringtt = to_binary(tt);
-					//process_truthtalbe(stringtt );
-					newAssMatVec.push_back(process_truthtalbe(currentNode._assignedAssMat,stringtt ));
-					
-				if(sto_flag == 0)
-				{
-                newAssMatVec.push_back(AssignMatrixByEspresso(currentNode._assignedAssMat, cubeDecomposition));//only choose the first AssignMatrix that meets the cube vector
-				}
-            }
+	    {	
+
+		    mig_network mig;
+		    mig = stochastic_synthesis( num_vars, m, n, vec );
+		    default_simulator<kitty::dynamic_truth_table> sim( m+n );
+		    const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
+		    std::cout<<"tt:  ";
+		    kitty::print_binary(tt, std::cout); 
+		    std::cout<<std::endl;
+		    string stringtt = to_binary(tt);
+		    newAssMatVec.push_back(  process_truthtalbe( currentNode._assignedAssMat, stringtt, m, n )  );
+
+		    if(sto_flag == 0)
+		    {
+			    newAssMatVec.push_back(AssignMatrixByEspresso(currentNode._assignedAssMat, cubeDecomposition));//only choose the first AssignMatrix that meets the cube vector
+		    }
+	    }
             else
             {
                 newAssMatVec = AssignMatrixByEspressoVector(currentNode._assignedAssMat, cubeDecomposition);
             }
 			
-            //auto newAssMatVec = AssignMatrixByEspressoVector(currentNode._assignedAssMat, cubeDecomposition);
 			
             // calculate the hash for the new matrix
             for (auto& newAssMat : newAssMatVec)
-            {
-                cout << "----------------------AssMat----------------------" << endl;
-
-                auto result = ofstream("result.txt", ofstream::app);
-                result << "----------------------AssMat----------------------" << endl;
-                result.close();
-
-                for (auto it = newAssMat.begin(); it != newAssMat.end(); it++) {
-                    cout << *it << " " << endl;
-
-                    auto result = ofstream("result.txt", ofstream::app);
-                    result << *it << " " << endl;
-                    result.close();
-
-                }
+	    {
+		    cout<<"------AssMat------"<<endl;
+		    for (auto it = newAssMat.begin(); it != newAssMat.end(); it++)
+		    {
+			    cout << *it << " " << endl;
+		    }
                 size_t matSeed = 0;
                 hash<vector<string>> hasher;
                 matSeed = hasher(newAssMat);
@@ -368,12 +290,6 @@ vector<Node> SolutionTree::ProcessNode(Node currentNode)
                 // invoke the espresso through MVSIS
                 system("./mvsis -c \"read_pla temp.pla; espresso; print_stats -s;\" > tempres.txt");
 
-                cout << " invoke the espresso through MVSIS" << endl;
-                auto result = ofstream("result.txt", ofstream::app);
-                result << " invoke the espresso through MVSIS" << endl;
-                result.close();
-
-
                 auto ifs = ifstream("tempres.txt");
 
                 string tempString;
@@ -387,9 +303,7 @@ vector<Node> SolutionTree::ProcessNode(Node currentNode)
                     }
                 }
                 cout << "literalCount:  " << literalCount << endl;
-                auto re = ofstream("result.txt", ofstream::app);
-                re << "literalCount:  " << literalCount << endl;
-                re.close();
+
                 // prune if the current level's literal count exceeds
                 if ((_minLiteralCountOfLevel[currentNode._level] != 0) && (_minLiteralCountOfLevel[currentNode._level] * MULTIPLE <= literalCount))
                 {
@@ -411,7 +325,7 @@ vector<Node> SolutionTree::ProcessNode(Node currentNode)
                 }
 
                 // sub node
-                auto remainingProblemVector = SubtractCube(currentNode._remainingProblemVector, totalCubeVector);//
+                auto remainingProblemVector = SubtractCube(currentNode._remainingProblemVector, totalCubeVector);
                 //auto newNode = Node(newAssMat, remainingProblemVector, currentNode._level + 1, newAssignedCubeDecompositions, cubeDecomposition, literalCount);
                 auto newNode = Node(newAssMat, remainingProblemVector, currentNode._level + 1, newAssignedCubeDecompositionsVec, cubeDecomposition, literalCount);
 
@@ -441,7 +355,6 @@ vector<Node> SolutionTree::ProcessNode(Node currentNode)
                 {
                     // update the solution
                     _minLiteralCount = literalCount;
-                    ////cout << "_minLiteralCount"<< _minLiteralCount <<endl;
                     _optimalNode = newNode;
                     _optimalNodes.push_back(newNode);
 
@@ -473,12 +386,6 @@ vector<Node> SolutionTree::ProcessNode(Node currentNode)
 
 vector<Node> SolutionTree::ProcessNodeVector(vector<Node> nodeVecToBeProcessed)
 {
-
-    cout << "-------------------------------SolutionTree::ProcessNodeVector----------------------------------" << endl;
-    auto result = ofstream("result.txt", ofstream::app);
-    result << "-------------------------------SolutionTree::ProcessNodeVector----------------------------------" << endl;
-    result.close();
-    
     auto resultSubNodeVector = vector<Node>{};
 
     // first process each node in the vector and get the optimal nodes
@@ -517,23 +424,6 @@ vector<Node> SolutionTree::ProcessNodeVector(vector<Node> nodeVecToBeProcessed)
     // for each sub node we need to sort them by the size of extracted cube and the literal count
     sort(resultSubNodeVector.begin(), resultSubNodeVector.end(), [countSize](Node n1, Node n2)
     {
-        //// if the literal count not equal
-        //if (n1._literalCountSoFar < n2._literalCountSoFar) return true;
-        //if (n1._literalCountSoFar > n2._literalCountSoFar) return false;
-
-        //auto v1 = n1._lastAssignedCubeDecomposition;
-        //auto v2 = n2._lastAssignedCubeDecomposition;
-
-        //int size1 = countSize(multiply(int(pow(2, v1.first)), multiply(v1.second)));
-        //int size2 = countSize(multiply(int(pow(2, v2.first)), multiply(v2.second)));
-
-        //return (size1 > size2);
-            cout << "for each sub node we need to sort them by the size of extracted cube and the literal count" << endl;
-            auto result = ofstream("result.txt", ofstream::app);
-            result << "for each sub node we need to sort them by the size of extracted cube and the literal count" << endl;
-            result.close();
-
-
         auto v1 = n1._lastAssignedCubeDecomposition;
         auto v2 = n2._lastAssignedCubeDecomposition;
          int size1 = countSize(multiply( int(pow(2, v1.first)), multiply(v1.second)));
@@ -643,7 +533,6 @@ AssMat SolutionTree::AssignMatrixByEspresso(AssMat originalAssMat, CubeDecomposi
         {
             auto available = true;
             auto currentLine = originalAssMat[lineNo];
-			//每一个assignment Set中的每一个元素即代表一列；
             for (auto col : *assignmentSetIt)
             {
                 if (currentLine[col] == '1')
@@ -999,10 +888,6 @@ vector<AssMat> SolutionTree::AssignMatrixByEspressoVector(AssMat originalAssMatC
 
 vector<set<string>> SolutionTree::FindAssignmentSetsOfStringForMintermVector(MintermVector lineCubeVector) const
 {
-    cout << "--------SolutionTree::FindAssignmentSetsOfStringForMintermVector---------" << endl;
-    auto result = ofstream("result.txt", ofstream::app);
-    result << "--------SolutionTree::FindAssignmentSetsOfStringForMintermVector---------" << endl;
-    result.close();
     auto countOfOne = 0;
 
     // find the first non-zero term in lineCubeVector
@@ -1433,59 +1318,38 @@ vector<set<string>> BuildAssignmentSet(set<string> basicAssignmentSet, int count
     return ret;
 }
 
-AssMat process_truthtalbe(AssMat originalAssMat,string stringtt )
+AssMat process_truthtalbe( AssMat originalAssMat, string stringtt, unsigned m, unsigned n )
 {
-	
-	/*for(int i=0;i<stt.size()/2;i++)
-	{
-		auto tmp=stt[i];
-		stt[i]=stt[stt.size()-1-i];
-		stt[stt.size()-1-i]=tmp;
-	}*/
-	/*for(int i=0;i<stt.size();i++)
-	{
-		str[i] =stt[stt.size()-1-i];
-	}*/
 	auto retret=vector<string>();	
 	string stt,X,Y,tmp;
-	int m=2,n=2;
 	stt.assign(stringtt);
 	reverse(stt.begin(),stt.end());
-	
-	std::cout<<"stringtt:  "<<stt<<std::endl;
+
+	//std::cout<<"stringtt:  "<<stt<<std::endl;
 	std::cout<<"stt:  "<<stt<<std::endl;
 	for(int i=0;i<stt.size();i++)
 	{
 		if(stt[i]=='1')
 		{
-		tmp = IntToBin(i,3);
-		reverse(tmp.begin(),tmp.end());
-		X=tmp.substr(0,m);
-		Y=tmp.substr(m,n);
-		auto Xp=BinToInt(X);
-		auto Yp=BinToInt(Y);
-		originalAssMat[Xp][Yp]='1';
-			 
-			 cout << tmp << endl;
-			 cout << X << endl;
-			 cout << Y << endl;
-			 retret.push_back(tmp);		
-			
+			tmp = IntToBin(i,m+n-1);
+			reverse(tmp.begin(),tmp.end());
+			X=tmp.substr(0,m);
+			Y=tmp.substr(m,n);
+			auto Xp=BinToInt(X);
+			auto Yp=BinToInt(Y);
+			originalAssMat[Xp][Yp]='1';
+
+			cout << tmp << endl;
+			cout << X << endl;
+			cout << Y << endl;
+			retret.push_back(tmp);		
+
 		}
 	}
 	return originalAssMat;
-	
+
 }
 
-//Node::Node(AssMat newAssMat, MintermVector newProblemVector, int newLevel, unordered_multiset<CubeDecomposition> newAssignedCubeDecompositions, CubeDecomposition lastAssignedCubeDecomposition, int literalCount)
-//{
-//    _assignedAssMat = newAssMat;
-//    _remainingProblemVector = newProblemVector;
-//    _level = newLevel;
-//    _assignedCubeDecompositions = newAssignedCubeDecompositions;
-//    _lastAssignedCubeDecomposition = lastAssignedCubeDecomposition;
-//    _literalCountSoFar = literalCount;
-//}
 
 Node::Node(AssMat newAssMat, MintermVector newProblemVector,  int newLevel, vector<CubeDecomposition> newAssignedCubeDecompositions, CubeDecomposition lastAssignedCubeDecomposition,  int literalCount)
 {
