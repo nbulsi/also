@@ -1,9 +1,20 @@
-#pragma once
+/* also: Advanced Logic Synthesis and Optimization tool
+ * Copyright (C) 2019- Ningbo University, Ningbo, China */
+
+/**
+ * @file node.hpp
+ *
+ * @author Xuesong Peng, Weikang Qian, Xiang He, Zhufei Chu
+ * @since  0.1
+ * inspired from url: https://github.com/SJTU-ECTL/STOCA
+ */
+
 #ifndef NODE_H
 #define NODE_H
 
 #include <mockturtle/mockturtle.hpp>
 #include "exact_sto_m3ig.hpp"
+
 #define MULTIPLE (1.5)
 #define w 2
 
@@ -27,29 +38,29 @@ using namespace also;
 #define LITERAL_LIMIT_PARAM_w 2 // prune by literal count in "processNodeVector()"
 #define X_COMB_PARAM_h 5 // keep first k x-cubes for each line cube vector
 
-typedef vector<string> AssMat; // assignment matrix
-typedef vector< int> MintermVector; // cube vector [0, 1, 2, 1]
-typedef vector< int> AssVec; // assignment vector [0, 1, 5, 4] ([000 001 101 100])
-typedef vector<string> StrAssVec; // string assignment vector ["000", "001", "101", "100"]
+  typedef vector<string> AssMat; // assignment matrix
+  typedef vector< int> MintermVector; // cube vector [0, 1, 2, 1]
+  typedef vector< int> AssVec; // assignment vector [0, 1, 5, 4] ([000 001 101 100])
+  typedef vector<string> StrAssVec; // string assignment vector ["000", "001", "101", "100"]
 
-// !!! IMPORTANT! the first int is the log2 of the line
-// i.e., if a CubeDecomposition has 16 lines,
-// then the int should be 4!
-typedef pair< int, vector<MintermVector>> CubeDecomposition; 
+  // !!! IMPORTANT! the first int is the log2 of the line
+  // i.e., if a CubeDecomposition has 16 lines,
+  // then the int should be 4!
+  typedef pair< int, vector<MintermVector>> CubeDecomposition; 
 
-// use pair instead
-//struct cubeDecompostion
-//{
-//    cubeDecompostion( int L, vector<MintermVector> CV) : line(L), cubeVectors(CV) {}
-//
-//     int line;
-//    vector<MintermVector> cubeVectors;
-//};
+  // use pair instead
+  //struct cubeDecompostion
+  //{
+  //    cubeDecompostion( int L, vector<MintermVector> CV) : line(L), cubeVectors(CV) {}
+  //
+  //     int line;
+  //    vector<MintermVector> cubeVectors;
+  //};
 
-extern unordered_map< int, vector<CubeDecomposition>> unorderedMapOfPossibleCubeDecompositionVector;
+  extern unordered_map< int, vector<CubeDecomposition>> unorderedMapOfPossibleCubeDecompositionVector;
 
-struct Node
-{
+  struct Node
+  {
     // TODO: constructor to be written
     Node(): _level(0), _literalCountSoFar(0)
     {
@@ -66,7 +77,7 @@ struct Node
     MintermVector _remainingProblemVector;
 
     // the level in the tree; root is _level 0
-     int _level;
+    int _level;
 
     // the set of cubes that are already assigned
     //unordered_multiset<CubeDecomposition> _assignedCubeDecompositions;
@@ -76,119 +87,106 @@ struct Node
     CubeDecomposition _lastAssignedCubeDecomposition;
 
     // the literal count so far
-     int _literalCountSoFar;
-};
+    int _literalCountSoFar;
+  };
 
-class SolutionTree
-{
-public:
+  class SolutionTree
+  {
+    public:
+      SolutionTree(vector< int> initialProblemVector, vector< int> degrees,  int accuracy,int variableNumber);
+      void ProcessTree();
+      // process a single Node
+      vector<Node> ProcessNode(Node currentNode);
 
-	
-    // methods
+      // process the node vector, which has 
+      vector<Node> ProcessNodeVector(vector<Node> nodeVecToBeProcessed);
 
-    // constructor
-    // TODO: complete the constructor
-    SolutionTree(vector< int> initialProblemVector, vector< int> degrees,  int accuracy,int variableNumber);
+      AssMat AssignMatrixByEspresso(AssMat originalAssMat, CubeDecomposition cubeDecompositionToBeAssigned) const;
 
-    // process the tree
-    void ProcessTree();
+      vector<AssMat> AssignMatrixByEspressoVector(AssMat originalAssMat, CubeDecomposition cubeDecompositionToBeAssigned) const;
 
-    // process a single Node
-    vector<Node> ProcessNode(Node currentNode);
+      // find the assignment sets for a single vector
+      vector<set<string>> FindAssignmentSetsOfStringForMintermVector(MintermVector lineCubeVector) const;
 
-    // process the node vector, which has 
-    vector<Node> ProcessNodeVector(vector<Node> nodeVecToBeProcessed);
+      set<string> BuildBasicAssignmentSet( int mintermCount) const;
 
-    AssMat AssignMatrixByEspresso(AssMat originalAssMat, CubeDecomposition cubeDecompositionToBeAssigned) const;
+      // get all of the assignment sets by recursion, although the name is "ForCubeDecomposition"
+      // the input is not a CubeDecomposition, but the assignment sets for each cube vector in the decomposition
+      // INPUT: vector<vector<set<string>>> assignmentSetsVector
+      // each element in this vector is a vector<set<string>>, which contains
+      // all of the assignment sets of the corresponding cube component in the decomposition
+      // OUTPUT: vector<set<string>> ret
+      // it contains all of the assignment sets -- by "multiplication" we can get them
+      vector<set<string>> FindAssignmentSetsOfStringForCubeDecomposition(vector<vector<set<string>>> assignmentSetsVector) const;
+      vector<set<string>> FindAssignmentSetsOfStringForCubeDecompositionHelper(vector<vector<set<string>>> remainingAssignmentSetsVector, vector<set<string>> currentAssignmentSets) const;
+      
+      // data
+      int _log2LengthOfTotalCube; // d1 + d2 + ...
+      vector< int> _degrees;
+      int _accuracy;
 
-    vector<AssMat> AssignMatrixByEspressoVector(AssMat originalAssMat, CubeDecomposition cubeDecompositionToBeAssigned) const;
+      unsigned num_vars;
+      unsigned m;
+      unsigned n;
+      vector<unsigned> vec; 
+      //mig_network stochastic_synthesis( num_vars, m, n, vec );
 
-    // find the assignment sets for a single vector
-    vector<set<string>> FindAssignmentSetsOfStringForMintermVector(MintermVector lineCubeVector) const;
+      vector<Node> _nodeVector;
+      int _minLiteralCount;   // current minimum literal count
+      Node _optimalNode;
+      vector<Node> _optimalNodes; 
+      unordered_map< int,  int> _minLiteralCountOfLevel;
 
-    set<string> BuildBasicAssignmentSet( int mintermCount) const;
+      vector< int> _rowGrayCode;
+      vector< int> _colGrayCode;
 
-    // get all of the assignment sets by recursion, although the name is "ForCubeDecomposition"
-    // the input is not a CubeDecomposition, but the assignment sets for each cube vector in the decomposition
-    // INPUT: vector<vector<set<string>>> assignmentSetsVector
-    // each element in this vector is a vector<set<string>>, which contains
-    // all of the assignment sets of the corresponding cube component in the decomposition
-    // OUTPUT: vector<set<string>> ret
-    // it contains all of the assignment sets -- by "multiplication" we can get them
-    vector<set<string>> FindAssignmentSetsOfStringForCubeDecomposition(vector<vector<set<string>>> assignmentSetsVector) const;
-    vector<set<string>> FindAssignmentSetsOfStringForCubeDecompositionHelper(vector<vector<set<string>>> remainingAssignmentSetsVector, vector<set<string>> currentAssignmentSets) const;
-	
+      unordered_map<size_t, bool> _existingMatrices; // true if the matrix exists
+      unordered_map<size_t, bool> _processedCubeDecompositionsOrderedSeed; 
+      unordered_map<size_t, bool> _processedCubeDecompositionsUnorderedSeed;
 
+      int _updateTime;
+      int _nodeNumber;
+      int _maxLevel;
+      unordered_map< int,  int> _sizeOfCubeInLevel;
+  };
 
-    // data
-     int _log2LengthOfTotalCube; // d1 + d2 + ...
-    vector< int> _degrees;
-     int _accuracy;
+  // multiply number and a vector
+  MintermVector multiply( int line, MintermVector cubeVec);
 
-   	unsigned num_vars;
-	unsigned m;
-	unsigned n;
-	vector<unsigned> vec; 
-	//mig_network stochastic_synthesis( num_vars, m, n, vec );
+  // multiply two cube vectors
+  MintermVector multiply(MintermVector cubeVec1, MintermVector cubeVec2);
 
-    vector<Node> _nodeVector;
-     int _minLiteralCount;   // current minimum literal count
-    Node _optimalNode;
-    vector<Node> _optimalNodes; 
-    unordered_map< int,  int> _minLiteralCountOfLevel;
+  // multiply n cube vectors, the size of cubeVecs should be greater than 1
+  MintermVector multiply(vector<MintermVector> cubeVecs);
 
-    vector< int> _rowGrayCode;
-    vector< int> _colGrayCode;
+  string IntToBin( int num,  int highestDegree);
+  int BinToInt(string str);
 
-    //unordered_map<unordered_multiset<CubeDecomposition>, bool> _processedCubeDecompositions; // true if the set is processed before
-    //unordered_map<vector<CubeDecomposition>, bool> _processedCubeDecompositionsVec;
-    unordered_map<size_t, bool> _existingMatrices; // true if the matrix exists
-    unordered_map<size_t, bool> _processedCubeDecompositionsOrderedSeed; 
-    unordered_map<size_t, bool> _processedCubeDecompositionsUnorderedSeed;
+  bool CapacityConstraintSatisfied(vector< int> problemVector, MintermVector cubeVector);
 
-     int _updateTime;
-     int _nodeNumber;
-     int _maxLevel;
-    unordered_map< int,  int> _sizeOfCubeInLevel;
-};
+  MintermVector SubtractCube(MintermVector problemVector, MintermVector cube);
 
-// multiply number and a vector
-MintermVector multiply( int line, MintermVector cubeVec);
+  bool IsZeroMintermVector(MintermVector vec);
 
-// multiply two cube vectors
-MintermVector multiply(MintermVector cubeVec1, MintermVector cubeVec2);
+  long long  int choose( int n,  int k);
 
-// multiply n cube vectors, the size of cubeVecs should be greater than 1
-MintermVector multiply(vector<MintermVector> cubeVecs);
+  vector< int> ConstructGrayCode( int size);
+  vector< int> ConstructGrayCodeHelper(vector< int> grayCode);
 
-string IntToBin( int num,  int highestDegree);
- int BinToInt(string str);
+  vector<string> BuildZeroOneTwoPermutation( int countOfZero,  int countOfOne,  int countOfTwo);
 
-bool CapacityConstraintSatisfied(vector< int> problemVector, MintermVector cubeVector);
+  set<string> MultiplyAssignmentSets(set<string> set1, set<string> set2);
+  set<string> MultiplyAssignmentSets(vector<set<string>> sets);
 
-MintermVector SubtractCube(MintermVector problemVector, MintermVector cube);
+  // returns all of the possible cube decompositions
+  // INPUT: the log2 of the cube size
+  // OUTPUT: the vector of the possible CubeDecomposition
+  // NOTE: this method will use _accuracy and the _degrees
+  vector<CubeDecomposition> PossibleCubeDecompositions( int log2CubeSize, vector< int> degrees,  int accuracy);
+  vector<CubeDecomposition> PossibleCubeDecompositionsHelper( int remainingLog2CubeSize, vector<CubeDecomposition> partialDecompositions, vector< int> remainingDegrees,  int accuracy);
+  vector<MintermVector> PossibleLineCubeVectors( int log2CubeSize,  int degree);
 
-bool IsZeroMintermVector(MintermVector vec);
-
-long long  int choose( int n,  int k);
-
-vector< int> ConstructGrayCode( int size);
-vector< int> ConstructGrayCodeHelper(vector< int> grayCode);
-
-vector<string> BuildZeroOneTwoPermutation( int countOfZero,  int countOfOne,  int countOfTwo);
-
-set<string> MultiplyAssignmentSets(set<string> set1, set<string> set2);
-set<string> MultiplyAssignmentSets(vector<set<string>> sets);
-
-// returns all of the possible cube decompositions
-// INPUT: the log2 of the cube size
-// OUTPUT: the vector of the possible CubeDecomposition
-// NOTE: this method will use _accuracy and the _degrees
-vector<CubeDecomposition> PossibleCubeDecompositions( int log2CubeSize, vector< int> degrees,  int accuracy);
-vector<CubeDecomposition> PossibleCubeDecompositionsHelper( int remainingLog2CubeSize, vector<CubeDecomposition> partialDecompositions, vector< int> remainingDegrees,  int accuracy);
-vector<MintermVector> PossibleLineCubeVectors( int log2CubeSize,  int degree);
-
-vector<set<string>> BuildAssignmentSet(set<string> basicAssignmentSet,  int countOfZero,  int countOfOne);
-AssMat process_truthtalbe( AssMat originalAssMat, string stringtt, unsigned m, unsigned n );
+  vector<set<string>> BuildAssignmentSet(set<string> basicAssignmentSet,  int countOfZero,  int countOfOne);
+  AssMat process_truthtalbe( AssMat originalAssMat, string stringtt, unsigned m, unsigned n );
 
 #endif
