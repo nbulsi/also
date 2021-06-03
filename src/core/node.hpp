@@ -187,6 +187,6 @@ using namespace also;
   vector<MintermVector> PossibleLineCubeVectors( int log2CubeSize,  int degree);
 
   vector<set<string>> BuildAssignmentSet(set<string> basicAssignmentSet,  int countOfZero,  int countOfOne);
-  AssMat process_truthtalbe( AssMat originalAssMat, string stringtt, unsigned m, unsigned n );
+  AssMat process_truthtable( AssMat originalAssMat, string stringtt, unsigned m, unsigned n );
 
 #endif

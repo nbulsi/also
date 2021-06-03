@@ -20,13 +20,13 @@
   using namespace mockturtle;
   using namespace also;
 
-  unordered_map< int, vector<CubeDecomposition>> unorderedMapOfPossibleCubeDecompositionVector;
+  unordered_map< int, vector<CubeDecomposition> > unorderedMapOfPossibleCubeDecompositionVector;
 
-  SolutionTree::SolutionTree(vector< int> initialProblemVector, vector< int> degrees,  int accuracy, int variableNumber )
+  SolutionTree::SolutionTree( vector< int> initialProblemVector, vector< int> degrees,  int accuracy, int variableNumber )
   {
     // NOTE: _log2LengthOfTotalCube equals to d1 + d2 + ... + dk
     _log2LengthOfTotalCube = 0;
-    for (auto d : degrees)
+    for ( auto d : degrees )
     {
       _log2LengthOfTotalCube += d;
     }
@@ -53,6 +53,8 @@
       _maxLevel = 0;
       _optimalNode = Node();
       _optimalNodes = vector<Node>();
+
+      unorderedMapOfPossibleCubeDecompositionVector.clear();
   }
 
   void SolutionTree::ProcessTree()
@@ -137,7 +139,7 @@
       while (!found && ( log2MintermCount >= 0))
       {
           auto possibleCubeDecompositionVector = vector<CubeDecomposition>{};
-          if (unorderedMapOfPossibleCubeDecompositionVector[log2MintermCount].empty())
+          if ( unorderedMapOfPossibleCubeDecompositionVector[log2MintermCount].empty() )
           {
               // originally, the function here is "possibleCubes"
               // but for multi-var, it should return possible cube 
@@ -218,7 +220,7 @@
               vec.assign( totalCubeVector.begin(),totalCubeVector.end() );
               bool sto_flag =1;	
               
-              if (currentNode._level == 0)
+              if ( currentNode._level == 0 )
               {	
                 mig_network mig;
                 mig = stochastic_synthesis( num_vars, m, n, vec );
@@ -228,7 +230,7 @@
                 kitty::print_binary(tt, std::cout); 
                 std::cout<<std::endl;
                 string stringtt = to_binary(tt);
-                newAssMatVec.push_back(  process_truthtalbe( currentNode._assignedAssMat, stringtt, m, n )  );
+                newAssMatVec.push_back(  process_truthtable( currentNode._assignedAssMat, stringtt, m, n )  );
 
                 if(sto_flag == 0)
                 {
@@ -1332,17 +1334,18 @@
     return ret;
   }
 
-  AssMat process_truthtalbe( AssMat originalAssMat, string stringtt, unsigned m, unsigned n )
+  AssMat process_truthtable( AssMat originalAssMat, string stringtt, unsigned m, unsigned n )
   {
+    bool verbose = false;
     auto retret=vector<string>();	
     string stt,X,Y,tmp;
-    stt.assign(stringtt);
-    reverse(stt.begin(),stt.end());
+    stt.assign( stringtt );
+    reverse( stt.begin(), stt.end() );
 
     std::cout<< " stt:  " << stt << std::endl;
-    for( int i=0; i<stt.size(); i++ )
+    for( int i=0; i < stt.size(); i++ )
     {
-      if(stt[i]=='1')
+      if( stt[i]== '1' )
       {
         tmp = IntToBin(i,m+n-1);
         reverse(tmp.begin(),tmp.end());
@@ -1352,16 +1355,19 @@
         auto Yp=BinToInt(Y);
         originalAssMat[Xp][Yp]='1';
 
-        cout << tmp << endl;
-        cout << X << endl;
-        cout << Y << endl;
+        if( verbose )
+        {
+          cout << tmp << endl;
+          cout << X << endl;
+          cout << Y << endl;
+        }
+
         retret.push_back(tmp);		
       }
     }
     
     return originalAssMat;
   }
-
 
   Node::Node( AssMat newAssMat, 
               MintermVector newProblemVector, 
