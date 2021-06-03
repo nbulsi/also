@@ -16,9 +16,10 @@
 #include <mockturtle/mockturtle.hpp>
 
 #include <sstream>
+#include <chrono>
+
 #include "../core/node.hpp"
 #include "../core/exact_sto_m3ig.hpp"
-#include <chrono>
 
 using namespace std;
 
@@ -36,6 +37,13 @@ namespace alice
 		protected:
 			void execute()
 			{
+        //test if MVSIS is available
+        if( system( "./mvsis -c \"quit\"") != 0)
+        {
+          std::cerr << "[e] mvsis binary is not available in the current working directory.\n";
+          exit( 0 );
+        }
+
 				std::ifstream myfile( filename );
 
 				if( myfile.is_open() )
@@ -70,7 +78,8 @@ namespace alice
 					cout << "Variable number: " << variableNumber << endl;
 					cout << "Accuracy: " << accuracy << endl;
 					cout << "Degrees: ";
-					for (auto d : degrees)
+					
+          for (auto d : degrees)
 					{
 						cout << d << " ";
 					}
@@ -81,7 +90,8 @@ namespace alice
 						ss.str(string());
 						ss.clear();
 						ss << line;
-						while (ss >> temp)
+						
+            while (ss >> temp)
 						{
 							problemVector.push_back(temp);
 						}
@@ -95,7 +105,8 @@ namespace alice
 
 					}
 				}
-				myfile.close();
+				
+        myfile.close();
 
 				auto solutionTree = SolutionTree( problemVector, degrees, accuracy, variableNumber );
 				auto start = chrono::system_clock::now();
@@ -104,8 +115,8 @@ namespace alice
 				auto end = chrono::system_clock::now();
 				auto duration = chrono::duration_cast<std::chrono::milliseconds>(end - start);
 				auto milliseconds = duration.count();
-				//cout << "milliseconds: " << milliseconds << endl;
-				auto hours = milliseconds / 3600000;
+				
+        auto hours = milliseconds / 3600000;
 				milliseconds -= hours * 3600000;
 				auto minitues = milliseconds / 60000;
 				milliseconds -= minitues * 60000;
@@ -131,7 +142,7 @@ namespace alice
 			int accuracy;
 			vector<int> degrees;
 			vector<int> problemVector;
-			std::string filename = " ";
+			std::string filename = "vector.txt";
 	};
 
 	ALICE_ADD_COMMAND( heusto, "Various" )   //name of command, type of command

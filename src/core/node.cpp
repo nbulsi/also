@@ -1,5 +1,5 @@
-//#include "./exact_sto_m3ig.hpp"
-#include "../../lib/mockturtle/include/mockturtle/networks/mig.hpp"
+#include <mockturtle/networks/mig.hpp>
+
 #include "node.hpp"
 #include <stdlib.h>
 #include <fstream>
@@ -288,7 +288,7 @@ vector<Node> SolutionTree::ProcessNode(Node currentNode)
                 ofs << ".e" << endl;
 
                 // invoke the espresso through MVSIS
-                system("./mvsis -c \"read_pla temp.pla; espresso; print_stats -s;\" > tempres.txt");
+                system("./mvsis -c \"read_pla temp.pla; espresso; print_stats -s; quit\" > tempres.txt");
 
                 auto ifs = ifstream("tempres.txt");
 
@@ -1351,7 +1351,7 @@ AssMat process_truthtalbe( AssMat originalAssMat, string stringtt, unsigned m, u
 }
 
 
-Node::Node(AssMat newAssMat, MintermVector newProblemVector,  int newLevel, vector<CubeDecomposition> newAssignedCubeDecompositions, CubeDecomposition lastAssignedCubeDecomposition,  int literalCount)
+Node::Node(AssMat newAssMat, MintermVector newProblemVector, int newLevel, vector<CubeDecomposition> newAssignedCubeDecompositions, CubeDecomposition lastAssignedCubeDecomposition,  int literalCount)
 {
     _assignedAssMat = newAssMat;
     _remainingProblemVector = newProblemVector;

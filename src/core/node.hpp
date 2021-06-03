@@ -3,9 +3,8 @@
 #define NODE_H
 
 #include <mockturtle/mockturtle.hpp>
-#include "./exact_sto_m3ig.hpp"
+#include "exact_sto_m3ig.hpp"
 #define MULTIPLE (1.5)
-//#define INT_MAX 2147483647
 #define w 2
 
 #include <vector>
@@ -21,9 +20,6 @@
 #include <set>
 #include "hash_extend.hpp"
 #include<climits>
-//#include "../../lib/mockturtle/include/mockturtle/algorithms/simulation.hpp"
-//#include <mockturtle/mockturtle.hpp>
-//#include "./exact_sto_m3ig.hpp"
 
 using namespace std;
 using namespace also;
