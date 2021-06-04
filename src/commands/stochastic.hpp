@@ -14,6 +14,7 @@
 #define STOCHASTIC_HPP
 
 #include <fstream>
+#include<string>
 #include "../core/exact_sto_m3ig.hpp"
 
 namespace alice
@@ -61,12 +62,23 @@ namespace alice
 
           myfile.close();
 
+          std::cout << " num_vars : " << num_vars << "\n" 
+            << " m        : " << m << "\n" 
+            << " n        : " << n << "\n";
+
+          std::cout << " Problem vector: ";
+          for( auto const& e : vector )
+          {
+            std::cout << e << " ";
+          }
+          std::cout << std::endl;
+
 
           if( is_set( "verbose" ) )
           {
             std::cout << "[i] num_vars : " << num_vars << "\n" 
-                      << "[i] m        : " << m << "\n" 
-                      << "[i] n        : " << n << "\n";
+              << "[i] m        : " << m << "\n" 
+              << "[i] n        : " << n << "\n";
 
             std::cout << "[i] Problem vector: ";
             for( auto const& e : vector )
@@ -82,9 +94,16 @@ namespace alice
               {
               mig = stochastic_synthesis( num_vars, m, n, vector );
               } );
-          
+
           store<mig_network>().extend(); 
           store<mig_network>().current() = mig;
+
+          default_simulator<kitty::dynamic_truth_table> sim( m+n );
+          const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
+          kitty::print_binary(tt, std::cout);
+          std::cout<<std::endl;
+          std::cout <<"tt: 0x"<< kitty::to_hex(tt ) << std::endl; 
+
           std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
         }
         else

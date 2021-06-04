@@ -14,6 +14,7 @@
 #ifndef EXACT_STO_M3IG_HPP
 #define EXACT_STO_M3IG_HPP
 
+using namespace mockturtle;
 namespace also
 {
   typedef struct Problem_Vector_t_ Problem_Vector_t;
