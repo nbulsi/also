@@ -42,7 +42,7 @@ namespace also
       solver_wrapper* solver;
       Problem_Vector_t problem_vec;
       pabc::lit pLits[2048];
-      
+
       int nr_sel_vars;
       int nr_sim_vars;
       int nr_op_vars;
@@ -53,13 +53,13 @@ namespace also
       int sim_offset;
       int op_offset;
       int res_offset;
-      
+
       int level_dist[32]; // How many steps are below a certain level
       int nr_levels; // The number of levels in the Boolean fence
-      
+
       std::map<int, std::vector<unsigned>> sel_map;
       const int MIG_OP_VARS_PER_STEP = 4;
-      
+
       /*
        * private functions
        * */
@@ -68,18 +68,18 @@ namespace also
           return sim_offset + spec.tt_size * step_idx + t;
       }
 
-      int get_op_var( const spec& spec, int step_idx, int var_idx) const 
+      int get_op_var( const spec& spec, int step_idx, int var_idx) const
       {
         return op_offset + step_idx * MIG_OP_VARS_PER_STEP + var_idx;
       }
-      
+
       int get_sel_var(const spec& spec, int step_idx, int var_idx) const
       {
         assert(step_idx < spec.nr_steps);
         const auto nr_svars_for_idx = nr_svars_for_step(spec, step_idx);
         assert(var_idx < nr_svars_for_idx);
         auto offset = 0;
-        for (int i = 0; i < step_idx; i++) 
+        for (int i = 0; i < step_idx; i++)
         {
           offset += nr_svars_for_step(spec, i);
         }
@@ -93,12 +93,12 @@ namespace also
           auto sel_var = e.first;
 
           auto array   = e.second;
-          
+
           auto ip = array[0];
           auto jp = array[1];
           auto kp = array[2];
           auto lp = array[3];
-          
+
           if( i == ip && j == jp && k == kp && l == lp )
           {
             return sel_var;
@@ -108,9 +108,9 @@ namespace also
         assert( false && "sel var is not existed" );
         return -1;
       }
-      
+
       /* idx in [0,n] */
-      std::vector<int> get_res_var_set( int idx ) 
+      std::vector<int> get_res_var_set( int idx )
       {
         assert( idx >= 0 );
         assert( idx <= get_n_value() );
@@ -150,11 +150,24 @@ namespace also
         return v;
       }
 
+      /*
+       * Get the simulation variables set of the entry equals idx
+       *  c \ a b
+       *     0   0   1   1
+       *     0   1   0   1
+       *   +---+---+---+---+
+       *  0 |   |  |  |   |
+       *   +---+---+---+---+
+       *  1 | x  | x | x  | x  |
+       *   +---+---+---+---+
+       *   if idx = 1
+       *   return vector {4, 5, 6, 7}, the second row
+       * */
       std::vector<int> get_sim_var_set( int idx )
       {
         assert( idx >= 0 );
         assert( idx <= get_n_value() );
-        
+
         std::vector<int> v;
 
         auto offset = 0;
@@ -162,7 +175,7 @@ namespace also
 
         for( auto i = 0u; i < idx; i++ )
         {
-          offset += s[i]; 
+          offset += s[i];
         }
 
         auto bound = s[idx];
@@ -193,7 +206,7 @@ namespace also
       {
         return problem_vec.n;
       }
-      
+
       unsigned get_m_value()
       {
         return problem_vec.m;
@@ -202,6 +215,11 @@ namespace also
       std::vector<unsigned> get_problem_vec()
       {
         return problem_vec.v;
+      }
+
+      std::vector<unsigned> get_preoccupy_vec()
+      {
+          return problem_vec.pre_occupy_position_idxs;
       }
 
       void set_problem_vec( std::vector<unsigned> const& prob )
@@ -222,8 +240,8 @@ namespace also
         /* number of simulation variables, s_out_in1_in2_in3 */
         sel_map = comput_select_vars_map3( spec.nr_steps, spec.nr_in );
         nr_sel_vars = sel_map.size();
-        
-        /* number of operators per step */ 
+
+        /* number of operators per step */
         nr_op_vars = spec.nr_steps * MIG_OP_VARS_PER_STEP;
 
         /* number of truth table simulation variables */
@@ -234,10 +252,10 @@ namespace also
         for( auto i = 0; i < get_n_value() + 1; i++ )
         {
           /* check the legality */
-          if( problem_vec.v[ i ] > v[ i ] ) 
-          { 
+          if( problem_vec.v[ i ] > v[ i ] )
+          {
             std::cout << "[e] There are " << v[ i ] << " entries, but the problem needs " << problem_vec.v[ i ] << " minterms \n";
-            assert( false && "Illegal problem vector" ); 
+            assert( false && "Illegal problem vector" );
           }
 
           /* compute the total result variables */
@@ -250,7 +268,7 @@ namespace also
             nr_res_vars += ( ( problem_vec.v[ i ] + 2 ) * ( v[i] + 1 ) );
           }
         }
-        
+
         /* offsets, this is used to find varibles correspondence */
         sel_offset = 0;
         op_offset  = nr_sel_vars;
@@ -272,91 +290,91 @@ namespace also
           printf( "tt_size     = %d\n", spec.tt_size );
           printf( "creating %d total variables\n", total_nr_vars);
         }
-        
+
         /* declare in the solver */
         solver->set_nr_vars(total_nr_vars);
       }
-      
+
       int get_level(const spec& spec, int step_idx) const
       {
         // PIs are considered to be on level zero.
-        if (step_idx <= spec.nr_in) 
+        if (step_idx <= spec.nr_in)
         {
           return 0;
-        } 
-        else if (step_idx == spec.nr_in + 1) 
-        { 
+        }
+        else if (step_idx == spec.nr_in + 1)
+        {
           // First step is always on level one
           return 1;
         }
-        for (int i = 0; i <= nr_levels; i++) 
+        for (int i = 0; i <= nr_levels; i++)
         {
-          if (level_dist[i] > step_idx) 
+          if (level_dist[i] > step_idx)
           {
             return i;
           }
         }
         return -1;
       }
-      
+
       int first_step_on_level(int level) const
       {
         if (level == 0) { return 0; }
         return level_dist[level-1];
       }
-      
+
       int nr_svars_for_step(const spec& spec, int i) const
       {
         // Determine the level of this step.
         const auto level = get_level(spec, i + spec.nr_in + 1);
         auto nr_svars_for_i = 0;
         assert(level > 0);
-        for (auto l = first_step_on_level(level - 1); l < first_step_on_level(level); l++) 
+        for (auto l = first_step_on_level(level - 1); l < first_step_on_level(level); l++)
         {
-          // We select l as fanin 3, so have (l choose 2) options 
+          // We select l as fanin 3, so have (l choose 2) options
           // (j,k in {0,...,(l-1)}) left for fanin 1 and 2.
           nr_svars_for_i += (l * (l - 1)) / 2;
         }
 
         return nr_svars_for_i;
       }
-      
+
       // Ensures that each gate has the proper number of fanins.
       bool create_fanin_clauses(const spec& spec)
       {
         auto status = true;
 
-        if (spec.verbosity > 2) 
+        if (spec.verbosity > 2)
         {
           printf("Creating fanin clauses (mig)\n");
           printf("Nr. clauses = %d (PRE)\n", solver->nr_clauses());
         }
 
         int svar = 0;
-        for (int i = 0; i < spec.nr_steps; i++) 
+        for (int i = 0; i < spec.nr_steps; i++)
         {
           auto ctr = 0;
 
-          auto num_svar_in_current_step = comput_select_vars_for_each_step3( spec.nr_steps, spec.nr_in, i ); 
-          
+          auto num_svar_in_current_step = comput_select_vars_for_each_step3( spec.nr_steps, spec.nr_in, i );
+
           for( int j = svar; j < svar + num_svar_in_current_step; j++ )
           {
             pLits[ctr++] = pabc::Abc_Var2Lit(j, 0);
           }
-          
+
           svar += num_svar_in_current_step;
 
           status &= solver->add_clause(pLits, pLits + ctr);
         }
 
-        if (spec.verbosity > 2) 
+        if (spec.verbosity > 2)
         {
           printf("Nr. clauses = %d (POST)\n", solver->nr_clauses());
         }
 
         return status;
       }
-      
+
       void show_variable_correspondence( const spec& spec )
       {
         printf( "**************************************\n" );
@@ -366,7 +384,7 @@ namespace also
           auto array = e.second;
           printf( "s_%d_%d%d%dis %d\n", array[0], array[1], array[2], array[3], e.first );
         }
-        
+
         printf( "\noperators variables\n\n" );
         for( auto i = 0; i < spec.nr_steps; i++ )
         {
@@ -395,20 +413,20 @@ namespace also
         }
       }
 
-        
+
       bool fix_output_sim_vars(const spec& spec, int t)
       {
         const auto ilast_step = spec.nr_steps - 1;
         auto outbit = kitty::get_bit( spec[spec.synth_func(0)], t + 1);
 
-        if ( (spec.out_inv >> spec.synth_func(0) ) & 1 ) 
+        if ( (spec.out_inv >> spec.synth_func(0) ) & 1 )
         {
           outbit = 1 - outbit;
         }
-        
+
         const auto sim_var = get_sim_var(spec, ilast_step, t);
         pabc::lit sim_lit = pabc::Abc_Var2Lit(sim_var, 1 - outbit);
-        
+
         return solver->add_clause(&sim_lit, &sim_lit + 1);
       }
 
@@ -434,12 +452,12 @@ namespace also
         }
 
         std::vector<int> diff;
-        std::set_difference(all.begin(), all.end(), onset.begin(), onset.end(), 
+        std::set_difference(all.begin(), all.end(), onset.begin(), onset.end(),
                             std::inserter(diff, diff.begin()));
 
         return diff;
       }
-      
+
       /*
        * for the select variable S_i_jkl
        * */
@@ -448,8 +466,8 @@ namespace also
                                   const int t,
                                   const int i,
                                   const int j,
-                                  const int k, 
-                                  const int l, 
+                                  const int k,
+                                  const int l,
                                   const int s, //sel var
                                   const std::vector<int> entry, //truth table entry
                                   const std::vector<int> onset, //the entry to make which ops on
@@ -461,29 +479,29 @@ namespace also
         assert( entry.size() == 3 );
 
         /* truth table computation main */
-        if (j <= spec.nr_in) 
+        if (j <= spec.nr_in)
         {
           if ((((t + 1) & (1 << (j - 1))) ? 1 : 0) != entry[2]) { return true; }
-        } 
-        else 
+        }
+        else
         {
           pLits[ctr++] = pabc::Abc_Var2Lit( get_sim_var(spec, j - spec.nr_in - 1, t), entry[2] );
         }
 
-        if (k <= spec.nr_in) 
+        if (k <= spec.nr_in)
         {
           if ((((t + 1) & (1 << (k - 1))) ? 1 : 0) != entry[1] ) { return true; }
-        } 
-        else 
+        }
+        else
         {
           pLits[ctr++] = pabc::Abc_Var2Lit( get_sim_var(spec, k - spec.nr_in - 1, t), entry[1] );
         }
 
-        if (l <= spec.nr_in) 
+        if (l <= spec.nr_in)
         {
           if ((((t + 1) & (1 << (l - 1))) ? 1 : 0) != entry[0] ) { return true; }
-        } 
-        else 
+        }
+        else
         {
           pLits[ctr++] = pabc::Abc_Var2Lit( get_sim_var(spec, l - spec.nr_in - 1, t), entry[0] );
         }
@@ -512,7 +530,7 @@ namespace also
           pLits[ctr++] = pabc::Abc_Var2Lit( onvar, 0 );
         }
         auto ret = solver->add_clause(pLits, pLits + ctr);
-        
+
         for( const auto offvar : offset )
         {
           pLits[ctr_idx_main + 2] = pabc::Abc_Var2Lit( offvar, 1 );
@@ -538,7 +556,7 @@ namespace also
 
         return ret;
       }
-      
+
       bool add_consistency_clause_init( const spec& spec, const int t, std::pair<int, std::vector<unsigned>> svar )
       {
         auto ret = true;
@@ -560,7 +578,7 @@ namespace also
         {
           input_set_map = comput_input_and_set_map3( first_const );
         }
-        else 
+        else
         {
           assert( false && "the selection variable is not supported." );
         }
@@ -572,28 +590,39 @@ namespace also
           auto onset  = e.second;
           auto offset = get_set_diff( onset );
 
-          ret &= add_consistency_clause( spec, t, i, j, k, l, s, entry, 
-                                         idx_to_op_var( spec, onset,  i ), 
+          ret &= add_consistency_clause( spec, t, i, j, k, l, s, entry,
+                                         idx_to_op_var( spec, onset,  i ),
                                          idx_to_op_var( spec, offset, i ) );
         }
 
         return ret;
       }
-      
+
       bool create_tt_clauses(const spec& spec, const int t)
       {
         bool ret = true;
-        
+
         for( const auto svar : sel_map )
         {
           ret &= add_consistency_clause_init( spec, t, svar );
         }
-        
+
         //ret &= fix_output_sim_vars(spec, t);
 
         return ret;
       }
 
+      /*  Given a truth table, return a vector to indicate the total number of entries
+       *  c \ a b
+       *     0   0   1   1
+       *     0   1   1   0
+       *   +---+---+---+---+
+       *  0 |   |   |  |   |
+       *   +---+---+---+---+
+       *  1 |   |  |   |   |
+       *   +---+---+---+---+
+       *   v[0] = 2, v[1] = 4, v[2] = 2
+       * */
       std::vector<unsigned> get_number_entries_sum_equal_C()
       {
         auto m = get_m_value();
@@ -601,7 +630,7 @@ namespace also
 
         std::vector<unsigned> v( n + 1 );
 
-        unsigned total = 0u; 
+        unsigned total = 0u;
         auto var = (unsigned)ceil( log2( m + n ) );
         kitty::dynamic_truth_table tt( var );
 
@@ -609,7 +638,7 @@ namespace also
         do
         {
           auto sum = 0u;
-          
+
           for( auto i = 0u; i < n; i++ )
           {
             sum += kitty::get_bit( tt, i + m );
@@ -623,14 +652,24 @@ namespace also
         return v;
       }
 
+      void create_preoccupied_constraints( const spec& spec, const std::vector<unsigned>& sim_vars )
+      {
+        const auto ilast_step = spec.nr_steps - 1;
+
+        for( const auto& idx : sim_vars )
+        {
+            int ctr = 0;
+            auto svar = get_sim_var( spec, ilast_step, idx );
+            pLits[ctr++] = pabc::Abc_Var2Lit( svar, 0 );
+            solver->add_clause( pLits, pLits + 1 );
+        }
+      }
 
       void create_problem_vector_constraints( const spec& spec )
       {
         std::vector<int> svars; //sum variables
         std::vector<int> rvars; //result variables
 
-        auto v = get_number_entries_sum_equal_C();
-        
         const auto ilast_step = spec.nr_steps - 1;
 
         for( int i = 0u; i < get_n_value() + 1; i++ )
@@ -657,7 +696,7 @@ namespace also
           create_cardinality_circuit( solver, svars, rvars, problem_vec.v[i] );
 
           auto res_idx =  svars.size()  * ( problem_vec.v[i] + 2 ) + problem_vec.v[i];
-          
+
           if( svars.size() == 1 && problem_vec.v[i] == 1 )
           {
             auto fi_lit = pabc::Abc_Var2Lit( svars[0], 0 );
@@ -670,27 +709,32 @@ namespace also
           }
         }
       }
-      
+
       void create_main_clauses( const spec& spec )
       {
         for( int t = 0; t < spec.tt_size; t++ )
         {
           (void) create_tt_clauses( spec, t );
         }
-        
-        (void) create_problem_vector_constraints( spec );
+
+        create_problem_vector_constraints( spec );
+
+        if( get_preoccupy_vec().size() )
+        {
+            (void) create_preoccupied_constraints( spec, get_preoccupy_vec() );
+        }
       }
-      
+
       //block solution
       bool block_solution(const spec& spec)
       {
         int ctr  = 0;
         int svar = 0;
-          
-        for (int i = 0; i < spec.nr_steps; i++) 
+
+        for (int i = 0; i < spec.nr_steps; i++)
         {
           auto num_svar_in_current_step = comput_select_vars_for_each_step3( spec.nr_steps, spec.nr_in, i );
-          
+
           for( int j = svar; j < svar + num_svar_in_current_step; j++ )
           {
             //std::cout << "var: " << j << std::endl;
@@ -700,10 +744,10 @@ namespace also
               break;
             }
           }
-          
+
           svar += num_svar_in_current_step;
         }
-        
+
         assert(ctr == spec.nr_steps);
 
         return solver->add_clause(pLits, pLits + ctr);
@@ -720,12 +764,12 @@ namespace also
         }
 
         create_main_clauses( spec );
-        
+
         if( !create_fanin_clauses( spec ) )
         {
           return false;
         }
-        
+
         if( spec.verbosity > 2 )
         {
           show_variable_correspondence( spec );
@@ -733,27 +777,27 @@ namespace also
 
         return true;
       }
-      
+
       void extract_mig3(const spec& spec, mig3& chain )
       {
         int op_inputs[3] = { 0, 0, 0 };
         chain.reset( spec.nr_in, 1, spec.nr_steps );
 
         int svar = 0;
-        for (int i = 0; i < spec.nr_steps; i++) 
+        for (int i = 0; i < spec.nr_steps; i++)
         {
           int op = 0;
-          for (int j = 0; j < MIG_OP_VARS_PER_STEP; j++) 
+          for (int j = 0; j < MIG_OP_VARS_PER_STEP; j++)
           {
-            if ( solver->var_value( get_op_var( spec, i, j ) ) ) 
+            if ( solver->var_value( get_op_var( spec, i, j ) ) )
             {
               op = j;
               break;
             }
           }
 
-          auto num_svar_in_current_step = comput_select_vars_for_each_step3( spec.nr_steps, spec.nr_in, i ); 
-          
+          auto num_svar_in_current_step = comput_select_vars_for_each_step3( spec.nr_steps, spec.nr_in, i );
+
           for( int j = svar; j < svar + num_svar_in_current_step; j++ )
           {
             if( solver->var_value( j ) )
@@ -765,7 +809,7 @@ namespace also
               break;
             }
           }
-          
+
           svar += num_svar_in_current_step;
 
           chain.set_step(i, op_inputs[0], op_inputs[1], op_inputs[2], op);
@@ -776,7 +820,7 @@ namespace also
           }
 
         }
-        
+
         const auto pol = spec.out_inv ? 1 : 0;
         const auto tmp = ( ( spec.nr_steps + spec.nr_in ) << 1 ) + pol;
         chain.set_output(0, tmp);
@@ -786,7 +830,7 @@ namespace also
 
         if( spec.out_inv )
         {
-          printf( "[i] output is inverted\n" ); 
+          printf( "[i] output is inverted\n" );
         }
           //assert( chain.satisfies_spec( spec ) );
       }
@@ -802,16 +846,16 @@ namespace also
 
       //init the spec based on the problem vector
       spec.nr_in   = encoder.get_m_value() + encoder.get_n_value();
-      spec.tt_size = ( 1 << spec.nr_in ) - 1; 
+      spec.tt_size = ( 1 << spec.nr_in ) - 1;
 
 
       // The special case when the Boolean chain to be synthesized
       // consists entirely of trivial functions.
-      if (spec.nr_triv == spec.get_nr_out()) 
+      if (spec.nr_triv == spec.get_nr_out())
       {
         spec.nr_steps = 0;
         mig3.reset(spec.get_nr_in(), spec.get_nr_out(), 0);
-        for (int h = 0; h < spec.get_nr_out(); h++) 
+        for (int h = 0; h < spec.get_nr_out(); h++)
         {
           mig3.set_output(h, (spec.triv_func(h) << 1) +
               ((spec.out_inv >> h) & 1));
@@ -819,7 +863,7 @@ namespace also
         return success;
       }
 
-      spec.nr_steps = spec.initial_steps; 
+      spec.nr_steps = spec.initial_steps;
 
       bool flag_unnormal = false;
       bool flag_permanate_unnormal = false;
@@ -896,7 +940,7 @@ namespace also
               encoder.set_problem_vec( porigin );
             }
           }
-          
+
           if( spec.nr_steps == 20 )
           {
             break;

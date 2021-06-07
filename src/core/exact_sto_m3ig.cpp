@@ -18,7 +18,7 @@ namespace also
   class sto_syn_manager
   {
     public:
-      sto_syn_manager( unsigned const& num_vars, unsigned const& m, unsigned const& n, std::vector<unsigned> const& vector );
+      sto_syn_manager( unsigned const& num_vars, unsigned const& m, unsigned const& n, std::vector<unsigned> const& vector, std::vector<unsigned> const& preoccupy );
       mig_network run();
       bool preprocess();
       unsigned sum_of_vector();
@@ -30,6 +30,7 @@ namespace also
       unsigned m;
       unsigned n;
       std::vector<unsigned> vector;
+      std::vector<unsigned> preoccupy;
 
       unsigned vec_sum = 0u;
       bool verbose = false;
@@ -39,8 +40,12 @@ namespace also
 /******************************************************************************
  * Private functions                                                          *
  ******************************************************************************/
-  sto_syn_manager::sto_syn_manager( unsigned const& num_vars, unsigned const& m, unsigned const& n, std::vector<unsigned> const& vector )
-    : num_vars( num_vars ), m( m ), n( n ), vector( vector )
+  sto_syn_manager::sto_syn_manager( unsigned const& num_vars,
+          unsigned const& m,
+          unsigned const& n,
+          std::vector<unsigned> const& vector,
+          std::vector<unsigned> const& preoccupy )
+    : num_vars( num_vars ), m( m ), n( n ), vector( vector ), preoccupy( preoccupy )
   {
     vec_sum = sum_of_vector();
   }
@@ -183,7 +188,7 @@ namespace also
     if( trivial == false )
     {
       std::cout << "[i] Not trivial case, need further solve.\n";
- 
+
       percy::spec spec;
       also::mig3 mig3;
 
@@ -193,8 +198,9 @@ namespace also
       spec[0] = tt;
       spec.verbosity = 0;
 
-      auto flag_normal = kitty::is_normal( tt );
-      if( !flag_normal ) { std::cout << "[i] Function is not normal \n"; }
+      //std::cout << " tt = " << kitty::to_hex( tt ) << std::endl;
+      //auto flag_normal = kitty::is_normal( tt );
+      //if( !flag_normal ) { std::cout << "[i] Function is not normal \n"; }
 
       //stochastic problem vector
       Problem_Vector_t instance;
@@ -202,6 +208,7 @@ namespace also
       instance.m = m;
       instance.n = n;
       instance.v = vector;
+      instance.pre_occupy_position_idxs = preoccupy;
 
       percy::bsat_wrapper solver;
       mig_three_sto_encoder encoder( solver, instance );
@@ -219,9 +226,13 @@ namespace also
 /******************************************************************************
  * Public functions                                                           *
  ******************************************************************************/
-  mig_network stochastic_synthesis( unsigned const& num_vars, unsigned const& m, unsigned const& n, std::vector<unsigned> const& vector )
+  mig_network stochastic_synthesis( unsigned const& num_vars,
+                                    unsigned const& m,
+                                    unsigned const& n,
+                                    std::vector<unsigned> const& vector,
+                                    std::vector<unsigned> const& preoccupy )
   {
-    sto_syn_manager mgr( num_vars, m, n, vector );
+    sto_syn_manager mgr( num_vars, m, n, vector, preoccupy );
     return mgr.run();
   }
 
