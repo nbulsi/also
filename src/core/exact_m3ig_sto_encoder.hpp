@@ -43,6 +43,8 @@ namespace also
       Problem_Vector_t problem_vec;
       pabc::lit pLits[2048];
 
+      bool is_unnormal = false;
+
       int nr_sel_vars;
       int nr_sim_vars;
       int nr_op_vars;
@@ -195,6 +197,16 @@ namespace also
       {
         this->solver = &solver;
         this->problem_vec = problem_vec;
+      }
+
+      bool get_is_unnormal()
+      {
+          return is_unnormal;
+      }
+
+      void set_is_unnormal( bool b )
+      {
+            is_unnormal = b;
       }
 
       unsigned get_num_vars()
@@ -660,7 +672,7 @@ namespace also
         {
             int ctr = 0;
             auto svar = get_sim_var( spec, ilast_step, idx );
-            pLits[ctr++] = pabc::Abc_Var2Lit( svar, 0 );
+            pLits[ctr++] = pabc::Abc_Var2Lit( svar, get_is_unnormal() ? 1 : 0 );
             solver->add_clause( pLits, pLits + 1 );
         }
       }
@@ -920,6 +932,7 @@ namespace also
           {
             std::cout << " Try the unnormal function\n";
             flag_unnormal = true;
+            encoder.set_is_unnormal( true );
 
             std::vector<unsigned> pupdate;
 
@@ -934,6 +947,7 @@ namespace also
           {
             spec.nr_steps++;
             flag_unnormal = false;
+            encoder.set_is_unnormal( false );
 
             if( !flag_permanate_unnormal )
             {
