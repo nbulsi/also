@@ -116,7 +116,7 @@ namespace also
     for( auto i = 0; i < spec.get_nr_out(); i++ )
     {
         auto outvar = mig3.get_output(i) >> 1;
-        if( outvar == spec.nr_steps - 1 && mig3.get_output(i) & 1 )
+        if( ( outvar == spec.nr_in + spec.nr_steps ) && mig3.get_output(i) & 1 )
         {
             pol = '!';
             break;
@@ -124,12 +124,11 @@ namespace also
     }
 
     std::cout << "[i] " << spec.nr_steps << " steps are required " << std::endl;
-    for(auto i = 0; i < spec.nr_steps; i++ )
+    for( auto i = 0; i < spec.nr_steps; i++ )
     {
       if(  i == spec.nr_steps - 1 )
       {
-        ss << pol;
-        ss << char( i + spec.nr_in + 'a' ) << "=" << print_expr( mig3, i );
+        ss << char( i + spec.nr_in + 'a' ) << "=" << pol << print_expr( mig3, i );
       }
       else
       {
