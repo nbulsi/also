@@ -152,46 +152,6 @@ namespace also
         return v;
       }
 
-      /*
-       * Get the simulation variables set of the entry equals idx
-       *  c \ a b
-       *     0   0   1   1
-       *     0   1   0   1
-       *   +---+---+---+---+
-       *  0 |   |  |  |   |
-       *   +---+---+---+---+
-       *  1 | x  | x | x  | x  |
-       *   +---+---+---+---+
-       *   if idx = 1
-       *   return vector {4, 5, 6, 7}, the second row
-       * */
-      std::vector<int> get_sim_var_set( int idx )
-      {
-        assert( idx >= 0 );
-        assert( idx <= get_n_value() );
-
-        std::vector<int> v;
-
-        auto offset = 0;
-        auto s = get_number_entries_sum_equal_C();
-
-        for( auto i = 0u; i < idx; i++ )
-        {
-          offset += s[i];
-        }
-
-        auto bound = s[idx];
-        for( auto i = 0u; i < bound; i++ )
-        {
-          if( !( i == 0 && idx == 0 ) )
-          {
-            v.push_back( offset + i - 1 );
-          }
-        }
-
-        return v;
-      }
-
     public:
       mig_three_sto_encoder( solver_wrapper& solver, Problem_Vector_t & problem_vec )
       {
@@ -664,6 +624,42 @@ namespace also
         return v;
       }
 
+      /*
+       * enumerate all the truth table to record the entries idxs set
+       * */
+      std::vector<unsigned> get_all_entries_idxs_set( unsigned const& capacity )
+      {
+          auto m = get_m_value();
+          auto n = get_n_value();
+
+          std::vector<unsigned> res;
+
+          /* create a truth table with (m + n) variables */
+          auto var = (unsigned)ceil( log2( m + n ) );
+          kitty::dynamic_truth_table tt( var );
+
+          auto num_loop = 0u;
+          do
+          {
+              auto sum = 0u;
+
+              for( auto i = 0u; i < n; i++ )
+              {
+                  sum += kitty::get_bit( tt, i + m );
+              }
+
+              if( sum == capacity && num_loop != 0u )
+              {
+                res.push_back( num_loop - 1u );
+              }
+
+              num_loop++;
+              kitty::next_inplace( tt );
+          }while( !kitty::is_const0( tt ) && num_loop < pow( 2, m + n )  );
+
+          return res;
+      }
+
       void create_preoccupied_constraints( const spec& spec, const std::vector<unsigned>& sim_vars )
       {
         const auto ilast_step = spec.nr_steps - 1;
@@ -689,7 +685,7 @@ namespace also
           svars.clear();
           rvars.clear();
 
-          auto sim_vars = get_sim_var_set( i );
+          auto sim_vars = get_all_entries_idxs_set( i );
           for( auto const& e : sim_vars )
           {
             svars.push_back( get_sim_var( spec, ilast_step, e ) );
