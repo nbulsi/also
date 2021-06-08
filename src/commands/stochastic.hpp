@@ -28,7 +28,7 @@ namespace alice
         add_option( "filename, -f", filename, "the input txt file name" );
         add_flag( "--verbose, -v", "verbose output" );
       }
-    
+
     protected:
       void execute()
       {
@@ -42,11 +42,11 @@ namespace alice
 
           while( std::getline( myfile, line ) )
           {
-            if( line_index == 0u ) { num_vars = std::stoi( line ); } 
-            if( line_index == 1u ) { m = std::stoi( line ); } 
-            if( line_index == 2u ) { n = std::stoi( line ); } 
+            if( line_index == 0u ) { num_vars = std::stoi( line ); }
+            if( line_index == 1u ) { m = std::stoi( line ); }
+            if( line_index == 2u ) { n = std::stoi( line ); }
 
-            if( line_index == 3u ) 
+            if( line_index == 3u )
             {
               std::stringstream ss( line );
 
@@ -57,27 +57,28 @@ namespace alice
                 vector.push_back( tmp );
               }
             }
+
+            if( line_index == 4u )
+            {
+              std::stringstream ss( line );
+
+              unsigned tmp;
+
+              while( ss >> tmp )
+              {
+                assert( tmp < pow( 2, m + n ) - 1 && " position index error " );
+                preoccupy.push_back( tmp );
+              }
+            }
             line_index++;
           }
 
           myfile.close();
 
-          std::cout << " num_vars : " << num_vars << "\n" 
-            << " m        : " << m << "\n" 
-            << " n        : " << n << "\n";
-
-          std::cout << " Problem vector: ";
-          for( auto const& e : vector )
-          {
-            std::cout << e << " ";
-          }
-          std::cout << std::endl;
-
-
           if( is_set( "verbose" ) )
           {
-            std::cout << "[i] num_vars : " << num_vars << "\n" 
-              << "[i] m        : " << m << "\n" 
+            std::cout << "[i] num_vars : " << num_vars << "\n"
+              << "[i] m        : " << m << "\n"
               << "[i] n        : " << n << "\n";
 
             std::cout << "[i] Problem vector: ";
@@ -86,29 +87,39 @@ namespace alice
               std::cout << e << " ";
             }
             std::cout << std::endl;
+
+            if( preoccupy.size() )
+            {
+                std::cout << "[i] Pre-occupied position indexes: ";
+                for( auto const& e : preoccupy )
+                {
+                    std::cout << e << " ";
+                }
+            }
+            std::cout << std::endl;
           }
 
           stopwatch<>::duration time{0};
           mig_network mig;
-          call_with_stopwatch( time, [&]() 
+          call_with_stopwatch( time, [&]()
               {
-              mig = stochastic_synthesis( num_vars, m, n, vector );
+                mig = stochastic_synthesis( num_vars, m, n, vector, preoccupy );
               } );
 
-          store<mig_network>().extend(); 
+          store<mig_network>().extend();
           store<mig_network>().current() = mig;
 
           default_simulator<kitty::dynamic_truth_table> sim( m+n );
           const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
           kitty::print_binary(tt, std::cout);
           std::cout<<std::endl;
-          std::cout <<"tt: 0x"<< kitty::to_hex(tt ) << std::endl; 
+          std::cout <<"tt: 0x"<< kitty::to_hex(tt ) << std::endl;
 
           std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
         }
         else
         {
-          std::cerr << "Cannot open input file \n"; 
+          std::cerr << "Cannot open input file \n";
         }
       }
 
@@ -117,8 +128,9 @@ namespace alice
 
       unsigned num_vars; //the number of variables
       unsigned n; //the highest power
-      unsigned m; //the number control the accuracy 
+      unsigned m; //the number control the accuracy
       std::vector<unsigned> vector;
+      std::vector<unsigned> preoccupy;
   };
 
   ALICE_ADD_COMMAND( stochastic, "Various" )

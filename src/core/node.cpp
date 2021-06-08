@@ -110,7 +110,7 @@
 
   vector<Node> SolutionTree::ProcessNode( Node currentNode )
   {
-      
+
       //using namespace also;
       // the vector of nodes to be returned
       // they should have the same literal count
@@ -142,8 +142,8 @@
           if ( unorderedMapOfPossibleCubeDecompositionVector[log2MintermCount].empty() )
           {
               // originally, the function here is "possibleCubes"
-              // but for multi-var, it should return possible cube 
-              // decompositions -- CubeDecomposition, 
+              // but for multi-var, it should return possible cube
+              // decompositions -- CubeDecomposition,
               // i.e., vector<int, vector<MintermVector>>
               possibleCubeDecompositionVector = PossibleCubeDecompositions( log2MintermCount, _degrees, _accuracy );
               unorderedMapOfPossibleCubeDecompositionVector[log2MintermCount] = possibleCubeDecompositionVector;
@@ -218,16 +218,17 @@
               //auto newAssMat = AssignMatrixByEspresso(currentNode._assignedAssMat, cubeDecomposition);
               vector<AssMat> newAssMatVec;
               vec.assign( totalCubeVector.begin(),totalCubeVector.end() );
-              bool sto_flag =1;	
-              
+              bool sto_flag =1;
+
               if ( currentNode._level == 0 )
-              {	
+              {
                 mig_network mig;
-                mig = stochastic_synthesis( num_vars, m, n, vec );
-                default_simulator<kitty::dynamic_truth_table> sim( m+n );
+                std::vector<unsigned> preoccupy;
+                mig = stochastic_synthesis( num_vars, m, n, vec, preoccupy );
+                default_simulator<kitty::dynamic_truth_table> sim( m + n );
                 const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
                 std::cout<< " tt:  ";
-                kitty::print_binary(tt, std::cout); 
+                kitty::print_binary(tt, std::cout);
                 std::cout<<std::endl;
                 string stringtt = to_binary(tt);
                 newAssMatVec.push_back(  process_truthtable( currentNode._assignedAssMat, stringtt, m, n )  );
@@ -241,8 +242,8 @@
               {
                   newAssMatVec = AssignMatrixByEspressoVector( currentNode._assignedAssMat, cubeDecomposition );
               }
-        
-        
+
+
               // calculate the hash for the new matrix
               for ( auto& newAssMat : newAssMatVec )
               {
@@ -466,7 +467,7 @@
       resultSubNodeVector.erase( delIt, resultSubNodeVector.end() );
 
       // the limit of x-combinations
-    
+
     /*
       auto x_comb = 7;//the controlled parameter
       if (resultSubNodeVector.size() > x_comb)
@@ -476,19 +477,19 @@
     */
 
       //return resultSubNodeVector;
-    
+
       if (resultSubNodeVectorEmpty)
       {
           _optimalNodes = resultSubNodeVector;
           resultSubNodeVector = vector<Node>();
       }
-    
+
       return resultSubNodeVector;
   }
 
   AssMat SolutionTree::AssignMatrixByEspresso( AssMat originalAssMat, CubeDecomposition cubeDecompositionToBeAssigned ) const
   {
-     
+
       auto lineNeeded =  int( pow( 2, cubeDecompositionToBeAssigned.first ) );
 
       // input example 2^1 [1,1,0] [1,1]
@@ -503,7 +504,7 @@
       // vector<MintermVector> vectors
       // for each MintermVector in the cubeDecompositionToBeAssigned
       // we find its assignment set
-      
+
       auto assignmentSetsVector = vector<vector<set<string>>>{};
 
       // find all assignment sets for each cube vector
@@ -538,7 +539,7 @@
       while ( assignmentSetIt != assignmentSetsOfIntForCubeDecomposition.end() )
       {
           // find all available lines that can put the current assignment in
-          // for example, find all lines that the columns 100, 101, 110, 111 
+          // for example, find all lines that the columns 100, 101, 110, 111
           // are still 0's for the assignment set {100, 101, 110, 111}
           auto availableLines = vector< int>{};
           for (auto lineNo = 0; lineNo <  int( originalAssMat.size()); ++lineNo )
@@ -605,12 +606,12 @@
                       minLiteralCount = 0;
                       tempStr = "end_of_file";
                   }
-                  
-                  if ( tempStr == "+" )  
-                  { 
+
+                  if ( tempStr == "+" )
+                  {
                     break;
                   }
-                  
+
                   if ( tempStr == "end_of_file" )
                   {
                       endOfFile = true;
@@ -619,7 +620,7 @@
                   tempStr.erase( tempStr.begin() );
                   tempBestCube.push_back( tempStr );
               }
-              if ( int( tempBestCube.size() ) < minLiteralCount ) 
+              if ( int( tempBestCube.size() ) < minLiteralCount )
               {
                   minLiteralCount =  int(tempBestCube.size());
                   bestCube = tempBestCube;
@@ -747,7 +748,7 @@
       {
           auto newAssMat = originalAssMatConst;
           // find all available lines that can put the current assignment in
-          // for example, find all lines that the columns 100, 101, 110, 111 
+          // for example, find all lines that the columns 100, 101, 110, 111
           // are still 0's for the assignment set {100, 101, 110, 111}
           auto availableLines = vector<int>{};
           for ( auto lineNo = 0; lineNo <  int(newAssMat.size()); ++lineNo )
@@ -893,8 +894,8 @@
           ret.push_back(newAssMat);
           ++assignmentSetIt;
           valid_count++;
-      
-        if (valid_count == x_comb_limit) 
+
+        if (valid_count == x_comb_limit)
         {
           break;
         }
@@ -924,7 +925,7 @@
           countOfMinterm += lineCubeVector[i];
       }
 
-      // the number of zeros in the end is the 
+      // the number of zeros in the end is the
       // number of complemented X-variables
       // it's d - t - r, d = size - 1, t = countOfOne, r = log2(countOfMinterm)
       // since countOfMinterm = choose(r, 0) + choose(r, 1) + ... + choose(r, r)
@@ -932,7 +933,7 @@
 
       // then we have all of the information we need
 
-      // next we need to find a basic assignment set according to the 
+      // next we need to find a basic assignment set according to the
       // count of minterms. For example, [1, 1, 0] has two minterms,
       // the basic assignment set will be {0, 1}, then insert 0/1
       // according to the countOfOne and countOfZero we have got.
@@ -1191,7 +1192,7 @@
       sets.erase(sets.begin());
       sets[0] = prod;
 
-      return MultiplyAssignmentSets(sets);      
+      return MultiplyAssignmentSets(sets);
   }
 
   vector<CubeDecomposition> PossibleCubeDecompositions( int log2CubeSize, vector< int> degrees,  int accuracy)
@@ -1234,7 +1235,7 @@
                       // it means 2^2 X [1, 1, 0] X [1, 0] = [4, 4, 0, 0, 0, 0]
                       ret.push_back(newCubeDecomp);
                   }
-              }//ret: 8*[1,2,1,0,0]; 8*[0,1,2,1,0]; 8*[0,0,1,2,1] 
+              }//ret: 8*[1,2,1,0,0]; 8*[0,1,2,1,0]; 8*[0,0,1,2,1]
           }//for (auto s = 0; s <= *(remainingDegrees.rbegin()); ++s)
           return ret;
       }//if (remainingDegrees.size() == 1)
@@ -1337,7 +1338,7 @@
   AssMat process_truthtable( AssMat originalAssMat, string stringtt, unsigned m, unsigned n )
   {
     bool verbose = false;
-    auto retret=vector<string>();	
+    auto retret=vector<string>();
     string stt,X,Y,tmp;
     stt.assign( stringtt );
     reverse( stt.begin(), stt.end() );
@@ -1362,18 +1363,18 @@
           cout << Y << endl;
         }
 
-        retret.push_back(tmp);		
+        retret.push_back(tmp);
       }
     }
-    
+
     return originalAssMat;
   }
 
-  Node::Node( AssMat newAssMat, 
-              MintermVector newProblemVector, 
-              int newLevel, 
-              vector<CubeDecomposition> newAssignedCubeDecompositions, 
-              CubeDecomposition lastAssignedCubeDecomposition,  
+  Node::Node( AssMat newAssMat,
+              MintermVector newProblemVector,
+              int newLevel,
+              vector<CubeDecomposition> newAssignedCubeDecompositions,
+              CubeDecomposition lastAssignedCubeDecomposition,
               int literalCount )
   {
       _assignedAssMat = newAssMat;
