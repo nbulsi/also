@@ -26,6 +26,7 @@ namespace alice
       explicit stochastic_command( const environment::ptr& env ) : command( env, "stochastic circuit synthesis" )
       {
         add_option( "filename, -f", filename, "the input txt file name" );
+        add_option( "time, -t", time_limit, "the time limit of the SAT solver" );
         add_flag( "--verbose, -v", "verbose output" );
       }
 
@@ -101,21 +102,31 @@ namespace alice
 
           stopwatch<>::duration time{0};
           mig_network mig;
+          std::optional<mig_network> res;
+
           call_with_stopwatch( time, [&]()
               {
-                mig = stochastic_synthesis( num_vars, m, n, vector, preoccupy );
+                res = stochastic_synthesis( num_vars, m, n, vector, preoccupy, time_limit );
               } );
 
-          store<mig_network>().extend();
-          store<mig_network>().current() = mig;
+          if( res.has_value() )
+          {
+              mig = res.value();
+              store<mig_network>().extend();
+              store<mig_network>().current() = mig;
 
-          default_simulator<kitty::dynamic_truth_table> sim( m+n );
-          const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
-          kitty::print_binary(tt, std::cout);
-          std::cout<<std::endl;
-          std::cout <<"tt: 0x"<< kitty::to_hex(tt ) << std::endl;
+              default_simulator<kitty::dynamic_truth_table> sim( m + n );
+              const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
+              kitty::print_binary( tt, std::cout );
+              std::cout<< std::endl;
+              std::cout << "tt: 0x" << kitty::to_hex( tt ) << std::endl;
 
-          std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
+              std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
+          }
+          else
+          {
+              std::cerr << "Failed to get synthesized result due to time limit\n";
+          }
         }
         else
         {
@@ -131,6 +142,7 @@ namespace alice
       unsigned m; //the number control the accuracy
       std::vector<unsigned> vector;
       std::vector<unsigned> preoccupy;
+      unsigned time_limit = 60 * 60; //default is 1 hour
   };
 
   ALICE_ADD_COMMAND( stochastic, "Various" )

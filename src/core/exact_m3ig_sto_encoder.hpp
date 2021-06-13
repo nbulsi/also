@@ -826,21 +826,33 @@ namespace also
           {
             printf("[i] Step %d performs op %d, inputs are:%d%d%d\n", i, op, op_inputs[0], op_inputs[1], op_inputs[2] );
           }
-
         }
 
         const auto pol = spec.out_inv ? 1 : 0;
         const auto tmp = ( ( spec.nr_steps + spec.nr_in ) << 1 ) + pol;
-        chain.set_output(0, tmp);
+        chain.set_output( 0, tmp );
 
         //printf("[i] %d nodes are required\n", spec.nr_steps );
-
 
         if( spec.out_inv )
         {
           printf( "[i] output is inverted\n" );
         }
           //assert( chain.satisfies_spec( spec ) );
+      }
+
+      std::vector<unsigned> get_inverted_problem_vec()
+      {
+        std::vector<unsigned> pinv;
+        auto porigin = get_problem_vec();
+        auto v = get_number_entries_sum_equal_C();
+
+        for( auto i = 0; i < get_n_value() + 1; i++ )
+        {
+          pinv.push_back( v[i] - porigin[i] );
+        }
+
+        return pinv;
       }
   };
 
@@ -850,123 +862,100 @@ namespace also
    ******************************************************************************/
    synth_result mig_three_sto_synthesize( spec& spec, mig3& mig3, solver_wrapper& solver, mig_three_sto_encoder& encoder )
    {
-      spec.preprocess();
+       //init the spec based on the problem vector
+       spec.nr_in   = encoder.get_m_value() + encoder.get_n_value();
+       spec.tt_size = ( 1 << spec.nr_in ) - 1;
+       spec.nr_steps = spec.initial_steps;
 
-      //init the spec based on the problem vector
-      spec.nr_in   = encoder.get_m_value() + encoder.get_n_value();
-      spec.tt_size = ( 1 << spec.nr_in ) - 1;
+       auto porigin = encoder.get_problem_vec();
+       auto pinv = encoder.get_inverted_problem_vec();
+       auto v = encoder.get_number_entries_sum_equal_C();
 
-
-      // The special case when the Boolean chain to be synthesized
-      // consists entirely of trivial functions.
-      if (spec.nr_triv == spec.get_nr_out())
-      {
-        spec.nr_steps = 0;
-        mig3.reset(spec.get_nr_in(), spec.get_nr_out(), 0);
-        for (int h = 0; h < spec.get_nr_out(); h++)
-        {
-          mig3.set_output(h, (spec.triv_func(h) << 1) +
-              ((spec.out_inv >> h) & 1));
-        }
-        return success;
-      }
-
-      spec.nr_steps = spec.initial_steps;
-
-      bool flag_unnormal = false;
-      bool flag_permanate_unnormal = false;
-      auto porigin = encoder.get_problem_vec();
-      auto v = encoder.get_number_entries_sum_equal_C();
-
-      /* special case when v[0] = porigin.v[0], that means the
-       * first bit must be 1, which is not a normal function */
-      if( porigin[0] == v[0] )
-      {
-        flag_permanate_unnormal = true;
+       //permanent unnormal function, where the first one must be 1
+       if( porigin[0] == v[0] )
+       {
+        std::cout << "[i] PERMANENT UNNORMAL function." << std::endl;
+        encoder.set_problem_vec( pinv );
+        encoder.set_is_unnormal( true );
         spec.out_inv = true;
-        std::vector<unsigned> pupdate;
 
-        for( auto i = 0; i < encoder.get_n_value() + 1; i++ )
+        while( true )
         {
-          pupdate.push_back( v[i] - porigin[i] );
-        }
+            solver.restart();
 
-        encoder.set_problem_vec( pupdate );
-        std::cout << "[i] UNNORMAL function." << std::endl;
-      }
-
-      while( true )
-      {
-        solver.restart();
-
-        if( !encoder.encode( spec ) )
-        {
-          spec.nr_steps++;
-          break;
-        }
-
-        const auto status = solver.solve( spec.conflict_limit );
-
-        if( status == success )
-        {
-          //encoder.show_verbose_result();
-          if( flag_unnormal ) { spec.out_inv = true; }
-
-          encoder.extract_mig3( spec, mig3 );
-          return success;
-        }
-        else if( status == failure )
-        {
-          /*****************************************************
-           * Due to the encoder works for normal function, we
-           * should also try the unnormal function, just redefine
-           * the problem vector, if m = 1, n = 2, the problem
-           * vector is [1,3,2], then the inveterd problem vector
-           * is [2-1=1, 4-3=1, 2-2=0]
-           * ***************************************************/
-          if( !flag_unnormal && !flag_permanate_unnormal )
-          {
-            std::cout << " Try the unnormal function\n";
-            flag_unnormal = true;
-            encoder.set_is_unnormal( true );
-
-            std::vector<unsigned> pupdate;
-
-            for( auto i = 0; i < encoder.get_n_value() + 1; i++ )
-            {
-              pupdate.push_back( v[i] - porigin[i] );
+            if( !encoder.encode( spec ) ){
+                spec.nr_steps++;
+                break;
             }
 
-            encoder.set_problem_vec( pupdate );
-          }
-          else
-          {
-            spec.nr_steps++;
-            flag_unnormal = false;
-            encoder.set_is_unnormal( false );
+            const auto status = solver.solve( spec.conflict_limit );
 
-            if( !flag_permanate_unnormal )
-            {
-              encoder.set_problem_vec( porigin );
+            if( status == success ){
+                encoder.extract_mig3( spec, mig3 );
+                return success;
             }
-          }
+            else if( status == failure ){
+                spec.nr_steps++;
 
-          if( spec.nr_steps == 20 )
-          {
-            break;
-          }
+                if( spec.nr_steps == 20 )
+                {
+                    return failure;
+                }
+            }
+            else
+            {
+                return timeout;
+            }
         }
-        else
-        {
-          return timeout;
-        }
+       }
+       else
+       {
+           while( true )
+           {
+               solver.restart();
 
-      }
+               if( !encoder.encode( spec ) ){
+                   spec.nr_steps++;
+                   break;
+               }
 
-      return success;
+               const auto status = solver.solve( spec.conflict_limit );
+
+               if( status == success ){
+                   spec.out_inv = encoder.get_is_unnormal() ? true : false;
+                   encoder.extract_mig3( spec, mig3 );
+                   return success;
+               }
+               else if( status == failure ){
+                   //try unnormal function
+                   //note that if pinv[0] = v[0], it will result in permanate unnormal function
+                   if( !encoder.get_is_unnormal() && ( pinv[0] != v[0] ) )
+                   {
+                       std::cout << "Try unnormal function at step " << spec.nr_steps << std::endl;
+                       encoder.set_problem_vec( pinv );
+                       encoder.set_is_unnormal( true );
+                   }
+                   else
+                   {
+                       spec.nr_steps++;
+                       encoder.set_problem_vec( porigin );
+                       encoder.set_is_unnormal( false );
+                   }
+
+                   if( spec.nr_steps == 20 )
+                   {
+                       return failure;
+                   }
+               }
+               else
+               {
+                   return timeout;
+               }
+           }
+       }
+
+       return success;
    }
-
-
 }
 
 #endif

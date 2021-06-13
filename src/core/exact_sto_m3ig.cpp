@@ -3,7 +3,6 @@
 
 #include <cmath>
 #include <iostream>
-#include <optional>
 #include <vector>
 
 #include "exact_m3ig_sto_encoder.hpp"
@@ -19,8 +18,9 @@ class sto_syn_manager {
 public:
   sto_syn_manager(unsigned const &num_vars, unsigned const &m,
                   unsigned const &n, std::vector<unsigned> const &vector,
-                  std::vector<unsigned> const &preoccupy);
-  mig_network run();
+                  std::vector<unsigned> const &preoccupy,
+                  unsigned const &time_sec_limit );
+  std::optional<mig_network> run();
   std::optional<mig_network> preprocess();
   unsigned sum_of_vector();
   unsigned count_tt_sum_of_x(unsigned const &spec_num,
@@ -33,6 +33,7 @@ private:
   unsigned n;
   std::vector<unsigned> vector;
   std::vector<unsigned> preoccupy;
+  unsigned time_sec_limit; //solver time limit
 
   unsigned vec_sum = 0u;
   bool verbose = false;
@@ -45,8 +46,10 @@ private:
 sto_syn_manager::sto_syn_manager(unsigned const &num_vars, unsigned const &m,
                                  unsigned const &n,
                                  std::vector<unsigned> const &vector,
-                                 std::vector<unsigned> const &preoccupy)
-    : num_vars(num_vars), m(m), n(n), vector(vector), preoccupy(preoccupy) {
+                                 std::vector<unsigned> const &preoccupy,
+                                 unsigned const &time_sec_limit )
+    : num_vars(num_vars), m(m), n(n), vector(vector), preoccupy(preoccupy), time_sec_limit( time_sec_limit )
+{
   vec_sum = sum_of_vector();
 }
 
@@ -181,7 +184,7 @@ unsigned sto_syn_manager::count_tt_sum_of_x(
   return total;
 }
 
-mig_network sto_syn_manager::run() {
+std::optional<mig_network> sto_syn_manager::run() {
   mig_network mig;
   if (verbose) {
     std::cout << " num_vars : " << num_vars << " \n"
@@ -198,9 +201,6 @@ mig_network sto_syn_manager::run() {
     percy::spec spec;
     also::mig3 mig3;
 
-    kitty::dynamic_truth_table tt(4);
-    kitty::create_from_hex_string(tt, "17e8");
-    spec[0] = tt;
     spec.verbosity = 0;
 
     // stochastic problem vector
@@ -214,11 +214,23 @@ mig_network sto_syn_manager::run() {
     percy::bsat_wrapper solver;
     mig_three_sto_encoder encoder(solver, instance);
 
-    if (mig_three_sto_synthesize(spec, mig3, solver, encoder) ==
-        percy::success) {
+    //set time limit for sat
+    solver.set_time_limit( time_sec_limit );
+
+    auto result = mig_three_sto_synthesize( spec, mig3, solver, encoder );
+    if( result == percy::success )
+    {
       print_all_expr(spec, mig3);
       mig = mig3_to_mig_network(spec, mig3);
       return mig;
+    }
+    else if( result == percy::timeout )
+    {
+        return std::nullopt;
+    }
+    else
+    {
+        assert( false && "exact synthesis failed\n" );
     }
   }
 
@@ -228,11 +240,12 @@ mig_network sto_syn_manager::run() {
 /******************************************************************************
  * Public functions                                                           *
  ******************************************************************************/
-mig_network stochastic_synthesis(unsigned const &num_vars, unsigned const &m,
+std::optional<mig_network> stochastic_synthesis(unsigned const &num_vars, unsigned const &m,
                                  unsigned const &n,
                                  std::vector<unsigned> const &vector,
-                                 std::vector<unsigned> const &preoccupy) {
-  sto_syn_manager mgr(num_vars, m, n, vector, preoccupy);
+                                 std::vector<unsigned> const &preoccupy,
+                                 unsigned const &time_sec_limit ) {
+  sto_syn_manager mgr( num_vars, m, n, vector, preoccupy, time_sec_limit );
   return mgr.run();
 }
 
