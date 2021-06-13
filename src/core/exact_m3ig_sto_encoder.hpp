@@ -883,6 +883,7 @@ namespace also
       if( porigin[0] == v[0] )
       {
         flag_permanate_unnormal = true;
+        encoder.set_is_unnormal( true );
         spec.out_inv = true;
         std::vector<unsigned> pupdate;
 
@@ -892,7 +893,7 @@ namespace also
         }
 
         encoder.set_problem_vec( pupdate );
-        std::cout << "[i] UNNORMAL function." << std::endl;
+        std::cout << "[i] PERMANATE UNNORMAL function." << std::endl;
       }
 
       while( true )
@@ -938,16 +939,30 @@ namespace also
             }
 
             encoder.set_problem_vec( pupdate );
+
+            //if the updated problem vec results permanate function, break
+            if( pupdate[0] == v[0] )
+            {
+                encoder.set_problem_vec( porigin );
+
+                spec.nr_steps++;
+                flag_unnormal = true;
+                encoder.set_is_unnormal( true );
+            }
           }
           else
           {
             spec.nr_steps++;
             flag_unnormal = false;
-            encoder.set_is_unnormal( false );
 
             if( !flag_permanate_unnormal )
             {
-              encoder.set_problem_vec( porigin );
+                encoder.set_problem_vec( porigin );
+                encoder.set_is_unnormal( false );
+            }
+            else
+            {
+                encoder.set_is_unnormal( true );
             }
           }
 
