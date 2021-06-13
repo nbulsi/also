@@ -224,14 +224,23 @@
               {
                 mig_network mig;
                 std::vector<unsigned> preoccupy;
-                mig = stochastic_synthesis( num_vars, m, n, vec, preoccupy );
-                default_simulator<kitty::dynamic_truth_table> sim( m + n );
-                const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
-                std::cout<< " tt:  ";
-                kitty::print_binary(tt, std::cout);
-                std::cout<<std::endl;
-                string stringtt = to_binary(tt);
-                newAssMatVec.push_back(  process_truthtable( currentNode._assignedAssMat, stringtt, m, n )  );
+                auto res = stochastic_synthesis( num_vars, m, n, vec, preoccupy, 60 );
+
+                if( res.has_value() )
+                {
+                    mig = res.value();
+                    default_simulator<kitty::dynamic_truth_table> sim( m + n );
+                    const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
+                    std::cout<< " tt:  ";
+                    kitty::print_binary(tt, std::cout);
+                    std::cout<<std::endl;
+                    string stringtt = to_binary(tt);
+                    newAssMatVec.push_back(  process_truthtable( currentNode._assignedAssMat, stringtt, m, n )  );
+                }
+                else
+                {
+                    std::cout << " failed to get synthesized results due to time limit\n";
+                }
 
                 if(sto_flag == 0)
                 {

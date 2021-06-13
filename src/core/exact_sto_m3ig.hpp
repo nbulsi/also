@@ -14,6 +14,8 @@
 #ifndef EXACT_STO_M3IG_HPP
 #define EXACT_STO_M3IG_HPP
 
+#include <optional>
+
 using namespace mockturtle;
 namespace also
 {
@@ -47,9 +49,10 @@ namespace also
     std::vector<unsigned> pre_occupy_position_idxs;
   };
 
-  mig_network stochastic_synthesis( unsigned const& num_vars, unsigned const& m, unsigned const& n,
+  std::optional<mig_network> stochastic_synthesis( unsigned const& num_vars, unsigned const& m, unsigned const& n,
                                     std::vector<unsigned> const& vector,
-                                    std::vector<unsigned> const& preoccupy );
+                                    std::vector<unsigned> const& preoccupy,
+                                    unsigned const &time_sec_limit );
 
 }
 
