@@ -31,18 +31,19 @@ namespace alice
 			explicit heusto_command( const environment::ptr& env ) : command( env, "stochastic circuit synthesis based on heuristic method" )
 		{
 			add_option( "filename, -f", filename, "the input txt file name" );
+			add_option( "time, -t", time_limit, "the time limit of the SAT solver; run without stochastic_systhesis if time==0" );
 			add_flag( "--verbose, -v", "verbose output" );
 		}
 
 		protected:
 			void execute()
 			{
-        //test if MVSIS is available
-        if( system( "./mvsis -c \"quit\"") != 0)
-        {
-          std::cerr << "[e] mvsis binary is not available in the current working directory.\n";
-          exit( 0 );
-        }
+				//test if MVSIS is available
+				if( system( "./mvsis -c \"quit\"") != 0)
+				{
+					std::cerr << "[e] mvsis binary is not available in the current working directory.\n";
+					exit( 0 );
+				}
 
 				std::ifstream myfile( filename );
 
@@ -50,7 +51,7 @@ namespace alice
 				{
 					degrees.clear();
 					problemVector.clear();
-					
+
 					int temp;	
 					auto line = string();
 					getline( myfile , line ); // first line
@@ -78,8 +79,8 @@ namespace alice
 					cout << "Variable number: " << variableNumber << endl;
 					cout << "Accuracy: " << accuracy << endl;
 					cout << "Degrees: ";
-					
-          for (auto d : degrees)
+
+					for (auto d : degrees)
 					{
 						cout << d << " ";
 					}
@@ -90,8 +91,8 @@ namespace alice
 						ss.str(string());
 						ss.clear();
 						ss << line;
-						
-            while (ss >> temp)
+
+						while (ss >> temp)
 						{
 							problemVector.push_back(temp);
 						}
@@ -105,18 +106,18 @@ namespace alice
 
 					}
 				}
-				
-        myfile.close();
 
-				auto solutionTree = SolutionTree( problemVector, degrees, accuracy, variableNumber );
+				myfile.close();
+				bool verbose = is_set( "verbose" );
+
+				auto solutionTree = SolutionTree( problemVector, degrees, accuracy, variableNumber, time_limit, verbose );
 				auto start = chrono::system_clock::now();
 				solutionTree.ProcessTree();
-
 				auto end = chrono::system_clock::now();
 				auto duration = chrono::duration_cast<std::chrono::milliseconds>(end - start);
 				auto milliseconds = duration.count();
-				
-        auto hours = milliseconds / 3600000;
+
+				auto hours = milliseconds / 3600000;
 				milliseconds -= hours * 3600000;
 				auto minitues = milliseconds / 60000;
 				milliseconds -= minitues * 60000;
@@ -142,6 +143,7 @@ namespace alice
 			int accuracy;
 			vector<int> degrees;
 			vector<int> problemVector;
+			unsigned time_limit = 60 * 60; //default is 1 hour
 			std::string filename = "vector.txt";
 	};
 

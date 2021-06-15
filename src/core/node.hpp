@@ -93,7 +93,7 @@ using namespace also;
   class SolutionTree
   {
     public:
-      SolutionTree(vector< int> initialProblemVector, vector< int> degrees,  int accuracy,int variableNumber);
+      SolutionTree(vector< int> initialProblemVector, vector< int> degrees,  int accuracy, int variableNumber, unsigned time_limit, bool verbose );
       void ProcessTree();
       // process a single Node
       vector<Node> ProcessNode(Node currentNode);
@@ -129,6 +129,9 @@ using namespace also;
       unsigned m;
       unsigned n;
       vector<unsigned> vec; 
+      vector<int> originalVector;
+      unsigned timeLimit;
+      bool flag_verbose;
       //mig_network stochastic_synthesis( num_vars, m, n, vec );
 
       vector<Node> _nodeVector;
@@ -188,5 +191,7 @@ using namespace also;
 
   vector<set<string>> BuildAssignmentSet(set<string> basicAssignmentSet,  int countOfZero,  int countOfOne);
   AssMat process_truthtable( AssMat originalAssMat, string stringtt, unsigned m, unsigned n );
+  vector<unsigned> process_position(AssMat originalAssMat, unsigned m, unsigned n );
+  vector<unsigned> process_vector(vector<int> originalproblemVector, vector<int> remainingProblemVector, vector<int> cube );
 
 #endif
