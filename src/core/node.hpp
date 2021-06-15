@@ -130,7 +130,7 @@ using namespace also;
       unsigned n;
       vector<unsigned> vec; 
       vector<int> originalVector;
-      unsigned timeLimit;
+      unsigned time_Limit;
       bool flag_verbose;
       //mig_network stochastic_synthesis( num_vars, m, n, vec );
 
@@ -150,6 +150,9 @@ using namespace also;
       int _updateTime;
       int _nodeNumber;
       int _maxLevel;
+      int sto_times;
+      int heu_times;
+      int sto_maxLevel;
       unordered_map< int,  int> _sizeOfCubeInLevel;
   };
 
