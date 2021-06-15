@@ -153,6 +153,7 @@ using namespace also;
       int sto_times;
       int heu_times;
       int sto_maxLevel;
+      int leaves_size;
       unordered_map< int,  int> _sizeOfCubeInLevel;
   };
 

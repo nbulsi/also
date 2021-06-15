@@ -57,6 +57,7 @@ SolutionTree::SolutionTree( vector< int> initialProblemVector, vector< int> degr
 	sto_maxLevel = 0;
 	sto_times = 0;
 	heu_times = 0;
+	leaves_size = 0;
 	_optimalNode = Node();
 	_optimalNodes = vector<Node>();
 
@@ -85,8 +86,9 @@ void SolutionTree::ProcessTree()
 
 	// Display the result
 	//cout << "BEGIN: display final result" << endl;
-	cout<< "max_level: " << _maxLevel << "  " << "stochastic_maxLevel: " << sto_maxLevel << endl;
+	cout<< "max_level: " << _maxLevel + 1 << "  " << "stochastic_maxLevel: " << sto_maxLevel << endl;
 	cout<< "max_times: " << sto_times + heu_times << "  " << "stochastic_times: " << sto_times << endl;
+	cout<< "leaves_size: " << leaves_size << endl;
 	
 	cout << "The minimum literal number is " << _minLiteralCount << endl;
 
@@ -236,7 +238,7 @@ vector<Node> SolutionTree::ProcessNode( Node currentNode )
 				if( res.has_value() )
 				{
 					sto_times = sto_times + 1;
-					sto_maxLevel = currentNode._level;
+					sto_maxLevel = currentNode._level + 1; //currentNode._level=0
 					mig = res.value();
 					default_simulator<kitty::dynamic_truth_table> sim( m + n );
 					const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
@@ -287,7 +289,7 @@ vector<Node> SolutionTree::ProcessNode( Node currentNode )
 				if( res.has_value() )
 				{
 					sto_times = sto_times + 1;
-					sto_maxLevel = currentNode._level;
+					sto_maxLevel = currentNode._level + 1;
 					mig = res.value();
 					default_simulator<kitty::dynamic_truth_table> sim( m + n );
 					const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
@@ -309,13 +311,13 @@ vector<Node> SolutionTree::ProcessNode( Node currentNode )
 				}
 			}
 
-
+			leaves_size = leaves_size + newAssMatVec.size();
 			// calculate the hash for the new matrix
 			for ( auto& newAssMat : newAssMatVec )
 			{
 				if(flag_verbose)
 				{
-					cout<<"------AssMat------"<<endl;
+					cout << "-----AssMat---level=" << currentNode._level + 1 << "-----" << endl;
 					for ( auto it = newAssMat.begin(); it != newAssMat.end(); it++ )
 					{
 						cout << *it << " " << endl;
@@ -384,7 +386,11 @@ vector<Node> SolutionTree::ProcessNode( Node currentNode )
 						break;
 					}
 				}
-				cout << "literalCount:  " << literalCount << endl;
+				
+				if(flag_verbose)
+				{
+					cout << "literalCount:  " << literalCount << endl;
+				}
 
 				// prune if the current level's literal count exceeds
 				if (( _minLiteralCountOfLevel[currentNode._level] != 0) && ( _minLiteralCountOfLevel[currentNode._level] * MULTIPLE <= literalCount ) )
@@ -469,7 +475,8 @@ vector<Node> SolutionTree::ProcessNode( Node currentNode )
 vector<Node> SolutionTree::ProcessNodeVector( vector<Node> nodeVecToBeProcessed )
 {
 	auto resultSubNodeVector = vector<Node>{};
-
+	leaves_size = 0;
+	
 	// first process each node in the vector and get the optimal nodes
 	// use for loop to traverse all of the nodes
 
