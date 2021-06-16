@@ -197,5 +197,6 @@ using namespace also;
   AssMat process_truthtable( AssMat originalAssMat, string stringtt, unsigned m, unsigned n );
   vector<unsigned> process_position(AssMat originalAssMat, unsigned m, unsigned n );
   vector<unsigned> process_vector(vector<int> originalproblemVector, vector<int> remainingProblemVector, vector<int> cube );
+  bool check_result( AssMat resultAssMat, vector<int> problemVector, unsigned m, unsigned n );
 
 #endif

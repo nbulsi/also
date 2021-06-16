@@ -86,9 +86,9 @@ void SolutionTree::ProcessTree()
 
 	// Display the result
 	//cout << "BEGIN: display final result" << endl;
-	cout<< "max_level: " << _maxLevel + 1 << "  " << "stochastic_maxLevel: " << sto_maxLevel << endl;
-	cout<< "max_times: " << sto_times + heu_times << "  " << "stochastic_times: " << sto_times << endl;
-	cout<< "leaves_size: " << leaves_size << endl;
+	cout<< "max_level: " << _maxLevel + 1 << "  " << "stochastic_maxLevel: " << sto_maxLevel << endl; // level of process_tree 
+	cout<< "total_method_times: " << sto_times + heu_times << "  " << "stochastic_times: " << sto_times << endl;//run times of stochastic | heuristic method 
+	cout<< "leaves: " << leaves_size << endl; //numbers 0f leaves represent numbers of branches 
 	
 	cout << "The minimum literal number is " << _minLiteralCount << endl;
 
@@ -105,6 +105,12 @@ void SolutionTree::ProcessTree()
 		auto plaFile = ofstream( ss.str(), ofstream::app );
 		plaFile << ".i " << _log2LengthOfTotalCube + _accuracy << endl;
 		plaFile << ".o 1" << endl;
+		
+		if( !check_result( _optimalNodes[sol]._assignedAssMat, originalVector, m, n ) )
+		{
+			cout << ss.str() << " is error." << endl;
+			continue;	
+		}
 
 		for ( auto line = 0; line <  int( _optimalNodes[sol]._assignedAssMat.size() ); ++line )
 		{
@@ -229,86 +235,103 @@ vector<Node> SolutionTree::ProcessNode( Node currentNode )
 			vector<AssMat> newAssMatVec;
 			vec.assign( totalCubeVector.begin(),totalCubeVector.end() );
 
-			if ( currentNode._level == 0 )
+			if( time_Limit != 0 )  //stochastic + heustic method
 			{
-				mig_network mig;
-				std::vector<unsigned> preoccupy;
-				auto res = stochastic_synthesis( num_vars, m, n, vec, preoccupy, time_Limit );
-
-				if( res.has_value() )
+				if ( currentNode._level == 0 )
 				{
-					sto_times = sto_times + 1;
-					sto_maxLevel = currentNode._level + 1; //currentNode._level=0
-					mig = res.value();
-					default_simulator<kitty::dynamic_truth_table> sim( m + n );
-					const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
+					mig_network mig;
+					std::vector<unsigned> preoccupy;
+					auto res = stochastic_synthesis( num_vars, m, n, vec, preoccupy, time_Limit );
 
-					if( flag_verbose )
+					if( res.has_value() )
 					{
-						//std::cout<< " tt:  ";
-						//kitty::print_binary(tt, std::cout);
-						//std::cout<<std::endl;
-						std::cout << "tt: 0x" << kitty::to_hex( tt ) << std::endl;
-					}
+						sto_times = sto_times + 1;
+						sto_maxLevel = currentNode._level + 1; //currentNode._level=0
+						mig = res.value();
+						default_simulator<kitty::dynamic_truth_table> sim( m + n );
+						const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
 
-					string stringtt = to_binary(tt);
-					newAssMatVec.push_back(  process_truthtable( currentNode._assignedAssMat, stringtt, m, n )  );
+						if( flag_verbose )
+						{
+							//std::cout<< " tt:  ";
+							//kitty::print_binary(tt, std::cout);
+							//std::cout<<std::endl;
+							std::cout << "tt: 0x" << kitty::to_hex( tt ) << std::endl;
+						}
+
+						string stringtt = to_binary(tt);
+						newAssMatVec.push_back(  process_truthtable( currentNode._assignedAssMat, stringtt, m, n )  );
+					}
+					else
+					{
+						std::cout << " failed to get synthesized results due to time limit\n";
+						heu_times = heu_times + 1;
+						newAssMatVec.push_back( AssignMatrixByEspresso( currentNode._assignedAssMat, cubeDecomposition ) );
+					}
 				}
 				else
 				{
-					std::cout << " failed to get synthesized results due to time limit\n";
-					heu_times = heu_times + 1;
-					newAssMatVec.push_back( AssignMatrixByEspresso( currentNode._assignedAssMat, cubeDecomposition ) );
+					mig_network mig;
+					std::vector<unsigned> vec = process_vector(originalVector, currentNode._remainingProblemVector, totalCubeVector);
+					std::vector<unsigned> preoccupy = process_position( currentNode._assignedAssMat, m, n );
+
+					if( flag_verbose )
+					{
+						cout << "newVector: ";
+						for ( int j=0; j < vec.size(); j++ )
+						{
+							cout << vec[j] << " ";
+						}
+						cout << endl;
+
+						cout<<"preoccupy: ";
+						for( int i=0; i < preoccupy.size(); i++ )
+						{
+							cout<< preoccupy[i] << " ";
+						}
+						cout<<endl;
+					}
+
+					auto res = stochastic_synthesis( num_vars, m, n, vec, preoccupy, time_Limit );
+
+					if( res.has_value() )
+					{
+						sto_times = sto_times + 1;
+						sto_maxLevel = currentNode._level + 1;
+						mig = res.value();
+						default_simulator<kitty::dynamic_truth_table> sim( m + n );
+						const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
+						if( flag_verbose )
+						{
+							//std::cout<< " tt:  ";
+							//kitty::print_binary(tt, std::cout);
+							//std::cout<<std::endl;
+							std::cout << "tt: 0x" << kitty::to_hex( tt ) << std::endl;
+						}
+						string stringtt = to_binary(tt);
+						newAssMatVec.push_back(  process_truthtable( currentNode._assignedAssMat, stringtt, m, n )  );
+					}
+					else
+					{	
+						std::cout << " failed to get synthesized results due to time limit\n";
+						heu_times = heu_times + 1;
+						newAssMatVec = AssignMatrixByEspressoVector( currentNode._assignedAssMat, cubeDecomposition );
+					}
 				}
 			}
-			else
+			
+			if( time_Limit == 0 )  //only heustic method
 			{
-				mig_network mig;
-				std::vector<unsigned> vec = process_vector(originalVector, currentNode._remainingProblemVector, totalCubeVector);
-				std::vector<unsigned> preoccupy = process_position( currentNode._assignedAssMat, m, n );
-
-				if( flag_verbose )
+				if (currentNode._level == 0)
 				{
-					cout << "newVector: ";
-					for ( int j=0; j < vec.size(); j++ )
-					{
-						cout << vec[j] << " ";
-					}
-					cout << endl;
-
-					cout<<"preoccupy: ";
-					for( int i=0; i < preoccupy.size(); i++ )
-					{
-						cout<< preoccupy[i] << " ";
-					}
-					cout<<endl;
-				}
-
-				auto res = stochastic_synthesis( num_vars, m, n, vec, preoccupy, time_Limit );
-
-				if( res.has_value() )
-				{
-					sto_times = sto_times + 1;
-					sto_maxLevel = currentNode._level + 1;
-					mig = res.value();
-					default_simulator<kitty::dynamic_truth_table> sim( m + n );
-					const auto tt = simulate<kitty::dynamic_truth_table>( mig, sim )[0];
-					if( flag_verbose )
-					{
-						//std::cout<< " tt:  ";
-						//kitty::print_binary(tt, std::cout);
-						//std::cout<<std::endl;
-						std::cout << "tt: 0x" << kitty::to_hex( tt ) << std::endl;
-					}
-					string stringtt = to_binary(tt);
-					newAssMatVec.push_back(  process_truthtable( currentNode._assignedAssMat, stringtt, m, n )  );
+					heu_times = heu_times + 1;
+					newAssMatVec.push_back(AssignMatrixByEspresso(currentNode._assignedAssMat, cubeDecomposition));
 				}
 				else
-				{	
-					std::cout << " failed to get synthesized results due to time limit\n";
+				{
 					heu_times = heu_times + 1;
-					newAssMatVec = AssignMatrixByEspressoVector( currentNode._assignedAssMat, cubeDecomposition );
-				}
+					newAssMatVec = AssignMatrixByEspressoVector(currentNode._assignedAssMat, cubeDecomposition);
+				}	
 			}
 
 			leaves_size = leaves_size + newAssMatVec.size();
@@ -1484,7 +1507,58 @@ vector<unsigned> process_vector( vector<int> originalproblemVector, vector<int> 
 		Vector[i] = temp + cube[i];
 	}
 	
-	return Vector;
+	return Vector; //new vector for stochastic_systhesis
+}
+
+bool check_result( AssMat resultAssMat, vector<int> problemVector, unsigned m, unsigned n )
+{   
+	vector<int> resultVector(n+1); 
+	vector<int> colVector(pow(2, n));
+
+	for ( int line = 0; line < int(resultAssMat.size()); line++ )
+	{
+		assert( int(resultAssMat[line].size()) == int(pow(2, n)) );
+
+		for ( int col = 0; col < int(resultAssMat[line].size()); col++ )
+		{
+			if ( resultAssMat[line][col] == '1' )
+			{
+				colVector[col] = colVector[col] + 1;
+			}
+		}
+	}
+
+	for ( int col = 0; col < int(colVector.size()); col++ )
+	{
+		assert( colVector[col] <= pow(2, m) );
+
+		int column = 0;
+		string tmpCol = IntToBin ( col, n-1 );
+		for ( int i = 0; i < int(tmpCol.size()); i++ )
+		{
+			if ( tmpCol[i] == '1' )
+			{
+				column = column + 1;
+			}
+		}
+		resultVector[column] = resultVector[column] + colVector[col];
+	}
+
+	//cout <<  "resultVector: ";
+	//for ( int i = 0; i < int(resultVector.size()); i++ )
+	//{ 
+		//cout << resultVector[i] << " ";
+	//}
+	//cout << endl;
+
+	for ( int i = 0; i < int(problemVector.size()); i++ )
+	{
+		if ( problemVector[i] != resultVector[i] ) 
+			{
+				return false;
+			}
+	}
+	return true;
 }
 
 Node::Node( AssMat newAssMat,
