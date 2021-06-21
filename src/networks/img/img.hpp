@@ -1,5 +1,5 @@
 /* also: Advanced Logic Synthesis and Optimization tool
- * Copyright (C) 2019- Ningbo University, Ningbo, China 
+ * Copyright (C) 2019- Ningbo University, Ningbo, China
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -323,28 +323,28 @@ public:
 
     for ( auto const& fn : _events->on_add )
     {
-      fn( index );
+      (*fn)( index );
     }
 
     return {index, 0};
   }
-  
-  //complemented signals are created by imply 
+
+  //complemented signals are created by imply
   signal create_not( signal const& a )
   {
     return create_imp( a, get_constant( false ) );
   }
-  
+
   signal create_or( signal const& a, signal const& b )
   {
     return create_imp( create_not( a ), b );
   }
-  
+
   signal create_and( signal const& a, signal const& b )
   {
     return create_not( create_imp( a, create_not( b ) ) );
   }
-  
+
   signal create_nand( signal const& a, signal const& b )
   {
     return create_not( create_and( a, b ) );
@@ -352,7 +352,7 @@ public:
 
   signal create_nor( signal const& a, signal const& b )
   {
-    return create_not( create_or( a, b ) ); 
+    return create_not( create_or( a, b ) );
   }
 
   //Hsin-Pei et al. On synthesizing Memristor-based logic circuits with minimal
@@ -368,7 +368,7 @@ public:
 
     return create_imp( f5, f4 );
   }
-  
+
   signal create_xnor( signal const& a, signal const& b )
   {
     auto f1 = create_not( a );
@@ -379,7 +379,7 @@ public:
 
     return create_imp( f3, f5 );
   }
-  
+
   //complemented signals are created by ~, in this case, we can propagate the inverted signals
   //we call this direct not
   signal create_dir_not( signal const& a )
@@ -399,12 +399,12 @@ public:
 
   signal create_dir_nand( signal const& a, signal const& b )
   {
-    return !create_and( a, b ); 
+    return !create_and( a, b );
   }
 
   signal create_dir_nor( signal const& a, signal const& b )
   {
-    return !create_or( a, b ); 
+    return !create_or( a, b );
   }
 
   signal create_lt( signal const& a, signal const& b )
@@ -416,7 +416,7 @@ public:
   {
     return create_not( create_and( a, create_not( b ) ) );
   }
-  
+
   //derive imply operations from AIG nodes
   //op1: f = !( !a + b) = not imp(a, b)
   //op2: f = (a + b) = or( a, b)
@@ -426,7 +426,7 @@ public:
   {
     return !create_imp( a, b );
   }
-  
+
   signal create_op2( signal const& a, signal const& b )
   {
     return create_dir_or( a, b );
@@ -450,7 +450,7 @@ public:
     auto f2 = create_not( create_imp( felse, cond ) );
     return create_imp( f1, f2 );
   }
-  
+
   signal create_xor3( signal const& a, signal const& b, signal const& c )
   {
     auto f1 = create_imp( a, b );
@@ -462,10 +462,10 @@ public:
     auto f6 = create_imp( f4, c );
     return create_imp( f5, create_not( f6 ) );
   }
-  
+
     signal create_maj( signal const& a, signal const& b, signal const& c )
   {
-    return create_or( create_and( a, b ), 
+    return create_or( create_and( a, b ),
                       create_or( create_and( a, c ), create_and( b, c ) ) );
   }
 #pragma endregion
@@ -533,7 +533,7 @@ public:
       child0 = node.children[0];
       child1 = new_signal;
     }
-    
+
     // check for trivial cases?
     if ( child0.index == child1.index )
     {
@@ -570,7 +570,7 @@ public:
 
     for ( auto const& fn : _events->on_modified )
     {
-      fn( n, {old_child0, old_child1} );
+      (*fn)( n, {old_child0, old_child1} );
     }
 
     return std::nullopt;
@@ -603,7 +603,7 @@ public:
 
     for ( auto const& fn : _events->on_delete )
     {
-      fn( n );
+      (*fn)( n );
     }
 
     for ( auto i = 0u; i < 2u; ++i )
@@ -652,7 +652,7 @@ public:
       take_out_node( _old );
     }
   }
-  
+
   void substitute_node_of_parents( std::vector<node> const& parents, node const& old_node, signal const& new_signal )
   {
     for ( auto& p : parents )
@@ -755,7 +755,7 @@ public:
   {
     return --_storage->nodes[n].data[0].h1 & UINT32_C( 0x7FFFFFFF );
   }
-  
+
   bool is_imp( node const& n ) const
   {
     return n > 0 && !is_pi( n );

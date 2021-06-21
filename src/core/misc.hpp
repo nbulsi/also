@@ -50,10 +50,11 @@ namespace also
     template<class Ntk>
     void print_stats( const Ntk& ntk )
     {
-      auto copy = ntk;
-      depth_view depth_ntk{ copy };
+      //auto copy = ntk;
+      //depth_view depth_ntk{ ntk };
+      using depth_ntk = depth_view<Ntk>;
       std::cout << fmt::format( "ntk   i/o = {}/{}   gates = {}   level = {}\n",
-          ntk.num_pis(), ntk.num_pos(), ntk.num_gates(), depth_ntk.depth() );
+          ntk.num_pis(), ntk.num_pos(), ntk.num_gates(), depth_ntk{ntk}.depth() );
     }
 }
 
