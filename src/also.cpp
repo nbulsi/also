@@ -37,7 +37,6 @@
 #include "commands/xmgrs.hpp"
 #include "commands/cutrw.hpp"
 #include "commands/xmgcost.hpp"
-#include "commands/magic.hpp"
 #include "commands/write_dot.hpp"
 #include "commands/cog.hpp"
 #include "commands/test_tt.hpp"

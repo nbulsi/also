@@ -174,10 +174,10 @@ public:
 
     const auto index = _storage->nodes.size();
     auto& node = _storage->nodes.emplace_back();
-    node.children[0].data = node.children[1].data 
-                          = node.children[2].data 
-                          = node.children[3].data 
-                          = node.children[4].data 
+    node.children[0].data = node.children[1].data
+                          = node.children[2].data
+                          = node.children[3].data
+                          = node.children[4].data
                           = ~static_cast<uint64_t>( 0 );
     _storage->inputs.emplace_back( index );
     ++_storage->data.num_pis;
@@ -202,10 +202,10 @@ public:
 
     auto const index = _storage->nodes.size();
     auto& node = _storage->nodes.emplace_back();
-    node.children[0].data = node.children[1].data 
-                          = node.children[2].data 
-                          = node.children[3].data 
-                          = node.children[4].data 
+    node.children[0].data = node.children[1].data
+                          = node.children[2].data
+                          = node.children[3].data
+                          = node.children[4].data
                           = _storage->inputs.size();
     _storage->inputs.emplace_back( index );
     return {index, 0};
@@ -242,7 +242,7 @@ public:
 
   bool is_ci( node const& n ) const
   {
-    return _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data 
+    return _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data
         && _storage->nodes[n].children[0].data == _storage->nodes[n].children[2].data
         && _storage->nodes[n].children[0].data == _storage->nodes[n].children[3].data
         && _storage->nodes[n].children[0].data == _storage->nodes[n].children[4].data;
@@ -250,19 +250,19 @@ public:
 
   bool is_pi( node const& n ) const
   {
-    return _storage->nodes[n].children[0].data == ~static_cast<uint64_t>( 0 ) 
-        && _storage->nodes[n].children[1].data == ~static_cast<uint64_t>( 0 ) 
-        && _storage->nodes[n].children[2].data == ~static_cast<uint64_t>( 0 ) 
-        && _storage->nodes[n].children[3].data == ~static_cast<uint64_t>( 0 ) 
+    return _storage->nodes[n].children[0].data == ~static_cast<uint64_t>( 0 )
+        && _storage->nodes[n].children[1].data == ~static_cast<uint64_t>( 0 )
+        && _storage->nodes[n].children[2].data == ~static_cast<uint64_t>( 0 )
+        && _storage->nodes[n].children[3].data == ~static_cast<uint64_t>( 0 )
         && _storage->nodes[n].children[4].data == ~static_cast<uint64_t>( 0 );
   }
 
   bool is_ro( node const& n ) const
   {
-    return _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data 
-        && _storage->nodes[n].children[0].data == _storage->nodes[n].children[2].data 
-        && _storage->nodes[n].children[0].data == _storage->nodes[n].children[3].data 
-        && _storage->nodes[n].children[0].data == _storage->nodes[n].children[4].data 
+    return _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data
+        && _storage->nodes[n].children[0].data == _storage->nodes[n].children[2].data
+        && _storage->nodes[n].children[0].data == _storage->nodes[n].children[3].data
+        && _storage->nodes[n].children[0].data == _storage->nodes[n].children[4].data
         && _storage->nodes[n].children[0].data >= static_cast<uint64_t>( _storage->data.num_pis );
   }
 
@@ -298,7 +298,7 @@ public:
     std::sort( children.begin(), children.end(), [this]( auto const& c1, auto const& c2 ) {
       return c1.index < c2.index;
     } );
-    
+
     /* reassignment */
     a = children[0];
     b = children[1];
@@ -316,10 +316,10 @@ public:
 
     /*  complemented edges minimization */
     auto node_complement = false;
-    if ( static_cast<unsigned>( a.complement ) 
-       + static_cast<unsigned>( b.complement ) 
-       + static_cast<unsigned>( c.complement ) 
-       + static_cast<unsigned>( d.complement ) 
+    if ( static_cast<unsigned>( a.complement )
+       + static_cast<unsigned>( b.complement )
+       + static_cast<unsigned>( c.complement )
+       + static_cast<unsigned>( d.complement )
        + static_cast<unsigned>( e.complement ) >= 3u )
     {
       node_complement = true;
@@ -365,12 +365,12 @@ public:
 
     for ( auto const& fn : _events->on_add )
     {
-      fn( index );
+      (*fn)( index );
     }
 
     return {index, node_complement};
   }
-  
+
   signal create_maj( signal a, signal b, signal c )
   {
     return create_maj5( get_constant( false ), get_constant( true ), a, b, c );
@@ -557,7 +557,7 @@ public:
 
     for ( auto const& fn : _events->on_modified )
     {
-      fn( n, {old_child0, old_child1, old_child2, old_child3, old_child4 } );
+      (*fn)( n, {old_child0, old_child1, old_child2, old_child3, old_child4 } );
     }
 
     return std::nullopt;
@@ -590,7 +590,7 @@ public:
 
     for ( auto const& fn : _events->on_delete )
     {
-      fn( n );
+      (*fn)( n );
     }
 
     for ( auto i = 0u; i < 5u; ++i )
@@ -610,7 +610,7 @@ public:
   {
     return ( _storage->nodes[n].data[0].h1 >> 31 ) & 1;
   }
-  
+
   void substitute_node( node const& old_node, signal const& new_signal )
   {
     std::stack<std::pair<node, signal>> to_substitute;
@@ -760,14 +760,14 @@ public:
     (void)n;
     return false;
   }
-  
+
   bool is_maj( node const& n ) const
   {
     auto& node = _storage->nodes[n];
     auto child0 = node.children[0];
     auto child1 = node.children[0];
-    
-    return is_maj5( n ) && child0.index == 0 && child1.index == 0; 
+
+    return is_maj5( n ) && child0.index == 0 && child1.index == 0;
   }
 
   bool is_maj5( node const& n ) const
@@ -880,9 +880,9 @@ public:
 
   uint32_t ci_index( node const& n ) const
   {
-    assert( _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data 
-        &&  _storage->nodes[n].children[0].data == _storage->nodes[n].children[2].data 
-        &&  _storage->nodes[n].children[0].data == _storage->nodes[n].children[3].data 
+    assert( _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data
+        &&  _storage->nodes[n].children[0].data == _storage->nodes[n].children[2].data
+        &&  _storage->nodes[n].children[0].data == _storage->nodes[n].children[3].data
         &&  _storage->nodes[n].children[0].data == _storage->nodes[n].children[4].data );
     return static_cast<uint32_t>( _storage->nodes[n].children[0].data );
   }
@@ -903,9 +903,9 @@ public:
 
   uint32_t pi_index( node const& n ) const
   {
-    assert( _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data 
-        &&  _storage->nodes[n].children[0].data == _storage->nodes[n].children[2].data 
-        &&  _storage->nodes[n].children[0].data == _storage->nodes[n].children[3].data 
+    assert( _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data
+        &&  _storage->nodes[n].children[0].data == _storage->nodes[n].children[2].data
+        &&  _storage->nodes[n].children[0].data == _storage->nodes[n].children[3].data
         &&  _storage->nodes[n].children[0].data == _storage->nodes[n].children[4].data );
     assert( _storage->nodes[n].children[0].data < _storage->data.num_pis );
 
@@ -928,9 +928,9 @@ public:
 
   uint32_t ro_index( node const& n ) const
   {
-    assert( _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data 
-        &&  _storage->nodes[n].children[0].data == _storage->nodes[n].children[2].data 
-        &&  _storage->nodes[n].children[0].data == _storage->nodes[n].children[3].data 
+    assert( _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data
+        &&  _storage->nodes[n].children[0].data == _storage->nodes[n].children[2].data
+        &&  _storage->nodes[n].children[0].data == _storage->nodes[n].children[3].data
         &&  _storage->nodes[n].children[0].data == _storage->nodes[n].children[4].data );
     assert( _storage->nodes[n].children[0].data >= _storage->data.num_pis );
 
@@ -1124,7 +1124,7 @@ public:
                                     kitty::dynamic_truth_table b,
                                     kitty::dynamic_truth_table c,
                                     kitty::dynamic_truth_table d,
-                                    kitty::dynamic_truth_table e ) const 
+                                    kitty::dynamic_truth_table e ) const
   {
     auto m1 = kitty::ternary_majority( a, b, c );
     auto m2 = kitty::ternary_majority( a, b, d );
@@ -1152,11 +1152,11 @@ public:
     auto v3 = *begin++;
     auto v4 = *begin++;
     auto v5 = *begin++;
-    
-    auto a = v1 ^ c1.weight; 
-    auto b = v2 ^ c2.weight; 
-    auto c = v3 ^ c3.weight; 
-    auto d = v4 ^ c4.weight; 
+
+    auto a = v1 ^ c1.weight;
+    auto b = v2 ^ c2.weight;
+    auto c = v3 ^ c3.weight;
+    auto d = v4 ^ c4.weight;
     auto e = v5 ^ c5.weight;
 
     auto poly = ( a && ( b && c ) ) + ( a && ( b && d ) ) + ( a && ( b && e ) ) + ( a && ( c && d ) ) + ( a && ( c && e ) ) +
@@ -1184,7 +1184,7 @@ public:
     auto tt3 = *begin++;
     auto tt4 = *begin++;
     auto tt5 = *begin++;
-    
+
     return maj5( c1.weight ? ~tt1 : tt1,
                  c2.weight ? ~tt2 : tt2,
                  c3.weight ? ~tt3 : tt3,

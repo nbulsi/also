@@ -260,7 +260,7 @@ namespace mockturtle
 
 			for (auto const& fn : _events->on_add)
 			{
-				fn(index);
+				(*fn)(index);
 			}
 
 			return index;
@@ -304,7 +304,7 @@ namespace mockturtle
 
 						for (auto const& fn : _events->on_modified)
 						{
-							fn(i, old_children);
+							(*fn)(i, old_children);
 						}
 					}
 				}
@@ -387,7 +387,7 @@ namespace mockturtle
 		{
 			return f;
 		}
-    
+
     bool is_complemented( signal const& f ) const
     {
       (void)f;
