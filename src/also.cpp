@@ -54,6 +54,7 @@
 #include "commands/app.hpp"
 #include "commands/xmgban.hpp"
 #include "commands/heusto.hpp"
+#include "commands/techmap.hpp"
 #include "commands/exact_map.hpp"
 
 ALICE_MAIN( also )

@@ -58,7 +58,7 @@ namespace alice
           {
             auto xmg = store<xmg_network>().current();
 
-            auto res = mockturtle::tech_map( xmg, lib, ps, &st );
+            auto res = mockturtle::map( xmg, lib, ps, &st );
 
             std::cout << fmt::format( "Mapped XMG into #gates = {}, area = {:.2f}, delay = {:.2f}\n", res.num_gates(), st.area, st.delay );
           }
@@ -73,7 +73,7 @@ namespace alice
           {
             auto mig = store<mig_network>().current();
 
-            auto res = mockturtle::tech_map( mig, lib, ps, &st );
+            auto res = mockturtle::map( mig, lib, ps, &st );
 
             std::cout << fmt::format( "Mapped MIG into #gates = {}, area = {:.2f}, delay = {:.2f}\n", res.num_gates(), st.area, st.delay );
           }
@@ -88,7 +88,7 @@ namespace alice
           {
             auto aig = store<aig_network>().current();
 
-            auto res = mockturtle::tech_map( aig, lib, ps, &st );
+            auto res = mockturtle::map( aig, lib, ps, &st );
 
             std::cout << fmt::format( "Mapped AIG into #gates = {}, area = {:.2f}, delay = {:.2f}\n", res.num_gates(), st.area, st.delay );
           }
