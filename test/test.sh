@@ -4,7 +4,7 @@
 # Path:also/test/
 # Usage:you must be in the directory (also/test),then run ./test.sh
 # Update: 2021.6.21
-# Author: Chuanghe Shang, Zhufei Chu
+# Author: Chuanhe Shang, Zhufei Chu
 
 path_also='also -c'
 path_circuit=./aiger_benchmarks

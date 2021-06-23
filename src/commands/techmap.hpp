@@ -19,6 +19,8 @@
 #include <mockturtle/networks/mig.hpp>
 #include <mockturtle/networks/aig.hpp>
 #include <mockturtle/networks/xmg.hpp>
+#include <mockturtle/properties/xmgcost.hpp>
+#include "../core/properties.hpp"
 
 namespace alice
 {
@@ -57,10 +59,19 @@ namespace alice
           else
           {
             auto xmg = store<xmg_network>().current();
+            xmg_gate_stats stats;
+            xmg_profile_gates( xmg, stats );
+            std::cout << "[i] "; 
+            stats.report();
+
+            xmg_critical_path_stats critical_stats;
+            xmg_critical_path_profile_gates( xmg, critical_stats );
+            std::cout << "[i] ";
+            critical_stats.report();
 
             auto res = mockturtle::map( xmg, lib, ps, &st );
 
-            std::cout << fmt::format( "Mapped XMG into #gates = {} area = {:.2f} delay = {:.2f}\n", res.num_gates(), st.area, st.delay );
+            std::cout << fmt::format( "[i] Mapped XMG into #gates = {} area = {:.2f} delay = {:.2f}\n", res.num_gates(), st.area, st.delay );
           }
         }
         else if( is_set( "mig" ) )
