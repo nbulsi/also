@@ -54,9 +54,9 @@ namespace alice
          xmg_resubstitution( resub_view );
          xmg2 = cleanup_dangling( xmg1 );
          
-         //std::cout << "[xmgrs] "; 
-         //auto xmg_copy = cleanup_dangling( xmg );
-         //also::print_stats( xmg_copy ); 
+         std::cout << "[xmgrs] "; 
+         auto xmg_copy = cleanup_dangling( xmg2 );
+         also::print_stats( xmg_copy ); 
          
          if( is_set( "cec" ) )
          {
