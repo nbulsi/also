@@ -56,6 +56,7 @@
 #include "commands/heusto.hpp"
 #include "commands/techmap.hpp"
 #include "commands/exact_map.hpp"
+#include "commands/rm_mixed_polarity.hpp"
 
 ALICE_MAIN( also )
 
