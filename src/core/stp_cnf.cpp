@@ -2,7 +2,7 @@
  * Copyright (C) 2019- Ningbo University, Ningbo, China */
 
 /**
- * @file stp_cnf.hpp
+ * @file stp_cnf.cpp
  *
  * @brief Semi-Tensor Product based SAT for CNF
  *
