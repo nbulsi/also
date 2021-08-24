@@ -2,7 +2,7 @@
  * Copyright (C) 2019- Ningbo University, Ningbo, China */
 
 /**
- * @file stp_circuit.hpp
+ * @file stp.hpp
  *
  * @brief Basic Semi-Tensor Product calculation model
  *
