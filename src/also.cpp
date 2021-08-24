@@ -53,6 +53,7 @@
 #include "commands/xagban.hpp"
 #include "commands/stochastic.hpp"
 #include "commands/stp.hpp"
+#include "commands/stp3.hpp"
 
 ALICE_MAIN( also )
 
