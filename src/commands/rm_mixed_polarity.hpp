@@ -1,3 +1,14 @@
+/* also: Advanced Logic Synthesis and Optimization tool
+ * Copyright (C) 2021- Ningbo University, Ningbo, China */
+/**
+  * @file rm_mixed_polarity.hpp
+  *
+  * @brief RM logic optimization
+  *
+  * @author hongwei zhou
+  * 
+ */
+
 #ifndef RM_MIXED_POLARITY_HPP
 #define RM_MIXED_POLARITY_HPP
 
@@ -20,11 +31,11 @@ namespace alice
       
         if( is_set( "xag" ) )
         {
-      	 	  mockturtle::xag_network xag=store<xag_network>().current();                         
+      	    mockturtle::xag_network xag=store<xag_network>().current();                         
               
               
             depth_view depth_xag1( xag );
-  	        rm_mixed_polarity(depth_xag1);             
+  	    rm_mixed_polarity(depth_xag1);             
             xag = cleanup_dangling( xag );
        
             store<xag_network>().extend(); 
@@ -32,11 +43,11 @@ namespace alice
          }
          else if( is_set( "xmg" ) )
          {
-      	 	  mockturtle::xmg_network xmg=store<xmg_network>().current();                         
+      	     mockturtle::xmg_network xmg=store<xmg_network>().current();                         
               
               
             depth_view depth_xmg1( xmg );
-  	        rm_mixed_polarity(depth_xmg1);             
+  	    rm_mixed_polarity(depth_xmg1);             
             xmg = cleanup_dangling( xmg );
        
             store<xmg_network>().extend(); 
@@ -51,7 +62,6 @@ namespace alice
   };
 
   ALICE_ADD_COMMAND( rm_mixed_polarity, "Rewriting" )
-//这里表示生成的命令在rewriting下面
 
 }
 
