@@ -512,7 +512,10 @@ namespace mockturtle
 							dcut.foreach_gate([&](auto const& n2) {
   								if (ntk.fanout_size(ntk.get_node(ntk.make_signal(n2))) != 1&&n2!=n)
 								{
-									optimization_nodes=optimization_nodes-2;
+									if(dcut.num_gates()<4)
+			    						  optimization_nodes=optimization_nodes-1;
+									else
+									  optimization_nodes=optimization_nodes-2;
 								 }
 							});
                
