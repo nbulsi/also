@@ -1,6 +1,7 @@
 build/
 tags
 .history
+**/.DS_Store
 
 # Prerequisites
 *.d
