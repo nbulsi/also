@@ -29,8 +29,8 @@
 #include "../networks/aoig/xag_lut_dec.hpp"
 #include "../networks/aoig/build_xag_db.hpp"
 #include "../networks/img/img_all.hpp"
-#include "../core/aig2xmg.hpp"
 #include "../core/misc.hpp"
+#include "../core/direct_mapping.hpp"
 
 namespace alice
 {

@@ -38,7 +38,6 @@
 #include "networks/m5ig/m5ig.hpp"
 #include "networks/img/img.hpp"
 #include "networks/img/img_verilog_reader.hpp"
-#include "core/aig2xmg.hpp"
 
 using namespace mockturtle;
 
@@ -224,7 +223,7 @@ namespace alice
   }
 
   ALICE_ADD_FILE_TYPE( genlib, "Genlib" );
-  
+
   ALICE_READ_FILE( std::vector<mockturtle::gate>, genlib, filename, cmd )
   {
     std::vector<mockturtle::gate> gates;
@@ -234,12 +233,12 @@ namespace alice
     }
     return gates;
   }
-  
+
   ALICE_WRITE_FILE( std::vector<mockturtle::gate>, genlib, gates, filename, cmd )
   {
     std::cout << "[e] not supported" << std::endl;
   }
-  
+
   ALICE_PRINT_STORE_STATISTICS( std::vector<mockturtle::gate>, os, gates )
   {
     os << fmt::format( "Entered genlib library with {} gates", gates.size() );
@@ -328,7 +327,7 @@ namespace alice
     {
       std::cout << "[w] parse error\n";
     }
- 
+
     return xag;
   }
 
@@ -544,16 +543,39 @@ namespace alice
   {
     mig_network mig = element;
 
-    return also::xmg_from_mig( mig );
+    /* LUT mapping */
+    mapping_view<mig_network, true> mapped_mig{mig};
+    lut_mapping_params ps;
+    ps.cut_enumeration_ps.cut_size = 4;
+    lut_mapping<mapping_view<mig_network, true>, true>( mapped_mig, ps );
+
+    /* collapse into k-LUT network */
+    const auto klut = *collapse_mapped_network<klut_network>( mapped_mig );
+
+    /* node resynthesis */
+    xmg_npn_resynthesis resyn;
+    auto xmg = node_resynthesis<xmg_network>( klut, resyn );
+    return xmg;
   }
 
-  /*ALICE_CONVERT( aig_network, element, xmg_network )
+  ALICE_CONVERT( xmg_network, element, mig_network )
   {
-    aig_network aig = element;
+    xmg_network xmg = element;
 
-    return also::xmg_from_aig( aig );
-  }*/
+    /* LUT mapping */
+    mapping_view<xmg_network, true> mapped_xmg{xmg};
+    lut_mapping_params ps;
+    ps.cut_enumeration_ps.cut_size = 4;
+    lut_mapping<mapping_view<xmg_network, true>, true>( mapped_xmg, ps );
 
+    /* collapse into k-LUT network */
+    const auto klut = *collapse_mapped_network<klut_network>( mapped_xmg );
+
+    /* node resynthesis */
+    mig_npn_resynthesis resyn;
+    auto mig = node_resynthesis<mig_network>( klut, resyn );
+    return mig;
+  }
 
 }
 

@@ -66,7 +66,7 @@ namespace alice
             auto xmg = store<xmg_network>().current();
             xmg_gate_stats stats;
             xmg_profile_gates( xmg, stats );
-            std::cout << "[i] "; 
+            std::cout << "[i] ";
             stats.report();
 
             xmg_critical_path_stats critical_stats;
@@ -75,7 +75,7 @@ namespace alice
             critical_stats.report();
 
             auto res = mockturtle::map( xmg, lib, ps, &st );
-            
+
             if( is_set( "output" ) )
             {
               write_verilog( res, filename );
@@ -95,7 +95,7 @@ namespace alice
             auto mig = store<mig_network>().current();
 
             auto res = mockturtle::map( mig, lib, ps, &st );
-            
+
             if( is_set( "output" ) )
             {
               write_verilog( res, filename );

@@ -44,7 +44,7 @@
 #include "commands/test_xagdec.hpp"
 #include "commands/imgrw.hpp"
 #include "commands/imgff.hpp"
-#include "commands/ax.hpp"
+#include "commands/dm.hpp"
 #include "commands/xagrs.hpp"
 #include "commands/xagopt.hpp"
 #include "commands/xmgcost2.hpp"

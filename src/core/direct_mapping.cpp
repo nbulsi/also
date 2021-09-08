@@ -2,7 +2,7 @@
  * Copyright (C) 2019- Ningbo University, Ningbo, China */
 
 #include <mockturtle/views/topo_view.hpp>
-#include "aig2xmg.hpp"
+#include "direct_mapping.hpp"
 
 using namespace mockturtle;
 
@@ -23,7 +23,7 @@ namespace also
     private:
       aig_network aig; //source graph
   };
-  
+
   class mig2xmg_manager
   {
     public:
@@ -32,6 +32,16 @@ namespace also
 
     private:
       mig_network mig; //source graph
+  };
+
+  class xmg2mig_manager
+  {
+    public:
+      xmg2mig_manager( xmg_network xmg );
+      mig_network run();
+
+    private:
+      xmg_network xmg; //source graph
   };
 
 /******************************************************************************
@@ -45,10 +55,10 @@ namespace also
   xmg_network aig2xmg_manager::run()
   {
     xmg_network xmg;
-    node_map<sig, aig_network> node2new( aig ); 
-    
+    node_map<sig, aig_network> node2new( aig );
+
     node2new[aig.get_node( aig.get_constant( false ) )] = xmg.get_constant( false );
-    
+
     /* create pis */
     aig.foreach_pi( [&]( auto n ) {
         node2new[n] = xmg.create_pi();
@@ -59,7 +69,7 @@ namespace also
     aig_topo.foreach_node( [&]( auto n ) {
       if ( aig.is_constant( n ) || aig.is_pi( n ) )
         return;
-      
+
       std::vector<sig> children;
       aig.foreach_fanin( n, [&]( auto const& f ) {
         children.push_back( aig.is_complemented( f ) ? xmg.create_not( node2new[f] ) : node2new[f] );
@@ -77,7 +87,8 @@ namespace also
 
     return xmg;
   }
-  
+
+  //mig to xmg
   mig2xmg_manager::mig2xmg_manager( mig_network mig )
     : mig( mig )
   {
@@ -86,10 +97,10 @@ namespace also
   xmg_network mig2xmg_manager::run()
   {
     xmg_network xmg;
-    node_map<sig, mig_network> node2new( mig ); 
-    
+    node_map<sig, mig_network> node2new( mig );
+
     node2new[mig.get_node( mig.get_constant( false ) )] = xmg.get_constant( false );
-    
+
     /* create pis */
     mig.foreach_pi( [&]( auto n ) {
         node2new[n] = xmg.create_pi();
@@ -100,7 +111,7 @@ namespace also
     mig_topo.foreach_node( [&]( auto n ) {
       if ( mig.is_constant( n ) || mig.is_pi( n ) )
         return;
-      
+
       std::vector<sig> children;
       mig.foreach_fanin( n, [&]( auto const& f ) {
         children.push_back( mig.is_complemented( f ) ? xmg.create_not( node2new[f] ) : node2new[f] );
@@ -119,6 +130,59 @@ namespace also
     return xmg;
   }
 
+  //xmg to mig
+  xmg2mig_manager::xmg2mig_manager( xmg_network xmg )
+    : xmg( xmg )
+  {
+  }
+
+  mig_network xmg2mig_manager::run()
+  {
+    mig_network mig;
+    node_map<mig_network::signal, xmg_network> node2new( xmg );
+
+    node2new[xmg.get_node( xmg.get_constant( false ) )] = mig.get_constant( false );
+
+    /* create pis */
+    xmg.foreach_pi( [&]( auto n ) {
+        node2new[n] = mig.create_pi();
+        });
+
+    /* create xmg nodes */
+    topo_view xmg_topo{xmg};
+    xmg_topo.foreach_node( [&]( auto n ) {
+      if ( xmg.is_constant( n ) || xmg.is_pi( n ) )
+        return;
+
+      std::vector<mig_network::signal> children;
+      xmg.foreach_fanin( n, [&]( auto const& f ) {
+        children.push_back( xmg.is_complemented( f ) ? mig.create_not( node2new[f] ) : node2new[f] );
+      } );
+
+      assert( children.size() == 3u );
+      if( xmg.is_maj( n  ) )
+      {
+        node2new[n] = mig.create_maj( children[0], children[1], children[2] );
+      }
+      else
+      {
+      //xor3
+        auto minority = mig.create_not( mig.create_maj( children[0], children[1], children[2] ) );
+        node2new[n] = mig.create_maj( children[2],
+                                      minority,
+                                      mig.create_maj( children[0], children[1],  minority ) );
+      }
+        } );
+
+    /* create pos */
+    xmg.foreach_po( [&]( auto const& f, auto index ) {
+        auto const o = xmg.is_complemented( f ) ? mig.create_not( node2new[f] ) : node2new[f];
+        mig.create_po( o );
+        } );
+
+    return mig;
+  }
+
 /******************************************************************************
  * Public functions                                                           *
  ******************************************************************************/
@@ -127,10 +191,16 @@ namespace also
     aig2xmg_manager mgr( aig );
     return mgr.run();
   }
-  
+
   xmg_network xmg_from_mig( const mig_network& mig )
   {
     mig2xmg_manager mgr( mig );
+    return mgr.run();
+  }
+
+  mig_network mig_from_xmg( const xmg_network& xmg )
+  {
+    xmg2mig_manager mgr( xmg );
     return mgr.run();
   }
 
