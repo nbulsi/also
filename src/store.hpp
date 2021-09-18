@@ -111,6 +111,15 @@ namespace alice
     os << "\n";
   }
 
+  ALICE_PRINT_STORE_STATISTICS( m5ig_network, os, m5ig )
+  {
+    auto m5ig_copy = mockturtle::cleanup_dangling( m5ig );
+    mockturtle::depth_view depth_m5ig{m5ig_copy};
+    os << fmt::format( "M5IG   i/o = {}/{}   gates = {}   level = {}",
+          m5ig.num_pis(), m5ig.num_pos(), m5ig.num_gates(), depth_m5ig.depth() );
+    os << "\n";
+  }
+
   ALICE_DESCRIBE_STORE( m5ig_network, element )
   {
     return fmt::format( "{} nodes", element.size() );
