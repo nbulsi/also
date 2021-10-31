@@ -28,10 +28,13 @@
 
 #include <alice/alice.hpp>
 #include <mockturtle/mockturtle.hpp>
-#include <mockturtle/io/write_verilog.hpp>
 #include <fmt/format.h>
 #include <kitty/kitty.hpp>
-#include<mockturtle/io/write_aiger.hpp>
+
+#include <mockturtle/io/write_verilog.hpp>
+#include <mockturtle/io/write_aiger.hpp>
+#include <mockturtle/io/write_blif.hpp>
+#include <mockturtle/io/blif_reader.hpp>
 #include <mockturtle/io/genlib_reader.hpp>
 #include <lorina/genlib.hpp>
 
@@ -424,6 +427,29 @@ namespace alice
   ALICE_WRITE_FILE(aig_network, aiger, aig, filename, cmd)
   {
 	  mockturtle::write_aiger(aig, filename);
+  }
+
+  ALICE_ADD_FILE_TYPE( blif, "Blif" );
+
+  ALICE_READ_FILE( klut_network, blif, filename, cmd )
+  {
+    klut_network klut;
+
+    if ( lorina::read_blif( filename, mockturtle::blif_reader( klut ) ) != lorina::return_code::success )
+    {
+      std::cout << "[w] parse error\n";
+    }
+    return klut;
+  }
+
+  ALICE_WRITE_FILE( xmg_network, blif, xmg, filename, cmd )
+  {
+    mockturtle::write_blif( xmg, filename );
+  }
+
+  ALICE_WRITE_FILE( klut_network, blif, klut, filename, cmd )
+  {
+    mockturtle::write_blif( klut, filename );
   }
 
   /********************************************************************
