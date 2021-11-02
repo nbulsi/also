@@ -56,6 +56,7 @@
 #include "commands/heusto.hpp"
 #include "commands/techmap.hpp"
 #include "commands/exact_map.hpp"
+#include "commands/restore_names.hpp"
 
 ALICE_MAIN( also )
 
