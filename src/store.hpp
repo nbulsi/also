@@ -36,6 +36,7 @@
 #include <mockturtle/io/write_blif.hpp>
 #include <mockturtle/io/blif_reader.hpp>
 #include <mockturtle/io/genlib_reader.hpp>
+#include <mockturtle/views/names_view.hpp>
 #include <lorina/genlib.hpp>
 
 #include "networks/m5ig/m5ig.hpp"
@@ -439,6 +440,7 @@ namespace alice
     {
       std::cout << "[w] parse error\n";
     }
+
     return klut;
   }
 
