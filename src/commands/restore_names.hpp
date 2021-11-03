@@ -46,22 +46,15 @@ namespace alice
          }
 
          named_klut.set_network_name( "netlist" );
-         std::cout << "network name: " << named_klut.get_network_name() << std::endl;
-
-         /* set xmg_network names */
-         //xmg_network xmg = store<xmg_network>().current();
-         //names_view<xmg_network> named_xmg{ xmg };
 
          std::vector<std::string> pi_names;
          std::vector<std::string> po_names;
 
          named_klut.foreach_ci( [&]( auto const& node, auto index ){
-                 //std::cout << "pi index " << index << " name: " << named_klut.get_name( node ) << std::endl;
                  pi_names.push_back( named_klut.get_name( node ) );
                  } );
 
          named_klut.foreach_co( [&]( auto const& node, auto index ){
-                 //std::cout << "po index " << index << " name: " << named_klut.get_output_name( index ) << std::endl;
                  po_names.push_back( named_klut.get_output_name( index ) );
                  } );
 
@@ -72,11 +65,8 @@ namespace alice
          assert( named_xmg.num_pis() == named_klut.num_pis() );
          assert( named_xmg.num_pos() == named_klut.num_pos() );
 
-         auto count = 0u;
-         std::cout << " size : " << pi_names.size() << std::endl;
          named_xmg.foreach_ci( [&]( auto const& node, auto index ) {
-                 named_xmg.set_name( node, pi_names[index] );
-                 std::cout << "xmg pi " << index << " : " << named_xmg.get_name( node ) << std::endl;
+                 named_xmg.set_name( 2*node, pi_names[index] );
                  } );
 
          named_xmg.foreach_co( [&]( auto const& node, auto index ){
@@ -89,7 +79,7 @@ namespace alice
     private:
       bool verbose;
       std::string input_blif_filename = "";
-      std::string output_blif_filename = "";
+      std::string output_blif_filename = "xmg_out.blif";
 
     };
 
