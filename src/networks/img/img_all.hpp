@@ -44,7 +44,7 @@
 #include <mockturtle/mockturtle.hpp>
 
 #include "img.hpp"
-#include "../core/misc.hpp"
+#include "../../core/misc.hpp"
 
 namespace mockturtle
 {

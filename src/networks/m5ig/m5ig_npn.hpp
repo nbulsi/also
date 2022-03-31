@@ -45,7 +45,7 @@
 
 #include "m5ig.hpp"
 #include "m5ig_cleanup.hpp"
-#include "../core/misc.hpp"
+#include "../../core/misc.hpp"
 
 namespace mockturtle
 {
