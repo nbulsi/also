@@ -204,9 +204,23 @@ namespace also
           break;
       }
     }
+    
+    if( spec.get_nr_out() > 1 )
+    {
+      for( int i = 0; i < spec.get_nr_out(); i++ )
+      {
+        auto outvar = mig3.get_output(i) >> 1;
 
-    const auto driver = pis[ pis.size() - 1 ] ^ ( spec.out_inv ? true : false );
-    mig.create_po( driver );
+        const auto driver = pis[ outvar ] ^ ( ( mig3.get_output(i) & 1 ) ? true : false );
+        mig.create_po( driver );
+      }
+    }
+    else
+    {
+      const auto driver = pis[ pis.size() - 1 ] ^ ( spec.out_inv ? true : false );
+      mig.create_po( driver );
+    }
+
     return mig;
   }
 
