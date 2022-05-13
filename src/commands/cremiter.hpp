@@ -110,9 +110,10 @@ namespace alice
       explicit cremiter_command( const environment::ptr& env ) : command( env, "Create a miter, like all miter,partial miter!" )
       {
         add_flag( "-v,--verbose", "show statistics" );
-        add_flag( "-a,--all_miter", "create all PO miter" );
+        add_flag( "-l,--all_miter", "create all PO miter" );
         add_flag( "-p,--partial_miter", "create partial PO miter" );
-        add_flag( "-g,--miter_for_xag", "create miter for xag" );
+        add_flag( "-g,--miter_for_xag", "create miter for xag network" );
+        add_flag( "-a,--miter_for_aig", "create miter for aig network" );
       }
 
       /*rules validity_rules() const
@@ -153,6 +154,14 @@ namespace alice
 	const auto miter  =*mockturtle::miter<xag_network>( aig, xmg );
         store<xag_network>().extend();
         store<xag_network>().current() = miter;
+   }
+
+      else if( is_set( "miter_for_aig" ) )
+   {
+   	/* node resynthesis */
+	const auto miter  =*mockturtle::miter<aig_network>( aig, xmg );
+        store<aig_network>().extend();
+        store<aig_network>().current() = miter;
    }
    
    else
