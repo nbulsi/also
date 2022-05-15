@@ -58,6 +58,6 @@
 #include "commands/exact_map.hpp"
 #include "commands/restore_names.hpp"
 #include "commands/exact_bool_chain.hpp"
-
+#include "commands/cremiter.hpp"
 ALICE_MAIN( also )
 
