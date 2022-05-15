@@ -23,12 +23,16 @@ namespace alice
     public:
       explicit exact_bool_chain_command( const environment::ptr& env ) : command( env, "using exact synthesis to find optimal Boolean chain" )
       {
+        add_option( "--verbose, -v", verbose, "set verbose levels" );
       }
 
       rules validity_rules() const
       {
         return { has_store_element<optimum_network>( env ) };
       }
+
+    private:
+      int verbose = 0;
     
     protected:
       void execute()
@@ -42,7 +46,7 @@ namespace alice
 
         call_with_stopwatch( time, [&]()
             {
-            also::tt2aoig( copy );
+            also::tt2aoig( copy, verbose );
             });
 
         std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );

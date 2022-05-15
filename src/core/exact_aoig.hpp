@@ -19,11 +19,11 @@ using namespace percy;
 namespace also
 {
 
-  void tt2aoig( const kitty::dynamic_truth_table& tt )
+  void tt2aoig( const kitty::dynamic_truth_table& tt, int verbose = 0 )
   {
     chain c;
     spec spec;
-    spec.verbosity = 0; 
+    spec.verbosity = verbose; 
     spec.add_alonce_clauses = true;
     spec.add_colex_clauses = true;
     spec.add_lex_func_clauses = true;
