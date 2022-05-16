@@ -32,40 +32,54 @@ public:
 
   void run()
   {
-    run_xor3_flatten();
+    run_xor_maj_expand();
   }
 
 private:
-
-  void run_xor3_flatten()
+  void run_xor_maj_expand()
   {
-    /* rewrite xor3 to xor2 */
     ntk.foreach_po( [this]( auto po ) {
       topo_view topo{ntk, po};
       topo.foreach_node( [this]( auto n ) {
-        xor3_to_xor2( n );
+        xor_maj_expand( n );
         return true;
       } );
     } );
   }
 
 private:
-  bool xor3_to_xor2( node<Ntk> const& n )
+  void print_children( std::array<signal<Ntk>, 3u> const& children )
+  {
+    std::cout << "children 0 : " << ntk.get_node( children[0] ) << std::endl;
+    std::cout << "children 1 : " << ntk.get_node( children[1] ) << std::endl;
+    std::cout << "children 2 : " << ntk.get_node( children[2] ) << std::endl;
+  }
+
+  bool xor_maj_expand( node<Ntk> const& n )
   {
     if ( !ntk.is_xor3( n ) )
       return false;
 
-    if ( ntk.level( n ) == 0 )
+    if ( ntk.level( n ) <= 1 )
       return false;
 
     /* get children of top node, ordered by node level (ascending) */
     const auto ocs = ordered_children( n );
 
-    /* if the first child is constant, return */
-    if( ocs[0].index == 0 )
+    /* if the first child is not constant, return */
+    if( ocs[0].index != 0 )
       return false;
 
-    auto opt = ntk.create_xor( ocs[2], ntk.create_xor( ocs[0], ocs[1] ) );
+    if( !ntk.is_maj( ntk.get_node( ocs[1] ) ) || !ntk.is_maj( ntk.get_node( ocs[2] ) ) )
+      return false;
+
+    const auto ogcs = ordered_children( ntk.get_node( ocs[1] ) ); 
+    
+    auto n1 = ntk.create_xor( ogcs[0], ocs[2] );
+    auto n2 = ntk.create_xor( ogcs[1], ocs[2] );
+    auto n3 = ntk.create_xor( ogcs[2], ocs[2] );
+
+    auto opt = ntk.create_maj( n1, n2, n3 );
     ntk.substitute_node( n, opt );
     ntk.update_levels();
 
