@@ -21,6 +21,7 @@
 #include "../core/xmg_rewriting.hpp"
 #include "../core/xmg_expand.hpp"
 #include "../core/misc.hpp"
+#include "../core/xmg_extract.hpp"
 
 namespace alice
 {
@@ -86,6 +87,7 @@ namespace alice
           depth_view depth_xmg{ xmg };
           xmg_expand_rewriting( depth_xmg );
           xmg = cleanup_dangling( xmg );
+          also::xmg_extract( xmg );
         }
         else
         {

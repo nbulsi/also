@@ -4,6 +4,7 @@
 #include <mockturtle/properties/migcost.hpp>
 #include <mockturtle/algorithms/cleanup.hpp>
 #include "xmg_inv.hpp"
+#include "utils.hpp"
 
 using namespace mockturtle;
 
@@ -13,14 +14,7 @@ namespace also
 /******************************************************************************
  * XMG utilizations, public functions                                         *
  ******************************************************************************/
-  std::array<xmg_network::signal, 3> get_children( xmg_network const& xmg, xmg_network::node const& n )
-  {
-    std::array<xmg_network::signal, 3> children;
-    xmg.foreach_fanin( n, [&children]( auto const& f, auto i ) { children[i] = f; } );
-    return children;
-  }
-
-
+  
   /* use substitue method for inveters propagation */
   xmg_network complement_node( xmg_network & xmg, xmg_network::node const& n )
   {
