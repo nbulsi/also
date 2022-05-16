@@ -19,6 +19,7 @@
 #include <mockturtle/algorithms/mig_algebraic_rewriting.hpp>
 
 #include "../core/xmg_rewriting.hpp"
+#include "../core/xmg_expand.hpp"
 #include "../core/misc.hpp"
 
 namespace alice
@@ -34,6 +35,7 @@ namespace alice
         add_flag( "--xor3_flattan", "flattan xor3 to 2 xor2s" );
         add_flag( "--only_maj", "apply mig_algebraic_depth_rewriting method" );
         add_flag( "--cec,-c", "apply equivalence checking in rewriting" );
+        add_flag( "--expand,-e", "apply xor expand through maj" );
       }
 
       rules validity_rules() const
@@ -78,7 +80,12 @@ namespace alice
           depth_view depth_xmg{ xmg };
           mig_algebraic_depth_rewriting( depth_xmg, ps_mig );
           xmg = cleanup_dangling( xmg );
-
+        }
+        else if( is_set( "expand" ) )
+        {
+          depth_view depth_xmg{ xmg };
+          xmg_expand_rewriting( depth_xmg );
+          xmg = cleanup_dangling( xmg );
         }
         else
         {
