@@ -19,6 +19,7 @@ namespace also
 {
 
   std::array<mockturtle::xmg_network::signal, 3> get_children( mockturtle::xmg_network const& xmg, mockturtle::xmg_network::node const& n );
+  void print_children( std::array<mockturtle::xmg_network::signal, 3> const& children );
 
 }
 

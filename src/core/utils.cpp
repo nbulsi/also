@@ -23,6 +23,19 @@ namespace also
   {
     std::array<xmg_network::signal, 3> children;
     xmg.foreach_fanin( n, [&children]( auto const& f, auto i ) { children[i] = f; } );
+    std::sort( children.begin(), children.end(), [&]( auto const& c1, auto const& c2 ) {
+        return c1.index < c2.index;
+        } );
     return children;
+  }
+
+  void print_children( std::array<xmg_network::signal, 3> const& children )
+  {
+    auto i = 0u;
+    for( auto child : children )
+    {
+      std::cout << "children " << i << " is " << child.index << " complemented ? " << child.complement << std::endl;
+      i++;
+    }
   }
 }

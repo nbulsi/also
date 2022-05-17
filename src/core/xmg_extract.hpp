@@ -27,28 +27,39 @@ namespace also
   {
     topo_view topo{ xmg };
     circuit_validator v( xmg );
+
+    int count = 0;
     
     topo.foreach_node( [&]( auto n ) {
     if( xmg.is_xor3( n ) )
     {
-    std::cout << "XOR" << std::endl;
-
     auto children = get_children( xmg, n );
+
+    //print_children( children );
 
     if( xmg.get_node( children[0] ) == 0 )
     { 
-      auto result = v.validate( children[1], children[2] );
-      if( result )
+      auto result1 = v.validate( children[1], children[2] );
+      auto result2 = v.validate( children[1], !children[2] );
+      
+      if( result1 || result2 )
       {
-        if( *result )
+        if( *result1 )
         {
-          std::cout << "XOR can be removed\n";
+          //std::cout << "XOR node " << n  << " can be removed as 0\n";
+          count++;
+        }
+        else if( *result2 )
+        {
+          //std::cout << "XOR can be removed as 1\n";
+          count++;
         }
       }
     }
-
     }
         } );
+
+    std::cout << "Find " << count << " XOR nodes\n";
   }
 }
 

@@ -37,6 +37,7 @@ namespace alice
         add_flag( "--only_maj", "apply mig_algebraic_depth_rewriting method" );
         add_flag( "--cec,-c", "apply equivalence checking in rewriting" );
         add_flag( "--expand,-e", "apply xor expand through maj" );
+        add_flag( "--hunt_constant_xor,-u", "hunt XOR constant nodes" );
       }
 
       rules validity_rules() const
@@ -82,12 +83,15 @@ namespace alice
           mig_algebraic_depth_rewriting( depth_xmg, ps_mig );
           xmg = cleanup_dangling( xmg );
         }
+        else if( is_set( "hunt_constant_xor" ) )
+        {
+          also::xmg_extract( xmg );
+        }
         else if( is_set( "expand" ) )
         {
           depth_view depth_xmg{ xmg };
           xmg_expand_rewriting( depth_xmg );
           xmg = cleanup_dangling( xmg );
-          also::xmg_extract( xmg );
         }
         else
         {
