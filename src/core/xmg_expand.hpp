@@ -17,22 +17,39 @@
 
 namespace mockturtle
 {
+  struct xmg_expand_rewriting_params
+  {
+    enum strategy_t
+    {
+      expand,
+      constants
+    } strategy = expand;
+
+    std::vector<unsigned> xor_index;
+  };
 
 namespace detail
 {
-
 template<class Ntk>
 class xmg_expand_rewriting_impl
 {
 public:
-  xmg_expand_rewriting_impl( Ntk& ntk )
-      : ntk( ntk )
+  xmg_expand_rewriting_impl( Ntk& ntk, xmg_expand_rewriting_params const& ps )
+      : ntk( ntk ), ps( ps )
   {
   }
 
   void run()
   {
-    run_xor_maj_expand();
+    switch( ps.strategy )
+    {
+      case xmg_expand_rewriting_params::expand:
+        run_xor_maj_expand();
+        break;
+      case xmg_expand_rewriting_params::constants:
+        run_xor_constants();
+        break;
+    }
   }
 
 private:
@@ -46,6 +63,17 @@ private:
       } );
     } );
   }
+  
+  void run_xor_constants()
+  {
+    ntk.foreach_po( [this]( auto po ) {
+      topo_view topo{ntk, po};
+      topo.foreach_node( [this]( auto n ) {
+        xor_constants( n, ps.xor_index );
+        return true;
+      } );
+    } );
+  }
 
 private:
   void print_children( std::array<signal<Ntk>, 3u> const& children )
@@ -55,6 +83,26 @@ private:
     std::cout << "children 2 : " << ntk.get_node( children[2] ) << std::endl;
   }
 
+  bool xor_constants( node<Ntk> const& n, std::vector<unsigned> const& xors )
+  {
+    if ( !ntk.is_xor3( n ) )
+      return false;
+
+    if( std::find( xors.begin(), xors.end(), n ) != xors.end() )
+    {
+      std::cout << "Please assign constants to node " << n << std::endl;
+      auto opt = ntk.get_constant( false );
+      ntk.substitute_node( n, opt );
+      ntk.update_levels();
+
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+ 
   bool xor_maj_expand( node<Ntk> const& n )
   {
     if ( !ntk.is_xor3( n ) )
@@ -105,14 +153,15 @@ private:
 
 private:
   Ntk& ntk;
+  xmg_expand_rewriting_params const& ps;
 };
 
 } // namespace detail
 
 template<class Ntk>
-void xmg_expand_rewriting( Ntk& ntk )
+void xmg_expand_rewriting( Ntk& ntk, xmg_expand_rewriting_params const& ps )
 {
-  detail::xmg_expand_rewriting_impl<Ntk> p( ntk );
+  detail::xmg_expand_rewriting_impl<Ntk> p( ntk, ps );
   p.run();
 }
 

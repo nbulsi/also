@@ -23,8 +23,9 @@ using namespace mockturtle;
 namespace also
 {
   
-  void xmg_extract( xmg_network const& xmg )
+  std::vector<unsigned> xmg_extract( xmg_network const& xmg )
   {
+    std::vector<unsigned> xors;
     topo_view topo{ xmg };
     circuit_validator v( xmg );
 
@@ -33,33 +34,35 @@ namespace also
     topo.foreach_node( [&]( auto n ) {
     if( xmg.is_xor3( n ) )
     {
-    auto children = get_children( xmg, n );
+      auto children = get_children( xmg, n );
 
-    //print_children( children );
+      //print_children( children );
 
-    if( xmg.get_node( children[0] ) == 0 )
-    { 
-      auto result1 = v.validate( children[1], children[2] );
-      auto result2 = v.validate( children[1], !children[2] );
-      
-      if( result1 || result2 )
-      {
-        if( *result1 )
+      if( xmg.get_node( children[0] ) == 0 )
+      { 
+        auto result1 = v.validate( children[1], children[2] );
+        auto result2 = v.validate( children[1], !children[2] );
+
+        if( result1 || result2 )
         {
+          if( *result1 )
+          {
           //std::cout << "XOR node " << n  << " can be removed as 0\n";
+          xors.push_back( n );
           count++;
-        }
-        else if( *result2 )
-        {
-          //std::cout << "XOR can be removed as 1\n";
-          count++;
+          }
+          else if( *result2 )
+          {
+            //std::cout << "XOR can be removed as 1\n";
+            count++;
+          }
         }
       }
     }
-    }
-        } );
+    } );
 
     std::cout << "Find " << count << " XOR nodes\n";
+    return xors;
   }
 }
 

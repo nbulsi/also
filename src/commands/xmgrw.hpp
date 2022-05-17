@@ -85,12 +85,19 @@ namespace alice
         }
         else if( is_set( "hunt_constant_xor" ) )
         {
-          also::xmg_extract( xmg );
+          auto xors = also::xmg_extract( xmg );
+          ps_expand.strategy = xmg_expand_rewriting_params::constants;
+          ps_expand.xor_index = xors;
+
+          depth_view depth_xmg{ xmg };
+          xmg_expand_rewriting( depth_xmg, ps_expand );
+          xmg = cleanup_dangling( xmg );
         }
         else if( is_set( "expand" ) )
         {
+          ps_expand.strategy = xmg_expand_rewriting_params::expand;
           depth_view depth_xmg{ xmg };
-          xmg_expand_rewriting( depth_xmg );
+          xmg_expand_rewriting( depth_xmg, ps_expand );
           xmg = cleanup_dangling( xmg );
         }
         else
@@ -159,6 +166,7 @@ namespace alice
     private:
       mig_algebraic_depth_rewriting_params ps_mig;
       xmg_depth_rewriting_params ps_xmg;
+      xmg_expand_rewriting_params ps_expand;
       int strategy = 0;
   };
 

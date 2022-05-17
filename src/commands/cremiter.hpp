@@ -18,6 +18,7 @@ public:
     add_flag( "-p,--partial_miter", "create partial PO miter" );
     add_flag( "-g,--miter_for_xag", "create miter for xag network" );
     add_flag( "-a,--miter_for_aig", "create miter for aig network" );
+    add_flag( "-e,--enable_ec", "enable equivalence checking" );
     add_flag( "-n,--new_entry", "save new miter network to the store" );
   }
 
@@ -46,7 +47,8 @@ protected:
                 
                 mockturtle::call_with_stopwatch( iteration_time, [&]() {
                 const auto miter = *mockturtle::pmiter<xmg_network>( aig, xmg, i );
-                result = mockturtle::equivalence_checking( miter );
+                if( is_set( "enable_ec" ) ) {
+                result = mockturtle::equivalence_checking( miter ); }
                 } );
                 
                 if( is_set( "verbose" ) ) {
@@ -60,7 +62,8 @@ protected:
       /* node resynthesis */
       mockturtle::call_with_stopwatch( time, [&]() {
       const auto miter = *mockturtle::miter<xag_network>( aig, xmg );
-      result = mockturtle::equivalence_checking( miter );
+      if( is_set( "enable_ec" ) ) {
+      result = mockturtle::equivalence_checking( miter ); }
           
           if( is_set( "new_entry" ) )
           {
@@ -74,7 +77,9 @@ protected:
       /* node resynthesis */
       mockturtle::call_with_stopwatch( time, [&]() {
       const auto miter = *mockturtle::miter<aig_network>( aig, xmg );
-      result = mockturtle::equivalence_checking( miter );
+      
+      if( is_set( "enable_ec" ) ) {
+      result = mockturtle::equivalence_checking( miter ); }
           
           if( is_set( "new_entry" ) )
           {
@@ -87,7 +92,9 @@ protected:
     {
       mockturtle::call_with_stopwatch( time, [&]() {
           const auto miter = *mockturtle::miter<xmg_network>( aig, xmg );
-          result = mockturtle::equivalence_checking( miter );
+          
+          if( is_set( "enable_ec" ) ) {
+          result = mockturtle::equivalence_checking( miter ); }
           
           if( is_set( "new_entry" ) )
           {
@@ -98,8 +105,6 @@ protected:
 
     }
     
-    assert( result );
-
     std::cout << fmt::format( "[Total time]: {:5.4f} seconds\n", mockturtle::to_seconds( time ) );
   }
 
