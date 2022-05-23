@@ -2,6 +2,8 @@
 #define CREMITER_HPP
 
 #include <mockturtle/algorithms/miter.hpp>
+#include <mockturtle/algorithms/equivalence_checking.hpp>
+#include <mockturtle/utils/stopwatch.hpp>
 #include <sys/time.h>
 
 namespace alice
@@ -16,60 +18,97 @@ public:
     add_flag( "-p,--partial_miter", "create partial PO miter" );
     add_flag( "-g,--miter_for_xag", "create miter for xag network" );
     add_flag( "-a,--miter_for_aig", "create miter for aig network" );
-    add_option( "-i, --po_index", po_index, "specify the po index" );
+    add_flag( "-e,--enable_ec", "enable equivalence checking" );
+    add_flag( "-n,--new_entry", "save new miter network to the store" );
   }
 
-  /*rules validity_rules() const
-      {
-        return { has_store_element<aig_network>( env ) };
-      }*/
+  rules validity_rules() const
+  {
+    return { has_store_element<aig_network>( env ) };
+  }
 
 protected:
   void execute()
   {
-    timeval start, end; 
-    gettimeofday( &start, NULL );
-
     /* derive some AIG and make a copy */
     mockturtle::xmg_network xmg = store<xmg_network>().current();
     mockturtle::aig_network aig = store<aig_network>().current();
 
+    /* equivalence checking results */
+    std::optional<bool> result;
+    mockturtle::stopwatch<>::duration time{0};
+
     if ( is_set( "partial_miter" ) )
     {
-      /* node resynthesis */
-      const auto miter = *mockturtle::pmiter<xmg_network>( aig, xmg, 0 );
-      store<xmg_network>().extend();
-      store<xmg_network>().current() = miter;
+      mockturtle::call_with_stopwatch( time, [&]() {
+            for( auto i = 0; i < xmg.num_pos(); i++ )
+            {
+                mockturtle::stopwatch<>::duration iteration_time{0};
+                
+                mockturtle::call_with_stopwatch( iteration_time, [&]() {
+                const auto miter = *mockturtle::pmiter<xmg_network>( aig, xmg, i );
+                if( is_set( "enable_ec" ) ) {
+                result = mockturtle::equivalence_checking( miter ); }
+                } );
+                
+                if( is_set( "verbose" ) ) {
+                std::cout << fmt::format( "[Iteration time for {}]: {:5.4f} seconds\n", 
+                    i, mockturtle::to_seconds( iteration_time ) ); }
+            }
+          } );
     }
     else if ( is_set( "miter_for_xag" ) )
     {
       /* node resynthesis */
+      mockturtle::call_with_stopwatch( time, [&]() {
       const auto miter = *mockturtle::miter<xag_network>( aig, xmg );
-      store<xag_network>().extend();
-      store<xag_network>().current() = miter;
+      if( is_set( "enable_ec" ) ) {
+      result = mockturtle::equivalence_checking( miter ); }
+          
+          if( is_set( "new_entry" ) )
+          {
+            store<xag_network>().extend();
+            store<xag_network>().current() = miter;
+          }
+      } );
     }
     else if ( is_set( "miter_for_aig" ) )
     {
       /* node resynthesis */
+      mockturtle::call_with_stopwatch( time, [&]() {
       const auto miter = *mockturtle::miter<aig_network>( aig, xmg );
-      store<aig_network>().extend();
-      store<aig_network>().current() = miter;
+      
+      if( is_set( "enable_ec" ) ) {
+      result = mockturtle::equivalence_checking( miter ); }
+          
+          if( is_set( "new_entry" ) )
+          {
+            store<aig_network>().extend();
+            store<aig_network>().current() = miter;
+          }
+      } );
     }
     else
     {
-      const auto miter = *mockturtle::miter<xmg_network>( aig, xmg );
-      store<xmg_network>().extend();
-      store<xmg_network>().current() = miter;
-    }
+      mockturtle::call_with_stopwatch( time, [&]() {
+          const auto miter = *mockturtle::miter<xmg_network>( aig, xmg );
+          
+          if( is_set( "enable_ec" ) ) {
+          result = mockturtle::equivalence_checking( miter ); }
+          
+          if( is_set( "new_entry" ) )
+          {
+            store<xmg_network>().extend();
+            store<xmg_network>().current() = miter;
+          }
+      } );
 
-    gettimeofday( &end, NULL ); 
-    double timeuse;
-    timeuse = end.tv_sec - start.tv_sec + ( end.tv_usec - start.tv_usec ) / 1000000.0;
-    std::cout << "The run time is: " << setiosflags( ios::fixed ) << setprecision( 4 ) << timeuse << " s" << endl;
+    }
+    
+    std::cout << fmt::format( "[Total cremiter time]: {:5.4f} seconds\n", mockturtle::to_seconds( time ) );
   }
 
 private:
-  int po_index = 0;
 };
 
 ALICE_ADD_COMMAND( cremiter, "Optimization" )
