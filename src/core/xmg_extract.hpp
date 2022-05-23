@@ -61,7 +61,7 @@ namespace also
     }
     } );
 
-    std::cout << "Find " << count << " XOR nodes\n";
+    std::cout << "[xmgrw -u] Find " << count << " XOR constant nodes\n";
     return xors;
   }
 }

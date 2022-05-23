@@ -90,7 +90,7 @@ private:
 
     if( std::find( xors.begin(), xors.end(), n ) != xors.end() )
     {
-      std::cout << "Please assign constants to node " << n << std::endl;
+      //std::cout << "Please assign constants to node " << n << std::endl;
       auto opt = ntk.get_constant( false );
       ntk.substitute_node( n, opt );
       ntk.update_levels();

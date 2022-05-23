@@ -105,7 +105,7 @@ protected:
 
     }
     
-    std::cout << fmt::format( "[Total time]: {:5.4f} seconds\n", mockturtle::to_seconds( time ) );
+    std::cout << fmt::format( "[Total cremiter time]: {:5.4f} seconds\n", mockturtle::to_seconds( time ) );
   }
 
 private:
