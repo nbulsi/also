@@ -59,5 +59,6 @@
 #include "commands/restore_names.hpp"
 #include "commands/exact_bool_chain.hpp"
 #include "commands/cremiter.hpp"
+#include "commands/rm_mp.hpp"
 ALICE_MAIN( also )
 
