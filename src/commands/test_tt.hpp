@@ -14,6 +14,7 @@
 #define TEST_TT_HPP
 
 #include <mockturtle/mockturtle.hpp>
+#include "../networks/mag/mag.hpp"
 
 namespace alice
 {
@@ -38,6 +39,15 @@ namespace alice
         std::cout << " horn       : " << ( kitty::is_horn( opt.function ) ? " yes " : " no " ) << std::endl; 
         std::cout << " krom       : " << ( kitty::is_krom( opt.function ) ? " yes " : " no " ) << std::endl; 
         
+        mag_network mag;
+        auto a = mag.create_pi();
+        auto b = mag.create_pi();
+        auto c = mag.create_pi();
+
+        auto n1 = mag.create_ite( a, b, c );
+        mag.create_po( n1 );
+
+        std::cout << "PI: " << mag.num_pis() << " PO: " << mag.num_pos() << " size: " << mag.size() << std::endl;
       }
     
       private:
