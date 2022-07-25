@@ -60,5 +60,6 @@
 #include "commands/exact_bool_chain.hpp"
 #include "commands/cremiter.hpp"
 #include "commands/rm_mp.hpp"
+#include "commands/test_mag.hpp"
 ALICE_MAIN( also )
 
