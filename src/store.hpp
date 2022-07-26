@@ -42,6 +42,7 @@
 #include "networks/m5ig/m5ig.hpp"
 #include "networks/img/img.hpp"
 #include "networks/img/img_verilog_reader.hpp"
+#include "networks/mag/mag.hpp"
 
 using namespace mockturtle;
 
@@ -139,6 +140,20 @@ namespace alice
   }
 
   ALICE_DESCRIBE_STORE( img_network, element )
+  {
+    return fmt::format( "{} nodes", element.size() );
+  }
+
+  /* mag */
+  ALICE_ADD_STORE( mag_network, "mag", "b", "mag", "mags" )
+
+  ALICE_PRINT_STORE( mag_network, os, element )
+  {
+    os << fmt::format( " MAG i/o = {}/{} gates = {} ", element.num_pis(), element.num_pos(), element.num_gates() );
+    os << "\n";
+  }
+
+  ALICE_DESCRIBE_STORE( mag_network, element )
   {
     return fmt::format( "{} nodes", element.size() );
   }
@@ -413,6 +428,11 @@ namespace alice
   ALICE_WRITE_FILE( img_network, bench, img, filename, cmd )
   {
      mockturtle::write_bench( img, filename );
+  }
+  
+  ALICE_WRITE_FILE( mag_network, bench, mag, filename, cmd )
+  {
+     mockturtle::write_bench( mag, filename );
   }
 
   ALICE_WRITE_FILE( xag_network, bench, xag, filename, cmd )
