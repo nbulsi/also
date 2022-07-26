@@ -34,17 +34,26 @@ namespace alice
         auto b = mag.create_pi();
         auto c = mag.create_pi();
 
-        auto n1 = mag.create_ite( a, b, c );
+        auto n1 = mag.create_ite( a, c, b );
         auto n2 = mag.create_and( a, b );
         auto n3 = mag.create_and( c, n2 );
+        auto n4 = mag.create_and( !n1, n3 );
         
-        mag.create_po( n1 );
         mag.create_po( n3 );
+        mag.create_po( n4 );
+
+        depth_view_params ps;
+        ps.count_complements = true;
+        mockturtle::depth_view depth_mag{ mag, {}, ps };
+
+        auto depth = depth_mag.depth();
 
         std::cout << " PI: " << mag.num_pis() 
                   << " PO: " << mag.num_pos() 
                   << " size: " << mag.size() 
-                  << " #gates: " << mag.num_gates() << std::endl;
+                  << " #gates: " << mag.num_gates() 
+                  << " #invs: "  << mockturtle::num_inverters( mag ) 
+                  << " depth: " << depth << std::endl;
 
         /* check fanin/fanout size */
         assert( mag.fanin_size( mag.get_node( a ) ) == 0 );
