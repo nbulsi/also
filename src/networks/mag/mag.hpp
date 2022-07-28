@@ -780,7 +780,7 @@ public:
 
   bool is_ite( node const& n ) const
   {
-    return n > 0 && !is_ci( n ) && _storage->nodes[n].children[0].index > _storage->nodes[n].children[1].index;
+    return n > 0 && !is_ci( n ) && _storage->nodes[n].children[1].index > _storage->nodes[n].children[2].index;
   }
 
   bool is_nary_and( node const& n ) const

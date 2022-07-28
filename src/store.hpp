@@ -38,11 +38,13 @@
 #include <mockturtle/io/genlib_reader.hpp>
 #include <mockturtle/views/names_view.hpp>
 #include <lorina/genlib.hpp>
+#include <lorina/diagnostics.hpp>
 
 #include "networks/m5ig/m5ig.hpp"
 #include "networks/img/img.hpp"
 #include "networks/img/img_verilog_reader.hpp"
 #include "networks/mag/mag.hpp"
+#include "networks/mag/mag_verilog_reader.hpp"
 
 using namespace mockturtle;
 
@@ -383,13 +385,36 @@ namespace alice
     }
     return img;
   }
-
+  
   ALICE_PRINT_STORE_STATISTICS( img_network, os, img )
   {
     auto img_copy = mockturtle::cleanup_dangling( img );
     mockturtle::depth_view depth_img{img_copy};
     os << fmt::format( "IMG   i/o = {}/{}   gates = {}   level = {}",
           img.num_pis(), img.num_pos(), img.num_gates(), depth_img.depth() );
+    os << "\n";
+  }
+  
+  ALICE_READ_FILE( mag_network, verilog, filename, cmd )
+  {
+    mag_network mag;
+
+    lorina::text_diagnostics td;
+    lorina::diagnostic_engine diag( &td );
+
+    if ( lorina::read_verilog( filename, mag_verilog_reader( mag ), &diag ) != lorina::return_code::success )
+    {
+      std::cout << "[w] parse error\n";
+    }
+    return mag;
+  }
+  
+  ALICE_PRINT_STORE_STATISTICS( mag_network, os, mag )
+  {
+    auto mag_copy = mockturtle::cleanup_dangling( mag );
+    mockturtle::depth_view depth_mag{mag_copy};
+    os << fmt::format( "mag   i/o = {}/{}   gates = {}   level = {}",
+          mag.num_pis(), mag.num_pos(), mag.num_gates(), depth_mag.depth() );
     os << "\n";
   }
 

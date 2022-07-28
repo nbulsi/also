@@ -38,14 +38,15 @@ namespace alice
         
         num_and = 0;
         num_mux = 0;
-        /* compute num_maj and num_xor */
+        /* compute num_and and num_mux */
         mag.foreach_gate( [&]( auto n ) 
             {
+              std::cout << " node " << n << std::endl;
               if( mag.is_and( n ) )
               {
                 num_and++;
               }
-              else if( mag.is_mux( n ) )
+              else if( mag.is_ite( n ) )
               {
                 num_mux++;
               }
@@ -70,10 +71,6 @@ namespace alice
         std::tie( depth_and, depth_inv, depth_mux ) = split_critical_path( depth_mag2 );
 
         num_dangling = mockturtle::num_dangling_inputs( mag );
-
-        qca_area = num_maj * 0.0012 + num_inv * 0.004 + num_xor * 0.0027;
-        qca_delay = depth_maj * 0.004 + depth_inv * 0.014 + depth_xor * 0.009;
-        qca_energy = num_maj * 2.94 + num_inv * 9.8 + num_xor * 6.615;
 
         area  = num_and * 1 + num_inv * 0.1 + num_mux * 2.5;
         delay = num_and * 1 + num_inv * 0.1 + num_mux * 2;
@@ -130,7 +127,7 @@ namespace alice
             {
               num_and++;
             }
-            else if( ntk.is_mux( cp_node ) )
+            else if( ntk.is_ite( cp_node ) )
             {
               num_mux++;
             }

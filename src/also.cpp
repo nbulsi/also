@@ -61,5 +61,6 @@
 #include "commands/cremiter.hpp"
 #include "commands/rm_mp.hpp"
 #include "commands/test_mag.hpp"
+#include "commands/magcost.hpp"
 ALICE_MAIN( also )
 
