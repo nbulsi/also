@@ -93,7 +93,6 @@ public:
     for ( const auto& name : names )
     {
       signals[name] = _ntk.create_pi( name );
-      std::cout << "pi name : " << name << std::endl;
     }
   }
 
@@ -103,7 +102,6 @@ public:
     for ( const auto& name : names )
     {
       outputs.emplace_back( name );
-      std::cout << "po name : " << name << std::endl;
     }
   }
   
@@ -118,9 +116,6 @@ public:
     auto b = signals[op2.first];
 
     signals[lhs] = _ntk.create_and( a, b );
-    std::cout << " lhs : " << lhs << std::endl;
-    std::cout << " op1 : " << op1.second << op1.first << std::endl;
-    std::cout << " op2 : " << op2.second << op2.first << std::endl;
   }
   
   void on_ite( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
@@ -137,10 +132,6 @@ public:
     auto f_else = signals[op3.first];
 
     signals[lhs] = _ntk.create_ite( cond, f_then, f_else );
-    std::cout << " lhs : " << lhs << std::endl;
-    std::cout << " op1 : " << op1.second << op1.first << std::endl;
-    std::cout << " op2 : " << op2.second << op2.first << std::endl;
-    std::cout << " op3 : " << op3.second << op3.first << std::endl;
   }
 
 private:

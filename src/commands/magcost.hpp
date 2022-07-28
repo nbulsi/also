@@ -38,10 +38,10 @@ namespace alice
         
         num_and = 0;
         num_mux = 0;
+
         /* compute num_and and num_mux */
         mag.foreach_gate( [&]( auto n ) 
             {
-              std::cout << " node " << n << std::endl;
               if( mag.is_and( n ) )
               {
                 num_and++;
@@ -72,7 +72,8 @@ namespace alice
 
         num_dangling = mockturtle::num_dangling_inputs( mag );
 
-        area  = num_and * 1 + num_inv * 0.1 + num_mux * 2.5;
+        //cost function
+        area  = num_and * 1 + num_inv * 0.1 + num_mux * 3;
         delay = num_and * 1 + num_inv * 0.1 + num_mux * 2;
 
         env->out() << fmt::format( "[i] Gates             = {}\n"
