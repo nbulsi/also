@@ -409,6 +409,11 @@ namespace alice
     return mag;
   }
   
+  ALICE_WRITE_FILE( mag_network, verilog, mag, filename, cmd )
+  {
+    mockturtle::write_verilog( mag, filename );
+  }
+  
   ALICE_PRINT_STORE_STATISTICS( mag_network, os, mag )
   {
     auto mag_copy = mockturtle::cleanup_dangling( mag );

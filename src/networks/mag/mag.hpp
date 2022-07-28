@@ -414,7 +414,6 @@ public:
     }
 
     return {index, node_complement};
-
   }
 
   signal create_and( signal const& a, signal const& b )
@@ -769,7 +768,7 @@ public:
 
   bool is_maj( node const& n ) const
   {
-    return n > 0 && !is_ci( n ) && _storage->nodes[n].children[0].index < _storage->nodes[n].children[1].index;
+    return n > 0 && !is_ci( n ) && _storage->nodes[n].children[1].index < _storage->nodes[n].children[2].index;
   }
 
   bool is_xor3( node const& n ) const

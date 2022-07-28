@@ -115,7 +115,7 @@ public:
     auto a = signals[op1.first];
     auto b = signals[op2.first];
 
-    signals[lhs] = _ntk.create_and( a, b );
+    signals[lhs] = _ntk.create_and( op1.second ? _ntk.create_not( a ) : a, op2.second ? _ntk.create_not( b ) : b );
   }
   
   void on_ite( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
@@ -127,11 +127,13 @@ public:
     if ( signals.find( op3.first ) == signals.end()  )
       std::cerr << fmt::format( "[w] undefined signal {} assigned 0", op3.first ) << std::endl;
 
-    auto cond = signals[op1.first];
+    auto cond   = signals[op1.first];
     auto f_then = signals[op2.first];
     auto f_else = signals[op3.first];
 
-    signals[lhs] = _ntk.create_ite( cond, f_then, f_else );
+    signals[lhs] = _ntk.create_ite( op1.second ? _ntk.create_not( cond ) : cond, 
+                                    op2.second ? _ntk.create_not( f_then ) : f_then, 
+                                    op3.second ? _ntk.create_not( f_else ) : f_else );
   }
 
 private:
