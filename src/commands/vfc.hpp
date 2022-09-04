@@ -2,25 +2,26 @@
  * Copyright (C) 2019- Ningbo University, Ningbo, China */
 
 /**
- * @file test.hpp
+ * @file vfc.hpp
  *
- * @b testing -write first also command
+ * @b verilog_format_convert command
  *
- * @athor kunmh
+ * @author Ruibing Zhang
+ * @author Zhufei Chu
  * @since 0.1
  */
 
-#ifndef TEST_HPP
-#define TEST_HPP
+#ifndef VFC_HPP
+#define VFC_HPP
 #include "../core/format_convert.hpp"
-#include <alice/alice.hpp>
+
 namespace alice
 {
-class verilog_format_convert_command : public command
+class vfc_command : public command
 {
 public:
-  explicit verilog_format_convert_command( const environment::ptr& env )
-      : command( env, "for format conversion for verilog" )
+  explicit vfc_command( const environment::ptr& env )
+      : command( env, "verilog format conversion for EDA competition" )
   {
     add_option( "filename, -f", filename, "the input filename.v file name,the output filename is _filename.v" );
   }
@@ -37,7 +38,7 @@ private:
   string filename;
 };
 
-ALICE_ADD_COMMAND( verilog_format_convert, "I/O" )
+ALICE_ADD_COMMAND( vfc, "I/O" )
 
 } // namespace alice
 

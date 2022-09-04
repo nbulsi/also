@@ -62,6 +62,6 @@
 #include "commands/rm_mp.hpp"
 #include "commands/test_mag.hpp"
 #include "commands/magcost.hpp"
-#include "commands/verilog_format_convert.hpp"
+#include "commands/vfc.hpp"
 ALICE_MAIN( also )
 
