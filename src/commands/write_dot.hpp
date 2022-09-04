@@ -16,6 +16,7 @@
 #include <mockturtle/mockturtle.hpp>
 #include <mockturtle/io/write_dot.hpp>
 #include "../networks/m5ig/m5ig.hpp"
+#include "../networks/mag/mag.hpp"
 
 namespace alice
 {
@@ -31,6 +32,7 @@ namespace alice
         add_flag( "--m5ig_network,-r", "write m5ig_network into dot files" );
         add_flag( "--img_network,-i", "write img_network into dot files" );
         add_flag( "--klut_network,-l", "write klut_network into dot files" );
+        add_flag( "--mag_network,-b", "write mag_network into dot files" );
         add_option( "--filename, -f", filename, "The path to store dot file, default: /tmp/test.dot" );
       }
 
@@ -66,6 +68,12 @@ namespace alice
           img_network img = store<img_network>().current();
 
           write_dot( img, filename );
+        }
+        else if( is_set( "mag_network" ) )
+        {
+          mag_network mag = store<mag_network>().current();
+
+          write_dot( mag, filename );
         }
         else if( is_set( "klut_network" ) )
         {
