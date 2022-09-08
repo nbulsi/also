@@ -136,6 +136,28 @@ public:
                                     op3.second ? _ntk.create_not( f_else ) : f_else );
   }
 
+  void on_assign( const std::string& lhs, const std::pair<std::string, bool>& rhs ) const override
+  {
+    if( signals.find( rhs.first ) == signals.end() )
+      std::cerr << fmt::format( "[w] undefined signal {} assigned 0", rhs.first ) << std::endl;
+
+    auto r = signals[rhs.first];
+    signals[lhs] = rhs.second ? _ntk.create_not( r ) : r;
+  }
+
+  void on_nand( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2 ) const override
+  {
+    if( signals.find( op1.first ) == signals.end() )
+      std::cerr << fmt::format( "[w] undefined signal {} assigned 0", op1.first ) << std::endl;
+    if( signals.find( op2.first ) == signals.end() )
+      std::cerr << fmt::format( "[w] undefined signal {} assigned 0", op2.first ) << std::endl;
+
+    auto a = signals[op1.first];
+    auto b = signals[op2.first];
+    signals[lhs] = _ntk.create_not( _ntk.create_and( op1.second ? _ntk.create_not( a ) : a,
+                                                     op2.second ? _ntk.create_not( b ) : b ) );
+  }
+
 private:
   Ntk& _ntk;
 
