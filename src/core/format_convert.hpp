@@ -99,7 +99,7 @@ namespace also
       }
     }
     out << ");" << endl
-      << endl;
+        << endl;
   }
   bool change( std::istream& in, std::ostream& out )
   {
@@ -110,6 +110,7 @@ namespace also
     vector<string> wires;
     vector<string> assign;
     vector<string> result;
+    int flag = 0;
     for ( string line; getline( in, line, '\n' ); )
     {
       if ( line == "" )
@@ -123,7 +124,8 @@ namespace also
       idx = line.find( "module" );
       if ( idx != std::string::npos )
       {
-        module_name = line;
+        int temp = line.find( "(" );
+        module_name = line.substr( 0, temp + 1 );
         continue;
       }
       idx = line.find( "input" );
@@ -132,7 +134,7 @@ namespace also
         line.erase( line.begin() + idx, line.begin() + idx + 5 );
         for ( unsigned int i = 0; i < line.size(); )
         {
-          if ( line[i] == ' ' || line[i] == ',' )
+          if ( line[i] == ' ' || line[i] == ',' || line[i] == ';' )
           {
             line.erase( line.begin() + i );
           }
@@ -147,7 +149,7 @@ namespace also
         line.erase( line.begin() + idx, line.begin() + idx + 6 );
         for ( unsigned int i = 0; i < line.size(); )
         {
-          if ( line[i] == ' ' || line[i] == ',' )
+          if ( line[i] == ' ' || line[i] == ',' || line[i] == ';' )
           {
             line.erase( line.begin() + i );
           }
@@ -160,7 +162,15 @@ namespace also
       idx = line.find( "wire" );
       if ( idx != std::string::npos )
       {
+        flag = 1;
+      }
+      if ( flag == 1 )
+      {
         wires.push_back( line );
+        if ( line.find( ";" ) != std::string::npos )
+        {
+          flag = 0;
+        }
       }
 
       idx = line.find( "assign" );
@@ -213,6 +223,11 @@ namespace also
       }
       int j;
       int line_feed = 0;
+      if ( stoi( idx[1] ) == stoi( idx[0] ) )
+      {
+        out << "input " << name << idx[0] << ";" << endl;
+        continue;
+      }
       for ( j = stoi( idx[1] ); j < stoi( idx[0] ); ++j )
       {
         if ( line_feed == 0 )
@@ -232,8 +247,8 @@ namespace also
           line_feed++;
         }
       }
-      if ( line_feed )
-        out << name << j << ";" << endl;
+      // if (line_feed)
+      out << name << j << ";" << endl;
     }
     // write outputs
     for ( auto m_outputs : outputs )
@@ -266,6 +281,11 @@ namespace also
       }
       int j;
       int line_feed = 0;
+      if ( stoi( idx[1] ) == stoi( idx[0] ) )
+      {
+        out << "output " << name << idx[0] << ";" << endl;
+        continue;
+      }
       for ( j = stoi( idx[1] ); j < stoi( idx[0] ); ++j )
       {
         if ( line_feed == 0 )
@@ -285,13 +305,35 @@ namespace also
           line_feed++;
         }
       }
-      if ( line_feed )
-        out << name << j << ";" << endl;
+      // if (line_feed)
+      out << name << j << ";" << endl;
     }
     // write wire
-    for ( auto m_wire : wires )
+    for ( unsigned int t = 0; t < wires.size(); t++ )
     {
-      out << m_wire << endl;
+      // delete " "
+      for ( unsigned int i = 0; i < wires[t].size(); )
+      {
+        if ( wires[t][i] == ' ' )
+        {
+          wires[t].erase( wires[t].begin() + i );
+        }
+        else
+          ++i;
+      }
+      if ( t == 0 )
+      {
+        wires[t].insert( wires[t].begin() + 4, ' ' );
+        wires[t].pop_back();
+        wires[t].push_back( ';' );
+      }
+      else
+      {
+        wires[t] = "wire " + wires[t];
+        wires[t].pop_back();
+        wires[t].push_back( ';' );
+      }
+      out << wires[t] << endl;
     }
     out << endl;
     // write assign
@@ -303,6 +345,7 @@ namespace also
     out << "endmodule" << endl;
     return true;
   }
+
 
   void mag_convert( const string& infile, const string& outfile )
   {
