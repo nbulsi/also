@@ -73,12 +73,12 @@ namespace alice
         num_dangling = mockturtle::num_dangling_inputs( mag );
 
         //cost function
-        area  = num_and * 1 + num_inv * 0.1 + num_mux * 3;
-        delay = num_and * 1 + num_inv * 0.1 + num_mux * 2;
+        area  = num_and * 1 + num_inv * 0.1 + num_mux * 2.5;
+        delay = depth_and * 1 + depth_inv * 0.1 + depth_mux * 2;
 
         env->out() << fmt::format( "[i] Gates             = {}\n"
             "[i] Num ANDs          = {}\n"
-            "[i] Num MUXes          = {}\n"
+            "[i] Num MUXes         = {}\n"
             "[i] Inverters         = {}\n"
             "[i] Depth (def.)      = {}\n"
             "[i] Depth mixed       = {}\n"
