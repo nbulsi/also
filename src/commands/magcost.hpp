@@ -41,21 +41,21 @@ namespace alice
 
         /* compute num_and and num_mux */
         mag.foreach_gate( [&]( auto n ) 
+          {
+            if( mag.is_and( n ) )
             {
-              if( mag.is_and( n ) )
-              {
-                num_and++;
-              }
-              else if( mag.is_ite( n ) )
-              {
-                num_mux++;
-              }
-              else
-              {
-                assert( false && "only support MAG now" );
-              }
+              num_and++;
             }
-            );
+            else if( mag.is_ite( n ) )
+            {
+              num_mux++;
+            }
+            else
+            {
+              assert( false && "only support MAG now" );
+            }
+          }
+          );
 
         num_gates = mag.num_gates();
         num_inv = mockturtle::num_inverters( mag );
@@ -66,8 +66,10 @@ namespace alice
         depth = depth_mag.depth();
 
         ps.count_complements = true;
-        mockturtle::depth_view depth_mag2{mag,{}, ps};
-        depth_mixed = depth_mag2.depth();
+        node_cost<mag_network> node_fn;
+        mockturtle::depth_view depth_mag2{mag, node_fn, ps};
+        
+        depth_mixed = 1.0 * depth_mag2.depth() / 10;
         std::tie( depth_and, depth_inv, depth_mux ) = split_critical_path( depth_mag2 );
 
         num_dangling = mockturtle::num_dangling_inputs( mag );
@@ -93,6 +95,28 @@ namespace alice
       }
 
       private:
+        template<class Ntk>
+        struct node_cost
+        {
+          double operator()( Ntk const& ntk, node<Ntk> const& node ) const
+          {
+            unsigned cost = 0;
+            if(ntk.is_and(node))
+            {
+              cost += 10;
+            }
+            else if(ntk.is_ite(node))
+            {
+              cost += 20;
+            }
+            else
+            {
+              assert( false && "only support MAG now" );
+            }
+            return cost;
+          }
+        };
+
       template<class Ntk>
         std::tuple<unsigned, unsigned, unsigned> split_critical_path( Ntk const& ntk )
         {
@@ -107,12 +131,12 @@ namespace alice
               {
                 level++;
               }
-                
+
               if ( level == ntk.depth() )
               {
                 if ( ntk.is_complemented( f ) )
                 {
-                ++num_inv;
+                  ++num_inv;
                 }
                 cp_node = ntk.get_node( f );
                 return false;
@@ -121,16 +145,18 @@ namespace alice
               return true;
               } );
 
-
           while ( !ntk.is_constant( cp_node ) && !ntk.is_pi( cp_node ) )
           {
+            int node_level = 0;
             if( ntk.is_and( cp_node ) )
             {
               num_and++;
+              node_level = 10;
             }
             else if( ntk.is_ite( cp_node ) )
             {
               num_mux++;
+              node_level = 20;
             }
             else
             {
@@ -144,11 +170,11 @@ namespace alice
                   level++;
                 }
 
-                if ( level + 1 == ntk.level( cp_node ) )
+                if ( level + node_level == ntk.level( cp_node ) )
                 {
                   if ( ntk.is_complemented( f ) )
                   {
-                  num_inv++;
+                    num_inv++;
                   }
                   cp_node = ntk.get_node( f );
                   return false;
@@ -159,10 +185,11 @@ namespace alice
 
           return {num_and, num_inv, num_mux};
         }
-      
+
       private:
-      unsigned num_gates{0u}, num_inv{0u}, num_and{0u}, num_mux{0u}, depth{0u}, depth_mixed{0u}, depth_and{0u}, depth_inv{0u}, depth_mux{0u}, num_dangling{0u};
+      unsigned num_gates{0u}, num_inv{0u}, num_and{0u}, num_mux{0u}, depth{0u}, depth_and{0u}, depth_inv{0u}, depth_mux{0u}, num_dangling{0u};
       double area, delay;
+      double depth_mixed;
   };
 
   ALICE_ADD_COMMAND( magcost, "Various" )

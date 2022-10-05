@@ -176,15 +176,40 @@ namespace also
       idx = line.find( "assign" );
       if ( idx != std::string::npos )
       {
+        vector<int> index;
         line.erase( line.begin(), line.begin() + idx );
         for ( unsigned int i = 0; i < line.size(); )
         {
-          if ( line[i] == '[' || line[i] == ']' )
+          if ( line[i] == '[' || line[i] == ']')
           {
             line.erase( line.begin() + i );
+            continue;
           }
-          else
-            ++i;
+          else if( line[i] == '(')
+          {
+            index.push_back(i);
+          }
+          i++;
+        }
+        if(index.size() == 2)
+        {
+          string temp = "";
+          for(unsigned int i = 1; ;i++)
+          {
+            if(line[index[0] + i] == line[index[1] + i])
+            {
+              if(line[index[0] + i] == '~' || line[index[0] + i] == '|' || line[index[0] + i] == '&' || line[index[0] + i] == ' ')
+              {
+                auto p = line.find("=");
+                line.erase(line.begin() + p + 1 , line.end());
+                line = line + " " + temp + ";";
+                break;
+              }
+              temp += line[index[0]+i];
+            }
+            else 
+              break;
+          }
         }
         assign.push_back( line );
       }
