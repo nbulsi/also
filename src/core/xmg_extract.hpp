@@ -38,22 +38,31 @@ namespace also
 
       //print_children( children );
 
-      if( xmg.get_node( children[0] ) == 0 )
+      if( xmg.get_node( children[0] ) == 0 
+          && !xmg.is_pi( xmg.get_node( children[1] ) ) 
+          && !xmg.is_pi( xmg.get_node( children[2] ) ) )
       { 
         auto result1 = v.validate( children[1], children[2] );
         auto result2 = v.validate( children[1], !children[2] );
 
+        if( result1 == std::nullopt || result2 == std::nullopt )
+        {
+          //std::cout << "UNKNOWN status\n";
+          return;
+        }
+        
         if( result1 || result2 )
         {
           if( *result1 )
           {
-          //std::cout << "XOR node " << n  << " can be removed as 0\n";
-          xors.push_back( n );
-          count++;
+            std::cout << "XOR node " << n  << " can be removed as constant 0\n";
+            xors.push_back( n * 2 );
+            count++;
           }
           else if( *result2 )
           {
-            //std::cout << "XOR can be removed as 1\n";
+            std::cout << "XOR node " << n  << " can be removed as constant 1\n";
+            xors.push_back( n * 2 + 1 );
             count++;
           }
         }
