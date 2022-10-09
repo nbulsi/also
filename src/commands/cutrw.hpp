@@ -145,7 +145,7 @@ namespace alice
           ps.cut_enumeration_ps.cut_size = 4u;
           ps.min_cand_cut_size = 2;
           ps.min_cand_cut_size_override = 3;
-          cut_rewriting( xag, resyn, ps );
+          xag = cut_rewriting( xag, resyn, ps );
           xag = cleanup_dangling( xag );
 
           also::print_stats( xag );
@@ -187,7 +187,7 @@ namespace alice
           ps.cut_enumeration_ps.cut_size = 3u;
           
           img_all_resynthesis<img_network> resyn;
-          cut_rewriting( img, resyn, ps );
+          img = cut_rewriting( img, resyn, ps );
           img = cleanup_dangling( img );
 
           also::print_stats( img );
@@ -204,7 +204,7 @@ namespace alice
           xmg_npn_resynthesis resyn;
           cut_rewriting_params ps;
           ps.cut_enumeration_ps.cut_size = 4u;
-          cut_rewriting( xmg, resyn, ps );
+          xmg = cut_rewriting( xmg, resyn, ps );
           xmg = cleanup_dangling( xmg );
 
           also::print_stats( xmg );
