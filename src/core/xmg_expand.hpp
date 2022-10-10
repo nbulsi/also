@@ -88,10 +88,22 @@ private:
     if ( !ntk.is_xor3( n ) )
       return false;
 
-    if( std::find( xors.begin(), xors.end(), n ) != xors.end() )
+    auto copy_node_2n = n * 2;
+    auto copy_node_2n_plus_1 = n * 2 + 1;
+
+    if( std::find( xors.begin(), xors.end(), copy_node_2n ) != xors.end() )
     {
       //std::cout << "Please assign constants to node " << n << std::endl;
       auto opt = ntk.get_constant( false );
+      ntk.substitute_node( n, opt );
+      ntk.update_levels();
+
+      return true;
+    }
+    else if( std::find( xors.begin(), xors.end(), copy_node_2n_plus_1 ) != xors.end() )
+    {
+      //std::cout << "Please assign constants to node " << n << std::endl;
+      auto opt = ntk.get_constant( true );
       ntk.substitute_node( n, opt );
       ntk.update_levels();
 

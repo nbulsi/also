@@ -38,10 +38,13 @@
 #include <mockturtle/io/genlib_reader.hpp>
 #include <mockturtle/views/names_view.hpp>
 #include <lorina/genlib.hpp>
+#include <lorina/diagnostics.hpp>
 
 #include "networks/m5ig/m5ig.hpp"
 #include "networks/img/img.hpp"
 #include "networks/img/img_verilog_reader.hpp"
+#include "networks/mag/mag.hpp"
+#include "networks/mag/mag_verilog_reader.hpp"
 
 using namespace mockturtle;
 
@@ -139,6 +142,20 @@ namespace alice
   }
 
   ALICE_DESCRIBE_STORE( img_network, element )
+  {
+    return fmt::format( "{} nodes", element.size() );
+  }
+
+  /* mag */
+  ALICE_ADD_STORE( mag_network, "mag", "b", "mag", "mags" )
+
+  ALICE_PRINT_STORE( mag_network, os, element )
+  {
+    os << fmt::format( " MAG i/o = {}/{} gates = {} ", element.num_pis(), element.num_pos(), element.num_gates() );
+    os << "\n";
+  }
+
+  ALICE_DESCRIBE_STORE( mag_network, element )
   {
     return fmt::format( "{} nodes", element.size() );
   }
@@ -368,13 +385,41 @@ namespace alice
     }
     return img;
   }
-
+  
   ALICE_PRINT_STORE_STATISTICS( img_network, os, img )
   {
     auto img_copy = mockturtle::cleanup_dangling( img );
     mockturtle::depth_view depth_img{img_copy};
     os << fmt::format( "IMG   i/o = {}/{}   gates = {}   level = {}",
           img.num_pis(), img.num_pos(), img.num_gates(), depth_img.depth() );
+    os << "\n";
+  }
+  
+  ALICE_READ_FILE( mag_network, verilog, filename, cmd )
+  {
+    mag_network mag;
+
+    lorina::text_diagnostics td;
+    lorina::diagnostic_engine diag( &td );
+
+    if ( lorina::read_verilog( filename, mag_verilog_reader( mag ), &diag ) != lorina::return_code::success )
+    {
+      std::cout << "[w] parse error\n";
+    }
+    return mag;
+  }
+  
+  ALICE_WRITE_FILE( mag_network, verilog, mag, filename, cmd )
+  {
+    mockturtle::write_verilog( mag, filename );
+  }
+  
+  ALICE_PRINT_STORE_STATISTICS( mag_network, os, mag )
+  {
+    auto mag_copy = mockturtle::cleanup_dangling( mag );
+    mockturtle::depth_view depth_mag{mag_copy};
+    os << fmt::format( "mag   i/o = {}/{}   gates = {}   level = {}",
+          mag.num_pis(), mag.num_pos(), mag.num_gates(), depth_mag.depth() );
     os << "\n";
   }
 
@@ -413,6 +458,11 @@ namespace alice
   ALICE_WRITE_FILE( img_network, bench, img, filename, cmd )
   {
      mockturtle::write_bench( img, filename );
+  }
+  
+  ALICE_WRITE_FILE( mag_network, bench, mag, filename, cmd )
+  {
+     mockturtle::write_bench( mag, filename );
   }
 
   ALICE_WRITE_FILE( xag_network, bench, xag, filename, cmd )

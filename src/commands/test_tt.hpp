@@ -14,6 +14,7 @@
 #define TEST_TT_HPP
 
 #include <mockturtle/mockturtle.hpp>
+#include "../networks/mag/mag.hpp"
 
 namespace alice
 {
@@ -37,7 +38,6 @@ namespace alice
         std::cout << " selfdual   : " << ( kitty::is_selfdual( opt.function ) ? " yes " : " no " ) << std::endl; 
         std::cout << " horn       : " << ( kitty::is_horn( opt.function ) ? " yes " : " no " ) << std::endl; 
         std::cout << " krom       : " << ( kitty::is_krom( opt.function ) ? " yes " : " no " ) << std::endl; 
-        
       }
     
       private:
