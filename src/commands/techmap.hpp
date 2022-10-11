@@ -78,7 +78,7 @@ namespace alice
 
             if( is_set( "output" ) )
             {
-              write_verilog( res, filename );
+              write_verilog_with_binding( res, filename );
             }
 
             std::cout << fmt::format( "[i] Mapped XMG into #gates = {} area = {:.2f} delay = {:.2f}\n", res.num_gates(), st.area, st.delay );
@@ -98,7 +98,7 @@ namespace alice
 
             if( is_set( "output" ) )
             {
-              write_verilog( res, filename );
+              write_verilog_with_binding( res, filename );
             }
 
             std::cout << fmt::format( "Mapped MIG into #gates = {} area = {:.2f} delay = {:.2f}\n", res.num_gates(), st.area, st.delay );
@@ -118,7 +118,7 @@ namespace alice
 
             if( is_set( "output" ) )
             {
-              write_verilog( res, filename );
+              write_verilog_with_binding( res, filename );
             }
 
             std::cout << fmt::format( "Mapped AIG into #gates = {} area = {:.2f} delay = {:.2f}\n", res.num_gates(), st.area, st.delay );
