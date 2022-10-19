@@ -139,6 +139,70 @@ namespace alice
         os.close();
       }
 
+      void write_dimacs_xag_xor_cnf( xag_network const& xag, std::ostream& out = std::cout )
+      {
+        std::stringstream clauses;
+        uint32_t num_clauses = 0u;
+
+        xag.foreach_gate( [&]( auto n)
+            {
+              if( xag.is_xor( n ) )
+              {
+                clauses << fmt::format( "x " );
+
+                xag.foreach_fanin( n, [&]( auto const& f )
+                    {
+                      auto child = xag.get_node( f );
+                      clauses << fmt::format( "{}{} ", xag.is_complemented( f ) ? "-" : "", child );
+                    }
+                   );
+
+                clauses << fmt::format( "-{} 0\n", n );
+                ++num_clauses;
+              }
+              else if( xag.is_and( n ) )
+              {
+                auto children = also::get_xag_children( xag, n );
+
+                auto c1 = xag.get_node( children[0] );
+                auto c2 = xag.get_node( children[1] );
+
+                auto p1 = xag.is_complemented( children[0] );
+                auto p2 = xag.is_complemented( children[1] );
+                
+                clauses << fmt::format( "{}{} -{} 0\n", p1 ? "-" : "", c1, n );
+                clauses << fmt::format( "{}{} -{} 0\n", p2 ? "-" : "", c2, n );
+                clauses << fmt::format( "{}{} {}{} {} 0\n", p1 ? "" : "-", c1, 
+                                                            p2 ? "" : "-", c2, n );
+                num_clauses += 3u;
+              }
+              else
+              {
+                assert( false && "unknown gates in XAG" );
+              }
+
+            }
+            );
+
+            xag.foreach_po( [&]( auto const& f ) 
+                {
+                  auto po = xag.get_node( f );
+
+                  clauses << fmt::format( "{}{} 0\n", xag.is_complemented( f ) ? "-" : "", po );
+                  ++num_clauses;
+                }
+                );
+
+            out << fmt::format( "p cnf {} {}\n{}", xag.size() - 1u, num_clauses, clauses.str() );
+      }
+      
+      void write_dimacs_xag_xor_cnf( xag_network const& xag, std::string const& fname )
+      {
+        std::ofstream os( fname.c_str(), std::ofstream::out );
+        write_dimacs_xag_xor_cnf( xag, os );
+        os.close();
+      }
+
     protected:
       void execute()
       {
@@ -158,8 +222,16 @@ namespace alice
         }
         else if( is_set( "xag" ) )
         {
-          xag_network xag = store<xag_network>().current();
-          write_dimacs( xag, filename );
+          if( is_set( "xor-cnf" ) )
+          {
+            xag_network xag = store<xag_network>().current();
+            write_dimacs_xag_xor_cnf( xag, filename );
+          }
+          else
+          {
+            xag_network xag = store<xag_network>().current();
+            write_dimacs( xag, filename );
+          }
         }
         else if( is_set( "mig" ) )
         {

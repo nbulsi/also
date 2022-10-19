@@ -28,6 +28,16 @@ namespace also
         } );
     return children;
   }
+  
+  std::array<xag_network::signal, 2> get_xag_children( xag_network const& xag, xag_network::node const& n )
+  {
+    std::array<xag_network::signal, 2> children;
+    xag.foreach_fanin( n, [&children]( auto const& f, auto i ) { children[i] = f; } );
+    std::sort( children.begin(), children.end(), [&]( auto const& c1, auto const& c2 ) {
+        return c1.index < c2.index;
+        } );
+    return children;
+  }
 
   void print_children( std::array<xmg_network::signal, 3> const& children )
   {
