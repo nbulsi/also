@@ -30,6 +30,7 @@ namespace alice
       explicit write_dimacs_command( const environment::ptr& env ) : command( env, "write logic network into dimacs" )
       {
         add_flag( "--xag, -g",   "using xag as source logic network" );
+        add_flag( "--aig, -a",   "using aig as source logic network" );
         add_flag( "--xmg, -x",   "using xmg as source logic network" );
         add_flag( "--mig, -m",   "using mig as source logic network" );
         add_flag( "--klut, -l",  "using klut as source logic network" );
@@ -237,6 +238,11 @@ namespace alice
         {
           mig_network mig = store<mig_network>().current();
           write_dimacs( mig, filename );
+        }
+        else if( is_set( "aig" ) )
+        {
+          aig_network aig = store<aig_network>().current();
+          write_dimacs( aig, filename );
         }
         else if( is_set( "klut" ) )
         {
