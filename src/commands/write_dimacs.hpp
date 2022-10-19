@@ -103,7 +103,7 @@ namespace alice
                                                                 p3 ? "" : "-", c3, n );
                     
                     clauses << fmt::format( "{}{} {}{} -{} 0\n", p1 ? "-" : "", c1, 
-                                                                 p1 ? "-" : "", c2, n );
+                                                                 p2 ? "-" : "", c2, n );
                     clauses << fmt::format( "{}{} {}{} -{} 0\n", p1 ? "-" : "", c1, 
                                                                  p3 ? "-" : "", c3, n );
                     clauses << fmt::format( "{}{} {}{} -{} 0\n", p2 ? "-" : "", c2, 
@@ -129,7 +129,7 @@ namespace alice
                 }
                 );
 
-            out << fmt::format( "p cnf {} {}\n{}", xmg.size(), num_clauses, clauses.str() );
+            out << fmt::format( "p cnf {} {}\n{}", xmg.size() - 1u, num_clauses, clauses.str() );
       }
 
       void write_dimacs_xor_cnf( xmg_network const& xmg, std::string const& fname )

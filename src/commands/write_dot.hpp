@@ -43,19 +43,19 @@ namespace alice
         {
           xmg_network xmg = store<xmg_network>().current();
 
-          write_dot( xmg, filename );
+          write_dot( xmg, filename, gate_dot_drawer<xmg_network>{} );
         }
         else if( is_set( "aig_network" ) )
         {
           aig_network aig = store<aig_network>().current();
 
-          write_dot( aig, filename );
+          write_dot( aig, filename, gate_dot_drawer<aig_network>{} );
         }
         else if( is_set( "mig_network" ) )
         {
           mig_network mig = store<mig_network>().current();
 
-          write_dot( mig, filename );
+          write_dot( mig, filename, gate_dot_drawer<mig_network>{} );
         }
         else if( is_set( "m5ig_network" ) )
         {
@@ -79,7 +79,7 @@ namespace alice
         {
           klut_network klut = store<klut_network>().current();
 
-          write_dot( klut, filename );
+          write_dot( klut, filename, gate_dot_drawer<klut_network>{} );
         }
         else
         {
