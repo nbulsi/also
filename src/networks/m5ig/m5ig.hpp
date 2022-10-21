@@ -49,6 +49,14 @@
 namespace mockturtle
 {
 
+struct m5ig_storage_data
+{
+  uint32_t num_pis = 0u;
+  uint32_t num_pos = 0u;
+  std::vector<int8_t> latches;
+  uint32_t trav_id = 0u;
+};
+
 /*! \brief m5ig storage container
 
   m5igs have nodes with fan-in 5.  We split of one bit of the index pointer to
@@ -61,7 +69,8 @@ namespace mockturtle
 */
 
 using m5ig_node = regular_node<5, 2, 1>;
-using m5ig_storage = storage<m5ig_node>;
+using m5ig_storage = storage<m5ig_node,
+                             m5ig_storage_data>;
 
 class m5ig_network
 {
@@ -184,8 +193,9 @@ public:
                           = node.children[2].data
                           = node.children[3].data
                           = node.children[4].data
-                          = _storage->inputs.size();
+                          = ~static_cast<uint64_t>( 0 );
     _storage->inputs.emplace_back( index );
+    ++_storage->data.num_pis;
     return {index, 0};
   }
 
@@ -195,6 +205,7 @@ public:
     _storage->nodes[f.index].data[0].h1++;
     auto const po_index = static_cast<uint32_t>( _storage->outputs.size() );
     _storage->outputs.emplace_back( f.index, f.complement );
+    ++_storage->data.num_pos;
     return po_index;
   }
 
