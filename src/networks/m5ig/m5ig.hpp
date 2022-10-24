@@ -684,7 +684,7 @@ public:
   {
     if ( is_constant( n ) || is_ci( n ) )
       return 0;
-    return 3;
+    return 5;
   }
 
   uint32_t fanout_size( node const& n ) const
