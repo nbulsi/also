@@ -199,8 +199,8 @@
               //}
               size_t unorderedSeed = 0;
               size_t orderedSeed = 0;
-              hash<unordered_multiset<CubeDecomposition>> unorderedHasher;
-              hash<vector<CubeDecomposition>> orderedHasher;
+              std::hash<unordered_multiset<CubeDecomposition>> unorderedHasher;
+              std::hash<vector<CubeDecomposition>> orderedHasher;
               unorderedSeed = unorderedHasher( newAssignedCubeDecompositionsSet );
               orderedSeed = orderedHasher( newAssignedCubeDecompositionsVec );
 
@@ -262,7 +262,7 @@
                   cout << *it << " " << endl;
                 }
                   size_t matSeed = 0;
-                  hash<vector<string>> hasher;
+                  std::hash<vector<string>> hasher;
                   matSeed = hasher( newAssMat );
                   if ( _existingMatrices[matSeed] == true )
                   {

@@ -63,5 +63,6 @@
 #include "commands/test_mag.hpp"
 #include "commands/magcost.hpp"
 #include "commands/vfc.hpp"
+#include "commands/write_dimacs.hpp"
 ALICE_MAIN( also )
 

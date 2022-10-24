@@ -16,15 +16,11 @@ public:
   {
     add_flag( "-v,--verbose", "show statistics" );
     add_flag( "-p,--partial_miter", "create partial PO miter" );
-    add_flag( "-g,--miter_for_xag", "create miter for xag network" );
-    add_flag( "-a,--miter_for_aig", "create miter for aig network" );
+    add_flag( "-g,--miter_for_xag", "create miter for aig/xag network" );
+    add_flag( "-a,--miter_for_aig", "create miter for aig/aig network" );
+    add_flag( "-x,--miter_for_xmg", "create miter for xmg/xmg network" );
     add_flag( "-e,--enable_ec", "enable equivalence checking" );
     add_flag( "-n,--new_entry", "save new miter network to the store" );
-  }
-
-  rules validity_rules() const
-  {
-    return { has_store_element<aig_network>( env ) };
   }
 
 protected:
@@ -69,6 +65,25 @@ protected:
           {
             store<xag_network>().extend();
             store<xag_network>().current() = miter;
+          }
+      } );
+    }
+    else if ( is_set( "miter_for_xmg" ) )
+    {
+      auto xmg_store_size = store<xmg_network>().size();
+      assert( xmg_store_size >= 2u );
+      auto xmg1 = store<xmg_network>()[ xmg_store_size - 1 ];
+      auto xmg2 = store<xmg_network>()[ xmg_store_size - 2 ];
+
+      mockturtle::call_with_stopwatch( time, [&]() {
+      const auto miter = *mockturtle::miter<xmg_network>( xmg1, xmg2 );
+      if( is_set( "enable_ec" ) ) {
+      result = mockturtle::equivalence_checking( miter ); }
+          
+          if( is_set( "new_entry" ) )
+          {
+            store<xmg_network>().extend();
+            store<xmg_network>().current() = miter;
           }
       } );
     }

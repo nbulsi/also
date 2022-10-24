@@ -24,7 +24,6 @@ namespace alice
       explicit dm_command( const environment::ptr& env ) : command( env, "Direct mapping of logic networks by one-to-one mapping" )
       {
         add_flag( "--aig_to_xmg",  "AIG to XMG" );
-        add_flag( "--aig_to_mig",  "AIG to MIG" );
         add_flag( "--xmg_to_mig",  "XMG to MIG" );
         add_flag( "--mig_to_xmg",  "MIG to XMG" );
       }
