@@ -21,6 +21,7 @@ public:
     add_flag( "-x,--miter_for_xmg", "create miter for xmg/xmg network" );
     add_flag( "-e,--enable_ec", "enable equivalence checking" );
     add_flag( "-n,--new_entry", "save new miter network to the store" );
+    add_option( "-l,--conflict_limit", conflict_limit, "conflict limit for SAT solver");
   }
 
 protected:
@@ -36,22 +37,72 @@ protected:
 
     if ( is_set( "partial_miter" ) )
     {
+      unsigned success = 0u;
+      unsigned fail = 0u;
+      unsigned unknown = 0u;
+
       mockturtle::call_with_stopwatch( time, [&]() {
+            
+            if( is_set( "verbose" ) )
+            {
+              std::cout << "[i] Begin the equivalence checking process for " << xmg.num_pos() << " POs\n";
+            }
+
             for( auto i = 0; i < xmg.num_pos(); i++ )
             {
                 mockturtle::stopwatch<>::duration iteration_time{0};
                 
                 mockturtle::call_with_stopwatch( iteration_time, [&]() {
                 const auto miter = *mockturtle::pmiter<xmg_network>( aig, xmg, i );
-                if( is_set( "enable_ec" ) ) {
-                result = mockturtle::equivalence_checking( miter ); }
+                if( is_set( "enable_ec" ) ) 
+                {
+                  equivalence_checking_params ps;
+                  equivalence_checking_stats st;
+                  
+                  ps.conflict_limit = conflict_limit;
+
+                  result = mockturtle::equivalence_checking( miter, ps, &st );
+
+                  if( result == std::nullopt )
+                  {
+                    unknown++;
+                    if( is_set( "verbose" ) ) 
+                    {
+                      std::cout << "[i] UNKNOWN ";
+                    }
+                  }
+                  else
+                  {
+                    if( *result )
+                    {
+                      success++;
+                      if( is_set( "verbose" ) ) 
+                      {
+                        std::cout << "[i] EQU "; 
+                      }
+                    }
+                    else
+                    {
+                      fail++;
+                      if( is_set( "verbose" ) ) 
+                      {
+                        std::cout << "[i] NEQ " << std::endl;
+                      }
+                      return;
+                    }
+                  }
+                }
                 } );
                 
-                if( is_set( "verbose" ) ) {
-                std::cout << fmt::format( "[Iteration time for {}]: {:5.4f} seconds\n", 
-                    i, mockturtle::to_seconds( iteration_time ) ); }
+                if( is_set( "verbose" ) ) 
+                {
+                  std::cout << fmt::format( "for node {}, iteration time: {:5.4f} seconds\n", 
+                      i, mockturtle::to_seconds( iteration_time ) ); 
+                }
             }
           } );
+      
+          std::cout << fmt::format( "[Equivalence Checking:] There are {} POs, {} success / {} unknown / {} failure.\n", xmg.num_pos(), success, unknown, fail );
     }
     else if ( is_set( "miter_for_xag" ) )
     {
@@ -124,6 +175,7 @@ protected:
   }
 
 private:
+  unsigned conflict_limit = 0u;
 };
 
 ALICE_ADD_COMMAND( cremiter, "Optimization" )
