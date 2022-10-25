@@ -40,6 +40,7 @@ protected:
       unsigned success = 0u;
       unsigned fail = 0u;
       unsigned unknown = 0u;
+      std::vector<unsigned> unknown_po_list;
 
       mockturtle::call_with_stopwatch( time, [&]() {
             
@@ -66,6 +67,7 @@ protected:
                   if( result == std::nullopt )
                   {
                     unknown++;
+                    unknown_po_list.push_back( i );
                     if( is_set( "verbose" ) ) 
                     {
                       std::cout << "[i] UNKNOWN ";
@@ -103,6 +105,13 @@ protected:
           } );
       
           std::cout << fmt::format( "[Equivalence Checking:] There are {} POs, {} success / {} unknown / {} failure.\n", xmg.num_pos(), success, unknown, fail );
+
+          if( unknown_po_list.size() > 0u )
+          {
+            const auto new_miter = *mockturtle::pmiter_w_po_list<xmg_network>( aig, xmg, unknown_po_list );
+            store<xmg_network>().extend();
+            store<xmg_network>().current() = new_miter;
+          }
     }
     else if ( is_set( "miter_for_xag" ) )
     {
