@@ -64,5 +64,6 @@
 #include "commands/magcost.hpp"
 #include "commands/vfc.hpp"
 #include "commands/write_dimacs.hpp"
+#include "commands/sim.hpp"
 ALICE_MAIN( also )
 
