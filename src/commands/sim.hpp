@@ -47,15 +47,27 @@ namespace alice
             simulate_nodes( xmg, node_to_value, sim );
             
             xmg.foreach_po( [&]( auto const& f ) {
-                std::cout << "tt: 0x" << ( xmg.is_complemented( f ) ? ~node_to_value[f] : node_to_value[f] )._bits[0] << std::endl; 
+                std::cout << "tt: 0x" << ( xmg.is_complemented( f ) ? ~node_to_value[f] : node_to_value[f] )._bits[0]  << std::endl; 
                 } );
           }
           else
           {
             xmg_network xmg = store<xmg_network>().current();
             default_simulator<kitty::dynamic_truth_table> sim( xmg.num_pis() );
-            const auto tt = simulate<kitty::dynamic_truth_table>( xmg, sim )[0];
-            std::cout << "tt: 0x" << tt._bits[0] << std::endl;
+            unordered_node_map<kitty::dynamic_truth_table, xmg_network> node_to_value( xmg );
+            simulate_nodes( xmg, node_to_value, sim );
+
+            xmg.foreach_gate( [&]( auto const& n ) 
+                {
+                std::cout << "node " << n << " tt: " << node_to_value[n]._bits[0]  << std::endl; 
+                } );
+            
+            xmg.foreach_po( [&]( auto const& f ) {
+                std::cout << "PO tt: " <<  ( xmg.is_complemented( f ) ? ~node_to_value[f] : node_to_value[f] )._bits[0]  << std::endl; 
+                } );
+
+            //const auto tt = simulate<kitty::dynamic_truth_table>( xmg, sim )[0];
+            //std::cout << "tt: 0x" << tt._bits[0] << std::endl;
           }  
         }
         else if( is_set( "aig_network" ) )
