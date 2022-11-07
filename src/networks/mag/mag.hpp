@@ -321,18 +321,101 @@ public:
     }
 
     /* trivial cases */
-    if( f_then == f_else )
+    // if( f_then == f_else )
+    // {
+    //   return f_then;
+    // }
+    // if( cond == f_else )
+    // {
+    //   return create_and( cond, f_then );
+    // }
+    // if( cond == f_then )
+    // {
+    //   return !create_and( !f_then, !f_else );
+    // }
+
+    /* trivial cases  含常数优化 */
+    if ( f_then.index == f_else.index )
     {
-      return f_then;
+      if ( f_then.complement != f_else.complement )
+      {
+        if ( node_complement )
+        {
+          return !create_or( create_and( cond, f_then ), create_and( !cond, !f_then ) );
+        }
+        else
+        {
+          return create_or( create_and( cond, f_then ), create_and( !cond, !f_then ) );
+        }
+      }
     }
-    if( cond == f_else )
+
+    if ( f_then == f_else )
+    {
+      if ( node_complement )
+      {
+        return !f_then;
+      }
+      else
+      {
+        return f_then;
+      }
+    }
+
+    if ( cond == f_else )
     {
       return create_and( cond, f_then );
     }
-    if( cond == f_then )
+    if ( cond == f_then )
     {
       return !create_and( !f_then, !f_else );
     }
+
+    if ( ( f_then.data == 0 ) && ( f_else.data == 1 ) )
+    {
+      if ( node_complement )
+      {
+        return cond;
+      }
+      else
+      {
+        return !cond;
+      }
+    }
+
+    if ( f_else.data == 0 )
+    {
+      assert( f_then.index != 0 );
+
+      if ( cond.complement )
+      {
+        if ( node_complement )
+        {
+          return !create_and( cond, f_then );
+        }
+        else
+        {
+          return create_and( cond, f_then );
+        }
+      }
+    }
+
+    if ( f_else.data == 1 )
+    {
+      assert( f_then.index != 0 );
+      if ( cond.complement )
+      {
+        if ( node_complement )
+        {
+          return create_and( cond, !f_then );
+        }
+        else
+        {
+          return !create_and( cond, !f_then );
+        }
+      }
+    }
+
     
     storage::element_type::node_type node;
     node.children[0] = cond;
@@ -379,6 +462,16 @@ public:
   signal create_nand( signal const& a, signal const& b )
   {
     return !create_and( a, b );
+  }
+
+  signal create_or( signal const& a, signal const& b )
+  {
+    return !create_and( !a, !b );
+  }
+
+  signal create_nor( signal const& a, signal const& b )
+  {
+    return create_and( !a, !b );
   }
 
   signal create_lt( signal const& a, signal const& b )
