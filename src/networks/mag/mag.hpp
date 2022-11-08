@@ -321,21 +321,37 @@ public:
     }
 
     /* trivial cases */
-    // if( f_then == f_else )
-    // {
-    //   return f_then;
-    // }
-    // if( cond == f_else )
-    // {
-    //   return create_and( cond, f_then );
-    // }
-    // if( cond == f_then )
-    // {
-    //   return !create_and( !f_then, !f_else );
-    // }
+    if( f_then == f_else )
+    {
+      return f_then ^ node_complement;
+    }
+    if( cond == f_else )
+    {
+      return create_and( cond, f_then ) ^ node_complement;
+    }
+    if( cond == f_then )
+    {
+      return !create_and( !f_then, !f_else ) ^ node_complement;
+    }
+
+    /* trivial constants */
+    if( f_then.index == 0 ) // f_then cannot be implemented due to propagation
+    {
+      return create_and( !cond, f_else ) ^ node_complement;
+    }
+
+    if( f_else.index == 0 && f_else.complement )
+    {
+      return create_or( !cond, f_then ) ^ node_complement; 
+    }
+    
+    if( f_else.index == 0 && !f_else.complement )
+    {
+      return create_and( cond, f_then ) ^ node_complement; 
+    }
 
     /* trivial cases  含常数优化 */
-    if ( f_then.index == f_else.index )
+    /*if ( f_then.index == f_else.index )
     {
       if ( f_then.complement != f_else.complement )
       {
@@ -414,7 +430,7 @@ public:
           return !create_and( cond, !f_then );
         }
       }
-    }
+    }*/
 
     
     storage::element_type::node_type node;
@@ -816,7 +832,7 @@ public:
 
   bool is_ite( node const& n ) const
   {
-    return n > 0 && !is_ci( n ) && _storage->nodes[n].children[1].index > _storage->nodes[n].children[2].index;
+    return n > 0 && !is_ci( n ) && _storage->nodes[n].children[1].index >= _storage->nodes[n].children[2].index;
   }
 
   bool is_nary_and( node const& n ) const
