@@ -118,7 +118,7 @@ std::optional<mig_network> sto_syn_manager::preprocess() {
     if (num_ones == vec_sum) {
       if (validate(tt)) {
         trivial = true;
-        kitty::print_binary(tt, std::cout);
+        //kitty::print_binary(tt, std::cout);
         // std::cout << " is a solution. The expression -->" << " f = " <<
         // static_cast<char>( 'a' + i ) << "\n";
 
@@ -132,7 +132,7 @@ std::optional<mig_network> sto_syn_manager::preprocess() {
         }
       } else if (validate(~tt)) {
         trivial = true;
-        kitty::print_binary(~tt, std::cout);
+        //kitty::print_binary(~tt, std::cout);
         // std::cout << " is a solution. The expression --> " << " f = !" <<
         // static_cast<char>( 'a' + i ) << "\n";
 
