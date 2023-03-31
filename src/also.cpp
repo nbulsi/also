@@ -65,5 +65,6 @@
 #include "commands/vfc.hpp"
 #include "commands/write_dimacs.hpp"
 #include "commands/sim.hpp"
+#include "commands/decomp_flow.hpp"
 ALICE_MAIN( also )
 
