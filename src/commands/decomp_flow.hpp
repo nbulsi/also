@@ -1,3 +1,15 @@
+/* also: Advanced Logic Synthesis and Optimization tool
+ * Copyright (C) 2019- Ningbo University, Ningbo, China */
+
+/**
+ * @file decomp_flow.hpp
+ *
+ * @brief decompose a truth table into a LUT-network
+ *
+ * @author Chengyu Ma
+ * @author Zhufei Chu
+ * @since  0.1
+ */
 #ifndef DECOMP_FLOW_HPP
 #define DECOMP_FLOW_HPP
 
@@ -7,10 +19,10 @@
 
 namespace alice
 {
-class decomp_flow_command : public command
+class dec_command : public command
 {
 public:
-  explicit decomp_flow_command( const environment::ptr& env ) : command( env, "perform decomposition flow" )
+  explicit dec_command( const environment::ptr& env ) : command( env, "Decompose a truth table into a LUT network." )
   {
     add_option( "--tt_from_hex, -a", tt_in, "truth table from hex" );
     add_option( "--tt_from_binary, -b", tt_in, "truth table from binary" );
@@ -31,7 +43,7 @@ protected:
 
     if ( is_set( "--tt_from_hex" ) )
     {
-      mockturtle::read_hax( tt_in, remainder, var_num, ntk, children );
+      mockturtle::read_hex( tt_in, remainder, var_num, ntk, children );
     }
     else if ( is_set( "--tt_from_binary" ) )
     {
@@ -66,7 +78,7 @@ private:
   std::string tt_in;
   int var_num;
 };
-ALICE_ADD_COMMAND( decomp_flow, "decomposition" );
+ALICE_ADD_COMMAND( dec, "Decomposition" );
 } // namespace alice
 
 #endif
