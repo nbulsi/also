@@ -1,9 +1,9 @@
 /* also: Advanced Logic Synthesis and Optimization tool
  * Copyright (C) 2022- Ningbo University, Ningbo, China */
 /**
- * @file rm_mp.hpp
+ * @file rm_mp2.hpp
  *
- * @brief RM logic optimization
+ * @brief Multilevel RM logic optimization
  *
  * @author Hongwei Zhou
  *
