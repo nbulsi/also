@@ -19,10 +19,10 @@
 
 namespace alice {
 
-class rm_mixed_polarity_command : public command {
+class rm1_command : public command {
  public:
-  explicit rm_mixed_polarity_command(const environment::ptr& env)
-      : command(env, "Performs RM logic optimization") {
+  explicit rm1_command(const environment::ptr& env)
+      : command(env, "Performs two-level RM logic optimization") {
     add_option("strategy, -s", strategy, "cut = 0, mffc = 1");
     add_flag("--minimum_and_gates, -m", "minimum multiplicative complexity in XAG");
     add_flag("--xag, -g", "RM logic optimization for xag network");
@@ -129,7 +129,7 @@ class rm_mixed_polarity_command : public command {
   rm_rewriting_params ps_ntk;
 };
 
-ALICE_ADD_COMMAND(rm_mixed_polarity, "Rewriting")
+ALICE_ADD_COMMAND(rm1, "Rewriting")
 
 }  // namespace alice
 

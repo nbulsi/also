@@ -22,7 +22,7 @@ namespace alice {
 class rm2_command : public command {
  public:
   explicit rm2_command(const environment::ptr& env)
-      : command(env, "Performs RM logic optimization") {
+      : command(env, "Performs multi-level RM logic optimization") {
     add_option("strategy, -s", strategy, "cut = 0, mffc = 1");
     add_flag("--minimum_and_gates, -m", "minimum multiplicative complexity in XAG");
     add_flag("--xag, -g", "RM logic optimization for xag network");
