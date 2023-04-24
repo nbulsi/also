@@ -14,7 +14,7 @@
 #define PS2
 #include <alice/alice.hpp>
 #include <mockturtle/mockturtle.hpp>
-#include <../core/ps2_ implemented.hpp>
+#include <../core/ps2_implemented.hpp>
 namespace alice{
     using namespace mockturtle;
     class ps2_command : public command{
