@@ -10,10 +10,10 @@
  * @since  0.1
  */
 
-#include <string>
-#include <vector>
 #include <alice/alice.hpp>
 #include <mockturtle/mockturtle.hpp>
+#include <string>
+#include <vector>
 namespace also
 {
 using aig_names = mockturtle::names_view<mockturtle::aig_network>;
@@ -141,22 +141,15 @@ void update_counts( function_counts& counts, const network& ntk, const typename 
     counts.unknown_num++;
   }
 }
-// template void update_counts<aig_names>( function_counts&, const aig_names&, const typename aig_names::node& );
-// template void update_counts<mig_names>( function_counts&, const mig_names&, const typename mig_names::node& );
-// template void update_counts<xmg_names>( function_counts&, const xmg_names&, const typename xmg_names::node& );
-// template void update_counts<xag_names>( function_counts&, const xag_names&, const typename xag_names::node& );
+
 template<typename network>
 function_counts node_functions( const network& ntk )
 {
   function_counts counts;
-  ntk.foreach_node( [&]( auto node )
-                    { update_counts( counts, ntk, node ); } );
+  ntk.foreach_node( [&]( auto node ) { update_counts( counts, ntk, node ); } );
   return counts;
 }
-// template function_counts node_functions<mig_names>( const mig_names& );
-// template function_counts node_functions<xmg_names>( const xmg_names& );
-// template function_counts node_functions<aig_names>( const aig_names& );
-// template function_counts node_functions<xag_names>( const xag_names& );
+
 template<typename Ntk>
 class critical_node_view : public Ntk
 {
@@ -172,8 +165,7 @@ public:
     int depth = depth_ntk.depth();
     depth_ntk.clear_visited();
     nums_criti = 0;
-    depth_ntk.foreach_po( [&]( auto const& po, auto i )
-                          {
+    depth_ntk.foreach_po( [&]( auto const& po, auto i ) {
               node pon = depth_ntk.get_node(po);
               if (depth_ntk.level(pon) != depth)
                 return;
@@ -186,8 +178,7 @@ public:
       return critical;
     depth_ntk.set_visited( n, i + 1 );
     critical.emplace_back( n );
-    depth_ntk.foreach_fanin( n, [&]( auto fi )
-                             {
+    depth_ntk.foreach_fanin( n, [&]( auto fi ) {
             node fin = depth_ntk.get_node(fi);
             int level = depth_ntk.level(n);
             if (depth_ntk.level(fin) == level - 1){
@@ -210,6 +201,7 @@ private:
   Ntk const& ntk;
   mockturtle::depth_view<Ntk> depth_ntk{ ntk };
 };
+
 static void compute_cone( mockturtle::aig_network aig, uint64_t index, std::unordered_map<int, int>& nodes, int outindex, std::unordered_map<int, int>& ins )
 {
   if ( aig._storage->nodes[index].data[1].h1 == 0 )
@@ -292,6 +284,7 @@ static void compute_cone( mockturtle::aig_network aig, uint64_t index, std::unor
     }
   }
 }
+
 template<typename Ntk>
 static int computeLevel( Ntk const& ntk, int index )
 {
