@@ -67,5 +67,6 @@
 #include "commands/sim.hpp"
 #include "commands/decomp_flow.hpp"
 #include "commands/rm_mp2.hpp"
+#include "commands/ps2.hpp"
 ALICE_MAIN( also )
 
