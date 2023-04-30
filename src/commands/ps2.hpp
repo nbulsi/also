@@ -74,7 +74,6 @@ namespace alice{
         /*fanout_histogram*/
         //mockturtle::fanout_view<network> fanout{ ntk };
         std::vector<int> fanout_vec;
-        int max_fanout = 0;
         double average_fanout = 0;
         fanout.foreach_node( [&]( auto node )
                              {
@@ -220,18 +219,6 @@ namespace alice{
           return;
         auto ntk = store<network>().current();
         mockturtle::fanout_view<network> fanoutP{ntk};
-        int max_fanout = 0;
-        fanoutP.foreach_node( [&]( auto node ){
-          uint32_t foc = 0;
-          if ( ntk.is_constant( node ) )
-            return;
-          fanoutP.foreach_fanout(node, [&](auto fo){
-              foc++;
-          });
-          if ( foc > max_fanout )
-          {
-            max_fanout = foc;
-          } } );
         std::vector<uint32_t> fanout_histogram( max_fanout + 1, 0 );
         fanoutP.foreach_node( [&]( auto node )
                              {
@@ -510,6 +497,7 @@ namespace alice{
           }
 
         private:
+        int max_fanout = 0;
         };
 
     ALICE_ADD_COMMAND(ps2,"General");
