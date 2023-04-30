@@ -73,27 +73,26 @@ namespace alice{
         
         /*fanout_histogram*/
         //mockturtle::fanout_view<network> fanout{ ntk };
-        std::vector<uint32_t> fanout_histogram( 33, 0 );
         std::vector<int> fanout_vec;
         int max_fanout = 0;
         double average_fanout = 0;
         fanout.foreach_node( [&]( auto node )
                              {
                 uint32_t foc = 0;
+                if (ntk.is_constant(node))
+                  return;
                 fanout.foreach_fanout(node,[&](auto fo){
                     foc++;
                 });
                 fanout_vec.emplace_back(foc);
                 if (foc > max_fanout){
                     max_fanout = foc;
-                }
-                if (foc >= fanout_histogram.size() - 1){
-                    fanout_histogram[fanout_histogram.size() - 1]++;
-                }
-                else {
-                    fanout_histogram[foc]++;
                 } } );
-        average_fanout = std::accumulate(fanout_vec.begin(),fanout_vec.end(),0.0,[](double acc,int i){return acc + static_cast<double>(i);}) / fanout_vec.size();
+        int po = 0;
+        fanout.foreach_po([&](auto o){
+          po++;
+        });
+        average_fanout = std::accumulate(fanout_vec.begin(),fanout_vec.end(),0.0,[](double acc,int i){return acc + static_cast<double>(i);}) / (fanout_vec.size() - 1 - po);
         // for ( int i = 0; i < fanout_histogram.size() - 1; i++ )
         // {
         //   env->out() << i << "\t" << fanout_histogram[i] << std::endl;
@@ -222,24 +221,32 @@ namespace alice{
         auto ntk = store<network>().current();
         mockturtle::fanout_view<network> fanoutP{ntk};
         int max_fanout = 0;
-        std::vector<uint32_t> fanout_histogram( 33, 0 );
+        fanoutP.foreach_node( [&]( auto node ){
+          uint32_t foc = 0;
+          if ( ntk.is_constant( node ) )
+            return;
+          fanoutP.foreach_fanout(node, [&](auto fo){
+              foc++;
+          });
+          if ( foc > max_fanout )
+          {
+            max_fanout = foc;
+          } } );
+        std::vector<uint32_t> fanout_histogram( max_fanout + 1, 0 );
         fanoutP.foreach_node( [&]( auto node )
                              {
                 uint32_t foc = 0;
+                if (ntk.is_constant(node))
+                  return;
                 fanoutP.foreach_fanout(node,[&](auto fo){
                     foc++;
                 });
-                if ( foc > max_fanout )
-                {
-                  max_fanout = foc;
-                }
                 if (foc >= fanout_histogram.size() - 1){
                     fanout_histogram[fanout_histogram.size() - 1]++;
                 }
                 else {
                     fanout_histogram[foc]++;
                 } } );
-        std::vector<uint32_t> fanout_histogram1( fanout_histogram.begin(), fanout_histogram.begin() + max_fanout + 1 );
         std::cout << "  +Node counts by number of fanouts." << std::endl;
         std::cout << std::setw( 3 ) << " " << std::setfill( '-' ) << std::setw( 22 ) << "" << std::setfill( ' ' ) << std::endl;
         std::cout << std::setw( 3 ) << " "
@@ -247,11 +254,13 @@ namespace alice{
                   << std::right << " | " << std::setw( 5 ) << "Nodes"
                   << " |" << std::endl;
         std::cout << std::setw( 3 ) << " " << std::setfill( '-' ) << std::setw( 22 ) << "" << std::setfill( ' ' ) << std::endl;
-        for ( int i = 0; i < fanout_histogram1.size(); i++ )
+        for ( int i = 0; i < fanout_histogram.size(); i++ )
         {
+          if (fanout_histogram[i] == 0)
+            continue;
           std::cout << std::setw( 3 ) << " "
                     << "| " << std::left << std::setw( 10 ) << i
-                    << std::right << " | " << std::setw( 5 ) << fanout_histogram1[i]
+                    << std::right << " | " << std::setw( 5 ) << fanout_histogram[i]
                     << " |" << std::endl;
         }
         std::cout << std::setw( 3 ) << " " << std::setfill( '-' ) << std::setw( 22 ) << "" << std::setfill( ' ' ) << std::endl;
