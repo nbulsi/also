@@ -13,7 +13,7 @@ if(UNIX)
   endif()
 
   # show quite some warnings (but remove some intentionally)
-  add_compile_options(-W -Wall -Wextra)
+  add_compile_options(-O3 -W -Wall -Wextra)
   foreach (WARNING unknown-pragmas gnu-anonymous-struct nested-anon-types
       sign-compare unused-parameter format delete-non-virtual-dtor unused-lambda-capture
       unused-variable unused-private-field inconsistent-missing-override
