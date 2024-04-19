@@ -1,0 +1,40 @@
+adder.v 和 adder.aig 等价
+ABC command line: "cec -n /home/ym/also/paper1/adder.v /home/ym/also/benchmark/adder.aig".
+
+Networks are equivalent.  Time =     0.03 sec
+bar.v 和 bar.aig 等价
+ABC command line: "cec -n /home/ym/also/paper1/bar.v /home/ym/also/benchmark/bar.aig".
+
+Networks are equivalent.  Time =     0.25 sec
+div.v 和 div.aig 等价
+ABC command line: "cec -n /home/ym/also/paper1/div.v /home/ym/also/benchmark/div.aig".
+
+Networks are equivalent.  Time =    44.16 sec
+hyp.v 和 hyp.aig 等价
+ABC command line: "cec -n /home/ym/also/paper1/hyp.v /home/ym/also/benchmark/hyp.aig".
+
+Networks are equivalent.  Time =   453.22 sec
+log2.v 和 log2.aig 等价
+ABC command line: "cec -n /home/ym/also/paper1/log2.v /home/ym/also/benchmark/log2.aig".
+
+Networks are equivalent.  Time =    15.61 sec
+max.v 和 max.aig 等价
+ABC command line: "cec -n /home/ym/also/paper1/max.v /home/ym/also/benchmark/max.aig".
+
+Networks are equivalent.  Time =     0.20 sec
+multiplier.v 和 multiplier.aig 等价
+ABC command line: "cec -n /home/ym/also/paper1/multiplier.v /home/ym/also/benchmark/multiplier.aig".
+
+Networks are equivalent.  Time =     2.93 sec
+sin.v 和 sin.aig 等价
+ABC command line: "cec -n /home/ym/also/paper1/sin.v /home/ym/also/benchmark/sin.aig".
+
+Networks are equivalent.  Time =     1.43 sec
+sqrt.v 和 sqrt.aig 等价
+ABC command line: "cec -n /home/ym/also/paper1/sqrt.v /home/ym/also/benchmark/sqrt.aig".
+
+Networks are equivalent.  Time =     2.93 sec
+square.v 和 square.aig 等价
+ABC command line: "cec -n /home/ym/also/paper1/square.v /home/ym/also/benchmark/square.aig".
+
+Networks are equivalent.  Time =     4.25 sec

@@ -1,0 +1,913 @@
+真值表：0x0000
+
+真值表：0x0001
+[expressions] e=<b!cd> f=<!ace> g=!<!0af> 
+反相器个数为4
+
+真值表：0x0003
+[expressions] e=<!bcd> f=!<!0be> 
+反相器个数为3
+
+真值表：0x0006
+[expressions] e=<abc> f=<ab!d> g= <0!ef> 
+反相器个数为2
+
+真值表：0x0007
+[expressions] e=<0!ab> f=<!0cd> g=!<b!ef> 
+反相器个数为4
+
+真值表：0x000f
+[expressions] e=!<!0cd> 
+反相器个数为2
+
+真值表：0x0016
+[expressions] e=<!abc> f=<bc!e> g=<a!de> h= <0!fg> 
+反相器个数为4
+
+真值表：0x0017
+[expressions] e=<abc> f=!<!0de> 
+反相器个数为2
+
+真值表：0x0018
+[expressions] e=<!abc> f=<0!be> g=<b!df> h= <!efg> 
+反相器个数为4
+
+真值表：0x0019
+[expressions] e=<a!bc> f=<!abd> g=<0!ae> h=!<ef!g> 
+反相器个数为4
+
+真值表：0x001b
+[expressions] e=<!0ab> f=<0a!c> g=!<de!f> 
+反相器个数为4
+
+
+真值表：0x001e
+[expressions] e=<!abc> f=<0!be> g=<a!de> h= <!cfg> 
+反相器个数为4
+
+真值表：0x001f
+[expressions] e=<0!bc> f=<0!ae> g=!<cd!f> 
+反相器个数为4
+
+真值表：0x003c
+[expressions] e=<bc!d> f=<0!ce> g= <!bef> 
+反相器个数为3
+
+真值表：0x003d
+[expressions] e=<0b!c> f=<!bcd> g=<ab!f> h=!<d!eg> 
+反相器个数为5
+
+真值表：0x003f
+[expressions] e=<0b!c> f=!<bd!e> 
+反相器个数为3
+
+真值表：0x0069
+[expressions] e=<!abc> f=<a!be> g=<!cef> h=!<!0dg> 
+反相器个数为5
+
+真值表：0x006b
+[expressions] e=<ab!c> f=<!abc> g=<0b!e> h=!<df!g> 
+反相器个数为5
+
+真值表：0x006f
+[i] 3 steps are required 
+[expressions] e=<0!ab> f=<!abc> g=!<d!ef> 
+反相器个数为3
+
+真值表：0x007e
+[expressions] e=<0b!c> f=<a!be> g=<!ace> h= <!dfg> 
+反相器个数为4
+
+真值表：0x007f
+[expressions] e=<ab!c> f=<0!ce> g=!<de!f> 
+反相器个数为3
+
+真值表：0x00ff
+
+真值表：0x0116
+[expressions] e=<!abc> f=<0d!e> g=<a!de> h=<0!cg> i=<ab!h> j= <fg!i> 
+反相器个数为6
+
+真值表：0x0117
+[expressions] e=<!abc> f=<bc!e> g=<!0df> h=!<aeg> 
+反相器个数为4
+
+真值表：0x0118
+[expressions] e=<a!cd> f=<bd!e> g=<ce!f> h=<!abg> i= <0!fh> 
+反相器个数为4
+
+真值表：0x0119
+[i] 4 steps are required 
+[expressions] e=<!0ab> f=<!ace> g=<bd!f> h=!<de!g> 
+
+真值表：0x011a
+[i] 4 steps are required 
+[expressions] e=<a!cd> f=<!bce> g=<0!af> h= <!deg> 
+反相器个数为4
+
+真值表：0x011b
+[expressions] e=<!0ab> f=<ac!d> g=!<ce!f> 
+反相器个数为4
+
+真值表：0x011e
+[expressions] e=<b!cd> f=<!ace> g=<0!bf> h=<a!cf> i= <!dgh> 
+反相器个数为4
+
+真值表：0x011f
+[expressions] e=<!0ab> f=!<cde> 
+反相器个数为2
+
+真值表：0x012c
+[expressions] e=<!acd> f=<b!ce> g=<c!df> h=<0!eg> i= <!bfh> 
+反相器个数为5
+
+真值表：0x012d
+[expressions] e=<0ac> f=<ab!e> g=<b!de> h=!<cf!g> 
+反相器个数为4
+
+真值表：0x012f
+[i] 3 steps are required 
+[expressions] e=<!0ac> f=<!abc> g=!<def> 
+反相器个数为3
+
+真值表：0x013c
+[expressions] e=<bc!d> f=<!ade> g=<b!cf> h=<0!cg> i= <!beh> 
+反相器个数为4
+
+真值表：0x013d
+[expressions] e=<bc!d> f=<bc!e> g=<!0af> h=!<!efg> 
+反相器个数为4
+
+真值表：0x013e 
+[expressions] e=<0!ad> f=<bc!d> g=<a!df> h=<!ceg> i= <!bfh> 
+反相器个数为4
+
+真值表：0x013f
+[i] 3 steps are required 
+[expressions] e=<0!ad> f=<b!ce> g=!<bd!f> 
+反相器个数为4
+
+真值表：0x0168
+[expressions] e=<a!bc> f=<!bde> g=<ac!f> h=<0!dg> i= <!efh> 
+反相器个数为4
+
+真值表：0x0169
+[expressions] e=<ab!c> f=<ab!e> g=<0!df> h=!<ce!g> 
+反相器个数为5
+
+真值表：0x016a
+[expressions] e=<0a!d> f=<!bcd> g=<ce!f> h=<!cfg> i= <!agh> 
+反相器个数为5
+
+真值表：0x016b
+[expressions] e=<a!bc> f=<0c!e> g=<a!df> h=!<be!g> 
+反相器个数为5
+
+真值表：0x016e
+[expressions] e=<a!bd> f=<!0be> g=<a!ce> h=<0!af> i= <!dgh> 
+反相器个数为5
+
+真值表：0x016f
+[expressions] e=<0!ab> f=<a!bc> g=<a!de> h=!<bf!g> 
+反相器个数为5
+
+真值表：0x017e
+[expressions] e=<b!cd> f=<a!be> g=<0c!f> h=<!aeg> i= <!dfh> 
+反相器个数为5
+
+真值表：0x017f
+[expressions] e=<ab!c> f=!<cde> 
+反相器个数为2
+
+真值表：0x0180
+[expressions] e=<b!cd> f=<a!be> g=<0a!f> h=<!0af> i= <!agh> 
+反相器个数为5
+
+真值表：0x0181
+[i] 5 steps are required 
+[expressions] e=<0!ac> f=<0b!d> g=<b!ce> h=<ae!f> i=!<!0gh> 
+反相器个数为6
+
+真值表：0x0182
+[expressions] e=<0a!c> f=<!0bc> g=<0a!d> h=<bd!e> i= <!fgh> 
+反相器个数为5
+
+真值表：0x0183
+[expressions] e=<0!bc> f=<0a!d> g=<a!ce> h=<b!fg> i=!<!0eh> 
+反相器个数为6
+
+真值表：0x0186
+[expressions] e=<!0cd> f=<a!be> g=<b!cf> h=<ad!f> i= <0g!h> 
+反相器个数为5
+
+真值表：0x0187
+[expressions] e=<0a!c> f=<!0bc> g=<ab!c> h=<0!dg> i=!<ef!h> 
+反相器个数为5
+
+真值表：0x0189
+[expressions] e=<!abc> f=<!0bd> g=<ad!f> h=<!0eg> i=!<!agh> 
+反相器个数为4
+
+真值表：0x018b
+[expressions] e=<0a!b> f=<!0bc> g=<0a!d> h=!<ef!g> 
+反相器个数为5
+
+真值表：0x018f
+[expressions] e=<ab!c> f=<0c!e> g=<0!de> h=!<ef!g> 
+反相器个数为5
+
+真值表：0x0196
+[expressions] e=<!0ad> f=<bc!e> g=<0!de> h=<!aef> i=<!cgh> j= <!bfi> 
+反相器个数为6
+
+真值表：0x0197
+[expressions] e=<ab!c> f=<!ace> g=<0a!f> h=<!bef> i=<0!dh> j=!<fg!i> 
+反相器个数为7
+
+rm3:
+真值表：0x0198
+[expressions] e=<a0b> f=<0ac> g=<afd> h=<bdf> i= <geh> 
+反相器个数为0
+
+真值表：0x0199
+[expressions] e=<!0cd> f=<a!ce> g=<bd!f> h=<!0ag> i=!<!bgh> 
+反相器个数为5
+
+真值表：0x019a
+[expressions] e=<0!bc> f=<!bde> g=<0!af> h=<a!eg> i= <!dgh> 
+反相器个数为4
+
+真值表：0x019b
+[expressions] e=<!0ab> f=<0!bc> g=<ad!f> h=!<de!g> 
+反相器个数为5
+
+真值表：0x019e
+[expressions] e=<!acd> f=<0!be> g=<!0af> h=<b!cg> i= <!dfh> 
+反相器个数为5
+
+真值表：0x019f
+[expressions] e=<!0ab> f=<!0bd> g=<a!cf> h=!<de!g> 
+反相器个数为4
+
+真值表：0x01a8
+[expressions] e=<0!bc> f=<0!ad> g=<!abe> h=<b!de> i= <f!gh> 
+反相器个数为4
+
+真值表：0x01a9
+[expressions] e=<!0bc> f=<!0ae> g=<d!ef> h=<0a!g> i=!<0f!h> 
+反相器个数为5
+
+真值表：0x01aa
+[expressions] e=<0a!d> f=<bc!e> g=<0d!f> h=<!0ag> i= <!aeh> 
+反相器个数为5
+
+真值表：0x01ab
+[expressions] e=<0!bc> f=<0!ad> g=<!abe> h=!<d!fg> 
+反相器个数为4
+
+真值表：0x01ac
+[expressions] e=<!acd> f=<bc!d> g=<0c!e> h=<!0ef> i=<!bfh> j= <!cgi> 
+反相器个数为6
+
+真值表：0x01ad
+[expressions] e=<0!ac> f=<a!bd> g=<0!af> h=<!cdf> i=!<e!gh> 
+反相器个数为5
+
+真值表：0x01ae
+[expressions] e=<!0bd> f=<b!cd> g=<a!be> h=<0!af> i= <!dgh> 
+反相器个数为5
+
+真值表：0x01af
+[expressions] e=<0!ac> f=<a!bd> g=<0!af> h=!<de!g> 
+反相器个数为4
+
+真值表：0x01bc
+[expressions] e=<!acd> f=<bc!d> g=<0!be> h=<0ce> i= <fg!h> 
+反相器个数为4
+
+真值表：0x01bd
+[expressions] e=<0b!c> f=<ab!e> g=<!ace> h=<c!de> i=!<fg!h> 
+反相器个数为6
+
+真值表：0x01be 
+[expressions] e=<0!ad> f=<!0be> g=<!bce> h=<a!cf> i= <!dgh> 
+反相器个数为5
+
+rm3:
+真值表：0x01bf
+[expressions] e=<!0ba> f=<a0c> g=!<def> 
+反相器个数为2
+
+真值表：0x01e9
+[expressions] e=<a!bc> f=<!0be> g=<ac!e> h=<0dg> i=!<f!gh> 
+反相器个数为5
+
+真值表：0x01ea
+[expressions] e=<0ad> f=<!bcd> g=<0!cf> h=<ac!f> i= <!egh> 
+反相器个数为4
+
+真值表：0x01eb
+[expressions] e=<0!ac> f=<a!be> g=<0e!f> h=<a!dg> i=!<bf!h> 
+反相器个数为6
+
+真值表：0x01ee
+[expressions] e=<0!cd> f=<a!be> g=<0!af> h=<!0bf> i= <!dgh> 
+反相器个数为5
+
+真值表：0x01ef
+[expressions] e=<0a!b> f=<b!de> g=<bc!f> h=!<e!fg> 
+反相器个数为4
+
+真值表：0x01fe
+[expressions] e=<!0ac> f=<0!be> g=<b!df> h=<!bdf> i= <!fgh> 
+反相器个数为4
+
+真值表：0x033c
+[i] 4 steps are required 
+[expressions] e=<b!cd> f=<c!de> g=<0!df> h= <!beg> 
+反相器个数为3
+
+真值表：0x033d
+[expressions] e=<0!bc> f=<b!de> g=<bc!f> h=<a!fg> i=!<!dgh> 
+反相器个数为4
+
+真值表：0x033f
+[expressions] e=!<bcd> 
+反相器个数为1
+
+真值表：0x0356
+[expressions] e=<!0bc> f=<!ade> g=<!0af> h=<0!df> i= <!egh> 
+反相器个数为4
+
+真值表：0x0357
+[expressions] e=<!0bc> f=<!0ad> g=!<0ef> 
+反相器个数为2
+
+真值表：0x0358
+[expressions] e=<!0bd> f=<ab!e> g=<bc!f> h=<c!df> i=<0e!g> j= <!fhi> 
+反相器个数为5
+
+真值表：0x0359
+[expressions] e=<ac!d> f=<0!ae> g=<0!be> h=<bc!e> i=!<!fgh> 
+反相器个数为6
+
+真值表：0x035a
+[expressions] e=<ac!d> f=<0!ae> g=<!bde> h=<!0eg> i= <!cfh> 
+反相器个数为5
+
+真值表：0x035b
+[expressions] e=<ac!d> f=<0!ae> g=<0b!e> h=!<c!fg> 
+反相器个数为5
+
+真值表：0x035e
+[expressions] e=<0b!c> f=<!0ad> g=<!cef> h=<c!eg> i=<!fgh> j= <!dgi> 
+反相器个数为5
+
+rm3
+真值表：0x035f
+[expressions] e=<0!db> f=<0a!d> g=!<cfe> 
+反相器个数为2
+
+真值表：0x0368
+[expressions] e=<0a!d> f=<!0be> g=<!cdf> h=<!beg> i=<b!gh> j= <!ehi> 
+反相器个数为6
+
+真值表：0x0369
+[expressions] e=<0a!d> f=<0b!d> g=<bc!e> h=<e!fg> i=!<!cgh> 
+反相器个数为5
+
+真值表：0x036a
+[expressions] e=<0a!d> f=<b!cd> g=<be!f> h=<!bef> i= <!egh> 
+反相器个数为5
+
+真值表：0x036b
+[expressions] e=<0!ac> f=<0b!e> g=<0b!f> h=<a!dg> i=!<cf!h> 
+反相器个数为6
+
+真值表：0x036c 
+[expressions] e=<0ac> f=<!bde> g=<0!cf> h=<b!eg> i= <!dfh> 
+反相器个数为4
+
+真值表：0x036d
+[expressions] e=<0a!d> f=<b!ce> g=<0e!f> h=<b!dg> i=!<cf!h> 
+反相器个数为5
+
+真值表：0x036e
+[expressions] e=<0a!d> f=<!cde> g=<!bef> h=<de!g> i= <bg!h> 
+反相器个数为5
+
+真值表：0x036f
+[expressions] e=<!0ab> f=<ac!e> g=<0!de> h=!<bf!g> 
+反相器个数为5
+
+真值表：0x037c
+[expressions] e=<!0bd> f=<0!ce> g=<!ade> h=<!bcg> i= <!dfh> 
+反相器个数为5
+
+真值表：0x037d
+[expressions] e=<!0bd> f=<0!ce> g=<a!ce> h=<b!eg> i=!<d!fh> 
+反相器个数为5
+
+真值表：0x037e
+[expressions] e=<0a!d> f=<bc!e> g=<d!ef> h=<df!g> i= <eg!h> 
+反相器个数为4
+
+真值表：0x03c0
+[expressions] e=<0b!c> f=<0b!d> g=<0!cd> h= <!efg> 
+反相器个数为3
+
+真值表：0x03c1
+[expressions] e=<!0bc> f=<!0bd> g=<!0af> h=<!cdg> i=!<e!fh> 
+反相器个数为4
+
+真值表：0x03c3
+[expressions] e=<0b!c> f=<!0de> g=<0b!f> h=!<ce!g> 
+反相器个数为5
+
+真值表：0x03c5
+[expressions] e=<0!bc> f=<0!bd> g=<a!ce> h=<!0dg> i=!<e!fh> 
+反相器个数为5
+
+真值表：0x03c6
+[expressions] e=<0cd> f=<a!cd> g=<b!ef> h=<0!fg> i= <!bgh> 
+反相器个数为4
+
+真值表：0x03c7
+[expressions] e=<!0bc> f=<0b!d> g=<ac!f> h=<0a!g> i=!<e!fh> 
+反相器个数为5
+
+真值表：0x03cf
+[expressions] e=<!0bc> f=<0b!d> g=!<0e!f> 
+反相器个数为4
+
+真值表：0x03d4
+[expressions] e=<!abc> f=<!0de> g=<0!df> h=<!cfg> i= <!bgh> 
+反相器个数为5
+
+真值表：0x03d5
+[expressions] e=<b!cd> f=<0b!e> g=<!0be> h=<ad!f> i=!<b!gh> 
+反相器个数为6
+
+真值表：0x03d7
+[expressions] e=<!abc> f=<0!de> g=<0b!f> h=!<c!fg> 
+反相器个数为4
+
+真值表：0x03d8
+[expressions] e=<0b!c> f=<a!bd> g=<ac!d> h=<!cde> i=<0!fg> j= <!ehi> 
+反相器个数为5
+
+真值表：0x03d9
+[expressions] e=<a!bd> f=<!0ae> g=<c!df> h=<!0bg> i=<0!eg> j=!<0h!i> 
+反相器个数为6
+
+真值表：0x03db
+[expressions] e=<0a!c> f=<0!bc> g=<ab!e> h=<c!de> i=!<fg!h> 
+反相器个数为6
+
+真值表：0x03dc
+[expressions] e=<0!ac> f=<!bde> g=<!0bf> h=<0!cf> i= <!dgh> 
+反相器个数为5
+
+真值表：0x03dd
+[expressions] e=<0!bd> f=<!0cd> g=<a!be> h=<c!fg> i=!<d!eh> 
+反相器个数为5
+
+真值表：0x03de
+[expressions] e=<!0ad> f=<0bd> g=<0!ce> h=<bc!e> i= <!fgh>
+反相器个数为4 
+
+真值表：0x03fc
+[i] 4 steps are required 
+[expressions] e=<!0bc> f=<!0de> g=<de!f> h= <0f!g> 
+反相器个数为3
+
+真值表：0x0660
+[expressions] e=<ab!c> f=<ab!d> g=<0e!f> h=<!0ef> i= <!egh> 
+反相器个数为5
+
+真值表：0x0661
+[i] 5 steps are required 
+[expressions] e=<!0cd> f=<ab!e> g=<ab!f> h=<cd!g> i=!<!0fh> 
+反相器个数为5
+
+真值表：0x0662
+[expressions] e=<!0ab> f=<!acd> g=<cd!e> h=<!bef> i= <0!gh> 
+反相器个数为5
+
+真值表：0x0663
+[expressions] e=<!acd> f=<!bcd> g=<0e!f> h=<be!g> i=!<0!gh> 
+反相器个数为5
+
+真值表：0x0666
+[i] 4 steps are required 
+[expressions] e=<0cd> f=<ab!e> g=<0!bf> h= <!afg> 
+反相器个数为3
+
+真值表：0x0667
+[expressions] e=<!0ab> f=<0!ae> g=<cd!e> h=!<b!fg> 
+反相器个数为5
+
+真值表：0x0669
+[expressions] e=<0c!d> f=<!0cd> g=<ab!f> h=<a!bf> i=<!agh> j=!<c!ei> 
+反相器个数为7
+
+真值表：0x066b
+[expressions] e=<!0cd> f=<0a!e> g=<ab!e> h=<ab!f> i=<cd!h> j=!<!fgi> 
+反相器个数为5
+
+真值表：0x066f
+[expressions] e=<0a!b> f=<!abe> g=<!0ef> h=!<cd!g> 
+反相器个数为5
+
+真值表：0x0672
+[expressions] e=<0ba> f=<b!0d> g=<caf> h=<c!0d> i= <ehg> 
+反相器个数为1
+
+真值表：0x0673
+[expressions] e=<ab!c> f=<0d!e> g=<a!de> h=<0!bg> i=!<fg!h> 
+反相器个数为6
+
+真值表：0x0676
+[expressions] e=<ab!c> f=<0c!d> g=<!0ef> h=<ab!g> i= <0g!h> 
+反相器个数为5
+
+rm3
+真值表：0x0678
+[expressions] e=<a!bd> f=<0ce> g=<0!ba> h=<cdg> i= <fgh> 
+反相器个数为1
+
+真值表：0x0679
+[expressions] e=<!0cd> f=<ab!e> g=<ab!f> h=<0!cg> i=!<df!h> 
+反相器个数为6
+
+真值表：0x067a
+[expressions] e=<0a!c> f=<!acd> g=<!bcd> h=<!deg> i=<!0fh> j= <!ghi> 
+反相器个数为6
+
+真值表：0x067b
+[expressions] e=<!0cd> f=<ab!e> g=<0b!f> h=<a!cg> i=!<df!h> 
+反相器个数为6
+
+真值表：0x067e
+[expressions] e=<!0ab> f=<ab!e> g=<0!ce> h=<c!dg> i= <!fgh> 
+反相器个数为5
+
+rm3
+真值表：0x0690
+[expressions] e=<0dc> f=<adb> g=<acb> h= <efg> 
+反相器个数为0
+
+真值表：0x0691
+[i] 5 steps are required 
+[expressions] e=<!abd> f=<0c!d> g=<!bce> h=<a!de> i=!<!fgh> 
+反相器个数为5
+
+真值表：0x0693
+[expressions] e=<0c!d> f=<!ade> g=<bc!f> h=<be!g> i=!<fg!h> 
+反相器个数为6
+
+真值表：0x0696
+[i] 4 steps are required 
+[expressions] e=<0c!d> f=<a!be> g=<b!cf> h= <!afg> 
+反相器个数为4
+
+真值表：0x0697
+[i] 5 steps are required 
+[expressions] e=<a!bc> f=<a!bd> g=<!0af> h=<c!eg> i=!<!efh> 
+反相器个数为4
+
+真值表：0x069f
+[expressions] e=<ab!c> f=<ad!e> g=!<b!ef> 
+反相器个数为3
+
+真值表：0x06b0
+[expressions] e=<ab!c> f=<0c!d> g=<0a!f> h=<b!dg> i= <ef!h> 
+反相器个数为4
+
+真值表：0x06b1
+[i] 5 steps are required 
+[expressions] e=<0!bd> f=<ab!d> g=<0c!d> h=<!ace> i=!<f!gh> 
+反相器个数为5
+
+真值表：0x06b2
+[expressions] e=<ab!c> f=<0!ad> g=<0c!d> h=<0b!f> i= <eg!h> 
+反相器个数为5
+
+真值表：0x06b3
+[expressions] e=<!acd> f=<!0ce> g=<!bce> h=<0!df> i=<be!h> j=!<!fgi> 
+反相器个数为7
+
+真值表：0x06b4
+[expressions] e=<ab!c> f=<!0cd> g=<0!ae> h=<bd!e> i= <fg!h> 
+反相器个数为5
+
+真值表：0x06b5
+[expressions] e=<!bcd> f=<!ace> g=<ce!f> h=<0a!g> i=<0!dg> j=!<fh!i> 
+反相器个数为7
+
+真值表：0x06b6
+[i] 5 steps are required 
+[expressions] e=<a!bc> f=<!0be> g=<0!de> h=<!aef> i= <!cgh> 
+反相器个数为5
+
+真值表：0x06b7
+[expressions] e=<!0bc> f=<a!ce> g=<!bcf> h=<de!g> i=!<a!fh> 
+反相器个数为6
+
+真值表：0x06b9
+[i] 5 steps are required 
+[expressions] e=<0a!c> f=<!abd> g=<0!cd> h=<!bde> i=!<f!gh> 
+反相器个数为5
+
+真值表：0x06f0
+[i] 5 steps are required 
+[expressions] e=<ab!c> f=<ab!d> g=<!0cd> h=<0e!f> i= <!dgh> 
+反相器个数为4
+
+真值表：0x06f1
+[i] 5 steps are required 
+[expressions] e=<ab!c> f=<ab!d> g=<0!cf> h=<0e!f> i=!<dg!h> 
+反相器个数为5
+
+真值表：0x06f2
+[i] 5 steps are required 
+[expressions] e=<ab!c> f=<0c!d> g=<!adf> h=<0b!g> i= <ef!h> 
+反相器个数为5
+
+rm3
+真值表：0x06f6
+[expressions] e=<abc> f=<0ab> g=<c!0d> h= <egf> 
+反相器个数为1
+
+真值表：0x06f9
+[expressions] e=<!0ac> f=<!0bc> g=<de!f> h=<!dfg> i=!<!egh> 
+反相器个数为5
+
+rm3
+真值表：0x0776
+[i] 5 steps are required 
+[expressions] e=<bdc> f=<ade> g=<a!0b> h=<0cd> i= <fgh> 
+
+rm3
+真值表：0x0778
+[expressions] e=<a!0b> f=<dce> g=<0cf> h=<dge> i= <chg> 
+反相器个数为1
+
+rm3
+真值表：0x0779
+[expressions] e=<adb> f=<a!0b> g=<cdf> h=<ecf> i=!<cgh> 
+反相器个数为2
+
+真值表：0x077a
+[expressions] e=<!bcd> f=<0a!e> g=<cd!f> h=<!dfg> i= <!cgh> 
+反相器个数为5
+
+真值表：0x077e
+[i] 5 steps are required 
+[expressions] e=<!bcd> f=<0a!e> g=<be!f> h=<cd!g> i= <fg!h> 
+反相器个数为5
+
+真值表：0x07b0
+[i] 5 steps are required 
+[expressions] e=<!0ad> f=<ab!d> g=<ce!f> h=<0!dg> i= <!cgh> 
+反相器个数为4
+
+真值表：0x07b1
+[expressions] e=<ab!d> f=<0c!d> g=<0!ae> h=<!ceg> i=!<c!fh> 
+反相器个数为5
+
+真值表：0x07b4
+[expressions] e=<0!ac> f=<0c!d> g=<!abe> h=<!bdg> i=<!cgh> j= <!efi> 
+反相器个数为5
+
+真值表：0x07b5
+[expressions] e=<0a!c> f=<a!bc> g=<0!cd> h=<cd!f> i=!<e!gh> 
+反相器个数为5
+
+rm3
+真值表：0x07b6
+[expressions] e=<abc> f=<c!0d> g=<bcd> h=<0ag> i= <efh> 
+反相器个数为1
+
+真值表：0x07bc
+[expressions] e=<0!cd> f=<!0ae> g=<b!ce> h=<ab!g> i=<c!dg> j= <f!hi> 
+反相器个数为5
+
+真值表：0x07e0
+[expressions] e=<!acd> f=<!bde> g=<0c!f> h=<0c!g> i= <fg!h> 
+反相器个数为5
+
+真值表：0x07e1
+[expressions] e=<ab!d> f=<!0ce> g=<!cde> h=<0e!g> i=!<0f!h> 
+反相器个数为6
+
+真值表：0x07e2
+[expressions] e=<ab!d> f=<!cde> g=<0!bf> h=<e!fg> i=<!efh> j= <!0hi> 
+反相器个数为6
+
+真值表：0x07e3
+[i] 5 steps are required 
+[expressions] e=<ab!d> f=<b!cd> g=<!0ce> h=<0e!f> i=!<0g!h> 
+反相器个数为6
+
+真值表：0x07e6
+[i] 5 steps are required 
+[expressions] e=<0!ab> f=<!0cd> g=<bc!e> h=<a!de> i= <f!gh> 
+反相器个数为5
+
+真值表：0x07e9
+[expressions] e=<ab!d> f=<0!ce> g=<ab!f> h=<0!dg> i=!<cf!h> 
+反相器个数为5
+
+真值表：0x07f0
+[expressions] e=<0!bd> f=<0c!d> g=<!ade> h=<0!cg> i= <!0fh> 
+反相器个数为5
+
+真值表：0x07f1
+[expressions] e=<ab!d> f=<0!cd> g=<0!ce> h=!<d!fg> 
+反相器个数为4
+
+真值表：0x07f2
+[expressions] e=<a!bc> f=<!acd> g=<!0ef> h=<0!cg> i= <!dgh> 
+反相器个数为5
+
+真值表：0x07f8
+[expressions] e=<a!bc> f=<0a!e> g=<c!df> h=<!cdf> i= <!fgh> 
+反相器个数为5
+
+真值表：0x0ff0
+[i] 3 steps are required 
+[expressions] e=<0!cd> f=<c!de> g= <!0ef> 
+反相器个数为3
+
+真值表：0x1668
+[expressions] e=<a!cd> f=<bce> g=<ad!e> h=<0f!g> i=<0!fg> j= <!0hi> 
+反相器个数为5
+
+真值表：0x1669
+[expressions] e=<!abd> f=<a!be> g=<a!ce> h=<!def> i=<0!gh> j=<0gh> k=!<c!ij> 
+反相器个数为7
+
+真值表：0x166a
+[expressions] e=<b!cd> f=<0ce> g=<bd!e> h=<0a!g> i=<0!ag> j= <!fhi> 
+反相器个数为5
+
+真值表：0x166b
+[expressions] e=<bc!d> f=<bc!e> g=<0a!f> h=<de!f> i=<0!ah> j=!<a!gi> 
+反相器个数为6
+
+真值表：0x166e
+[expressions] e=<bcd> f=<0!ae> g=<ab!e> h=<cd!f> i=<0bh> j= <fg!i> 
+反相器个数为4
+
+真值表：0x167e
+[expressions] e=<0!ac> f=<a!be> g=<b!ce> h=<ac!f> i=<0dh> j= <fg!i> 
+反相器个数为5
+
+真值表：0x1683
+[i] 5 steps are required 
+[expressions] e=<a!bc> f=<0!ad> g=<bd!e> h=<c!fg> i=!<!bgh> 
+反相器个数为5
+
+真值表：0x1686
+[expressions] e=<a!bc> f=<0!ad> g=<ad!e> h=<bf!g> i= <!ceh> 
+反相器个数为5
+
+真值表：0x1687
+[i] 5 steps are required 
+[expressions] e=<ab!c> f=<0!ad> g=<a!cd> h=<bc!f> i=!<!egh> 
+反相器个数为5
+
+真值表：0x1689
+[expressions] e=<ab!d> f=<ab!e> g=<!0ce> h=<d!fg> i=<!dfg> j=!<!ghi> 
+反相器个数为6
+
+真值表：0x168b
+[i] 6 steps are required 
+[expressions] e=<!0bc> f=<0!ad> g=<bc!f> h=<!bdg> i=<!egh> j=!<!agi> 
+反相器个数为6
+
+真值表：0x168e
+[expressions] e=<ab!c> f=<0!ad> g=<!0ce> h=<bd!g> i= <ef!h> 
+反相器个数为5
+
+真值表：0x1696
+[expressions] e=<a!bc> f=<0b!d> g=<ac!e> h=<!abf> i= <e!gh> 
+反相器个数为5
+
+真值表：0x1697
+[expressions] e=<!abc> f=<!bcd> g=<!acf> h=!<b!eg> 
+反相器个数为4
+
+rm3
+真值表：0x1698
+[expressions] e=<a!bd> f=<c0e> g=<a!bc> h=<0de> i= <fgh> 
+反相器个数为1
+
+真值表：0x1699
+[expressions] e=<a!bd> f=<0!cd> g=<ab!f> h=<ae!f> i=!<eg!h> 
+反相器个数为5
+
+真值表：0x169a
+[expressions] e=<0!cd> f=<!bce> g=<a!df> h=<!aef> i=<e!fg> j= <!ehi> 
+反相器个数为6
+
+真值表：0x169b
+[i] 5 steps are required 
+[expressions] e=<0!cd> f=<!bcd> g=<ab!e> h=<a!ef> i=!<fg!h> 
+反相器个数为5
+
+真值表：0x169e
+[expressions] e=<!0ac> f=<0a!d> g=<!bef> h=<b!cg> i= <!agh> 
+反相器个数为5
+
+真值表：0x16a9
+[expressions] e=<0b!c> f=<!0ce> g=<!bde> h=<ad!f> i=<af!g> j=!<!ahi> 
+反相器个数为7
+
+真值表：0x16ac
+[expressions] e=<!0bc> f=<0!bd> g=<!acf> h=<!abg> i=<!deh> j= <f!gi> 
+反相器个数为5
+
+真值表：0x16ad
+[i] 5 steps are required 
+[expressions] e=<!0bc> f=<0!bd> g=<ac!f> h=<d!eg> i=!<!agh> 
+反相器个数为6
+
+真值表：0x16e9
+[i] 6 steps are required 
+[expressions] e=<0!ac> f=<!0ae> g=<bc!e> h=<!dfg> i=<fg!h> j=!<dh!i> 
+反相器个数为7
+
+真值表：0x177e
+[expressions] e=<0a!d> f=<!bcd> g=<0bf> h=<!abf> i=<!cef> j= <!ghi> 
+反相器个数为5
+
+rm3
+真值表：0x178e
+[expressions] e=<0bd> f=<a!0d> g=<acb> h= <efg> 
+反相器个数为1
+
+真值表：0x1796
+[i] 5 steps are required 
+[expressions] e=<!abc> f=<!0ad> g=<0!de> h=<!bfg> i= <!ceh> 
+反相器个数为5
+
+真值表：0x1798
+[expressions] e=<0!cd> f=<ab!e> g=<ab!f> h=<ce!f> i=<!0dg> j= <!dhi> 
+反相器个数为5
+
+真值表：0x179a
+[i] 5 steps are required 
+[expressions] e=<!abc> f=<0a!d> g=<0b!f> h=<!cdf> i= <e!gh> 
+反相器个数为5
+
+真值表：0x17ac
+[i] 5 steps are required 
+[expressions] e=<0ad> f=<0!bd> g=<!ace> h=<bc!e> i= <f!gh> 
+反相器个数为4
+
+真值表：0x17e8
+[expressions] e=<abc> f=<0d!e> g=<0d!f> h= <ef!g> 
+反相器个数为3
+
+真值表：0x18e7
+[expressions] e=<a!bc> f=<ad!e> g=<ad!f> h=!<ef!g> 
+反相器个数为5
+
+真值表：0x19e1
+[expressions] e=<!0ab> f=<ab!d> g=<cd!f> h=<0c!g> i=<!deg> j=!<0!hi> 
+反相器个数为6
+
+真值表：0x19e3
+[i] 6 steps are required 
+[expressions] e=<0a!c> f=<ab!e> g=<c!de> h=<ef!g> i=<!efg> j=!<!fhi> 
+反相器个数为6
+
+真值表：0x19e6
+[expressions] e=<0b!c> f=<a!be> g=<!bdf> h=<b!fg> i= <!dgh> 
+反相器个数为4
+
+真值表：0x1bd8
+[i] 5 steps are required 
+[expressions] e=<a!bd> f=<ac!d> g=<!0ef> h=<0!eg> i= <!fgh> 
+反相器个数为5
+
+真值表：0x1be4
+[i] 5 steps are required 
+[expressions] e=<0!bc> f=<!abc> g=<!def> h=<d!eg> i= <!fgh> 
+反相器个数为5
+
+真值表：0x1ee1
+[i] 4 steps are required 
+[expressions] e=<!0ab> f=<cd!e> g=<c!de> h=!<!cfg> 
+反相器个数为5
+
+真值表：0x3cc3
+[i] 3 steps are required 
+[expressions] e=<!bcd> f=<b!de> g=!<!cef> 
+反相器个数为4
+
+真值表：0x6996
+[expressions] e=<a!bc> f=<!abc> g=<!cef> h=<0d!g> i=<!0dg> j= <!dhi> 
+反相器个数为6
