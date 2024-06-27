@@ -6,6 +6,7 @@
  *
  * @brief xag resubsitution
  *
+ * @author Sen Liu
  * @author Zhufei Chu
  * @since  0.1
  */
@@ -45,7 +46,8 @@ namespace alice
         xag_network xag = store<xag_network>().current();
 
 
-        if (is_set("BDFF")) {
+        if (is_set("BDFF")) 
+        {
               ps.use_dont_cares = true;
               ps.max_inserts = 3u;
               if (is_set("verbose"))

@@ -44,7 +44,6 @@ namespace alice
             return;
           }
           auto ntk = store<network>().current();
-          mockturtle::depth_view dag_depth{ ntk };
 
           /*critical_path*/
           also::critical_node_view<mockturtle::names_view<network>> critical{ ntk };
@@ -57,6 +56,7 @@ namespace alice
           }
 
           /*fanin_histogram*/
+          mockturtle::depth_view dag_depth{ ntk };
           mockturtle::fanout_view<network> fanout{ ntk };
           uint32_t times = 0;
           fanout.foreach_node( [&]( auto node ) {
