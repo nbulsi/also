@@ -41,9 +41,9 @@ namespace alice
       {
           assert( store<aig_network>().size() > 0 );
           aig_network aig = store<aig_network>().current();
-
+          exact_library_params eps;
           xmg_npn_resynthesis resyn;
-          exact_library<xmg_network, xmg_npn_resynthesis> lib( resyn );
+          exact_library<xmg_network> lib( resyn, eps );
           map_params ps;
           if( is_set( "logic_sharing" ) )
           {

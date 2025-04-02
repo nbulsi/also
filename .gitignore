@@ -1,4 +1,6 @@
 build/
+bin/
+out/
 tags
 .history
 **/.DS_Store
