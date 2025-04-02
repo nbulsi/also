@@ -1,6 +1,6 @@
-[submodule "lib/alice"]
-	path = lib/alice
-	url = https://gitee.com/zfchu/alice
-[submodule "lib/nbulsi-mockturtle"]
-	path = lib/nbulsi-mockturtle
-	url = https://gitee.com/zfchu/nbulsi-mockturtle
+# [submodule "lib/alice"]
+# 	path = lib/alice
+# 	url = https://gitee.com/zfchu/alice
+# [submodule "lib/nbulsi-mockturtle"]
+# 	path = lib/nbulsi-mockturtle
+# 	url = https://gitee.com/zfchu/nbulsi-mockturtle
