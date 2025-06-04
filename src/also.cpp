@@ -24,6 +24,7 @@
  */
 #include "store.hpp"
 #include "commands/mighty.hpp"
+#include "commands/mch.hpp"
 #include "commands/load.hpp"
 #include "commands/exact_imply.hpp"
 #include "commands/emap.hpp"

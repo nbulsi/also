@@ -98,7 +98,7 @@ public:
   using base_type = xag_network;
   using storage = std::shared_ptr<xag_storage>;
   using node = uint64_t;
-
+  static constexpr node XAG_NULL{ 0x7FFFFFFFFFFFFFFFu };
   struct signal
   {
     signal() = default;
@@ -175,6 +175,10 @@ public:
     }
 #endif
   };
+  enum FLAG_TYPE
+  {
+    F_PHASE = 0x1,
+  };
 
   xag_network()
       : _storage( std::make_shared<xag_storage>() ),
@@ -205,7 +209,8 @@ public:
     const auto index = _storage->nodes.size();
     auto& node = _storage->nodes.emplace_back();
     node.children[0].data = node.children[1].data = _storage->inputs.size();
-    node.data[1].h2 = 1; // mark as PI
+    // node.data[1].h2 = 1; // mark as PI
+    phase( index, 0 );
     _storage->inputs.emplace_back( index );
     return { index, 0 };
   }
@@ -231,12 +236,12 @@ public:
 
   bool is_ci( node const& n ) const
   {
-    return _storage->nodes[n].data[1].h2 == 1;
+    return _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data;
   }
 
   bool is_pi( node const& n ) const
   {
-    return _storage->nodes[n].data[1].h2 == 1 && !is_constant( n );
+    return _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data && !is_constant( n );
   }
 
   bool constant_value( node const& n ) const
@@ -283,6 +288,8 @@ public:
     _storage->nodes.push_back( node );
 
     _storage->hash[node] = index;
+    // phase
+    phase( index, ( phase( a.index ) ^ a.complement ) & ( phase( b.index ) ^ b.complement ) );
 
     /* increase ref-count to children */
     _storage->nodes[a.index].data[0].h1++;
@@ -1115,6 +1122,14 @@ public:
       fn( signal{ _storage->nodes[n].children[1] }, 1 );
     }
   }
+  signal get_child0( node const& p ) const
+  {
+    return _storage->nodes[p].children[0];
+  }
+  signal get_child1( node const& p ) const
+  {
+    return _storage->nodes[p].children[1];
+  }
 #pragma endregion
 
 #pragma region Value simulation
@@ -1252,6 +1267,25 @@ public:
     ++_storage->trav_id;
   }
 #pragma endregion
+#pragma region phase flags
+  bool phase( node const& n ) const
+  {
+    return _storage->nodes[n].data[1].h2 & F_PHASE;
+  }
+
+  void phase( node const& n, bool b )
+  {
+    if ( b )
+    {
+      _storage->nodes[n].data[1].h2 |= F_PHASE;
+    }
+    else
+    {
+      _storage->nodes[n].data[1].h2 &= ~F_PHASE;
+    }
+  }
+
+#pragma endregion
 
 #pragma region General methods
   auto& events() const
@@ -1260,9 +1294,99 @@ public:
   }
 #pragma endregion
 
+#pragma region Choice nodes
+  void init_choices( uint64_t size )
+  {
+    _equivs.assign( size, XAG_NULL );
+    _reprs.clear();
+    _reprs.reserve( size );
+    for ( uint64_t n = 0; n < size; ++n )
+    {
+      _reprs.push_back( n );
+    }
+  }
+
+  node get_equiv_node( node const& n ) const { return _equivs[n]; }
+
+  node get_repr( node const& n ) const { return _reprs[n]; }
+
+  bool is_repr( node const& n ) const
+  {
+    return get_equiv_node( n ) <= _storage->nodes.size() && fanout_size( n ) > 0;
+  }
+
+  bool set_choice( node const& n, node const& r )
+  {
+    if ( r >= n )
+      return false;
+
+    if ( check_tfi( n, r ) )
+    {
+      return false;
+    }
+    // set representative
+    _reprs[n] = r;
+    // add n to the tail of the linked list
+    node tmp = r;
+    while ( _equivs[tmp] <= _storage->nodes.size() )
+    {
+      tmp = _equivs[tmp];
+    }
+    assert( _equivs[tmp] > _storage->nodes.size() );
+    _equivs[tmp] = n;
+    assert( _equivs[n] > _storage->nodes.size() );
+    return true;
+  }
+
+  void set_equiv( node const& n, node const& equiv ) { _equivs[n] = equiv; }
+  bool check_tfi( node const& n, node const& r )
+  {
+    bool inTFI = false;
+    for ( node tmp = r; tmp <= _storage->nodes.size(); tmp = _equivs[tmp] )
+    {
+      set_value( tmp, 1 ); // mark as 1
+    }
+    // will traverse the TFI of n
+    incr_trav_id();
+    inTFI = check_tfi_rec( n );
+    for ( node tmp = r; tmp <= _storage->nodes.size(); tmp = _equivs[tmp] )
+    {
+      set_value( tmp, 0 ); // unmark
+    }
+    return inTFI;
+  }
+
+  bool check_tfi_rec( node const& n )
+  {
+    if ( n > _storage->nodes.size() )
+      return false;
+    if ( is_pi( n ) || is_constant( n ) )
+      return false;
+
+    if ( value( n ) == 1 )
+      return true;
+
+    if ( visited( n ) == trav_id() )
+      return false;
+    set_visited( n, trav_id() );
+
+    if ( check_tfi_rec( get_child0( n ).index ) )
+      return true;
+    if ( check_tfi_rec( get_child1( n ).index ) )
+      return true;
+
+    return check_tfi_rec( _equivs[n] );
+  }
+
+#pragma endregion
+
 public:
   std::shared_ptr<xag_storage> _storage;
   std::shared_ptr<network_events<base_type>> _events;
+
+private:
+  std::vector<node> _equivs;
+  std::vector<node> _reprs;
 };
 
 } // namespace mockturtle
