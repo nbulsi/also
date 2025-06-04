@@ -44,6 +44,7 @@ public:
     add_option( "--output, -o", filename, "the verilog filename" );
     add_flag( "--Standard, -S", "Standard Cell Mapping" );
     add_flag( "--LUT, -L", "LUT Mapping" );
+    add_flag( "--opt, -O", "Logic Optimization based on Exact Mapping" );
     add_flag( "--aig, -a", "Mapping and Optimization of AIG" );
     add_flag( "--xag, -g", "Mapping and Optimization of XAG" );
     add_flag( "--mig, -m", "Mapping and Optimization of MIG" );
@@ -81,6 +82,7 @@ protected:
 
     choice_map_params tech_ps;
     choice_map_stats tech_st;
+    exact_library_params eps;
 
     choice_lut_map_params lut_ps;
     choice_lut_map_stats lut_st;
@@ -144,10 +146,21 @@ protected:
         // store<aig_network>().extend();
         store<aig_network>().current() = cleanup_dangling( awc );
       }
-
+      else if ( is_set( "opt" ) )
+      {
+        if ( !store<aig_network>().empty() )
+        {
+          aig_network aig = store<aig_network>().current();
+          xag_npn_resynthesis<aig_network> npn_resyn;
+          exact_library<aig_network> lib( npn_resyn, eps );
+          aig_network aig_opt = choice_exact_map( awc, lib, tech_ps, &tech_st );
+          store<aig_network>().extend();
+          store<aig_network>().current() = cleanup_dangling( aig_opt );
+        }
+      }
       else
       {
-        std::cerr << "Please specify either --Standard or --LUT for mapping.\n";
+        std::cerr << "Please specify either -S or -L or -O for mapping and optimization.\n";
       }
     }
     else if ( is_set( "xmg" ) && !store<xmg_network>().empty() )
@@ -190,10 +203,21 @@ protected:
         // store<xmg_network>().extend();
         store<xmg_network>().current() = cleanup_dangling( xwc );
       }
-
+      else if ( is_set( "opt" ) )
+      {
+        if ( !store<xmg_network>().empty() )
+        {
+          xmg_network xmg = store<xmg_network>().current();
+          xmg_npn_resynthesis npn_resyn;
+          exact_library<xmg_network> lib( npn_resyn, eps );
+          xmg_network xmg_opt = choice_exact_map( xwc, lib, tech_ps, &tech_st );
+          store<xmg_network>().extend();
+          store<xmg_network>().current() = cleanup_dangling( xmg_opt );
+        }
+      }
       else
       {
-        std::cerr << "Please specify either --Standard or --LUT for mapping.\n";
+        std::cerr << "Please specify either -S or -L or -O for mapping and optimization.\n";
       }
     }
     else if ( is_set( "mig" ) && !store<mig_network>().empty() )
@@ -235,9 +259,21 @@ protected:
                                   klut.num_gates(), depth_klut.depth() );
         store<mig_network>().current() = cleanup_dangling( mwc );
       }
+      else if ( is_set( "opt" ) )
+      {
+        if ( !store<mig_network>().empty() )
+        {
+          mig_network mig = store<mig_network>().current();
+          mig_npn_resynthesis npn_resyn;
+          exact_library<mig_network> lib( npn_resyn, eps );
+          mig_network mig_opt = choice_exact_map( mwc, lib, tech_ps, &tech_st );
+          store<mig_network>().extend();
+          store<mig_network>().current() = cleanup_dangling( mig_opt );
+        }
+      }
       else
       {
-        std::cerr << "Please specify either --Standard or --LUT for mapping.\n";
+        std::cerr << "Please specify either -S or -L or -O for mapping and optimization.\n";
       }
     }
     else if ( is_set( "xag" ) && !store<xag_network>().empty() )
@@ -278,9 +314,21 @@ protected:
                                   klut.num_gates(), depth_klut.depth() );
         store<xag_network>().current() = cleanup_dangling( gwc );
       }
+      else if ( is_set( "opt" ) )
+      {
+        if ( !store<xag_network>().empty() )
+        {
+          xag_network xag = store<xag_network>().current();
+          xag_npn_resynthesis<xag_network> npn_resyn;
+          exact_library<xag_network> lib( npn_resyn, eps );
+          xag_network xag_opt = choice_exact_map( gwc, lib, tech_ps, &tech_st );
+          store<xag_network>().extend();
+          store<xag_network>().current() = cleanup_dangling( xag_opt );
+        }
+      }
       else
       {
-        std::cerr << "Please specify either --Standard or --LUT for mapping.\n";
+        std::cerr << "Please specify either -S or -L or -O for mapping and optimization.\n";
       }
     }
     else if ( is_set( "MCH" ) )
