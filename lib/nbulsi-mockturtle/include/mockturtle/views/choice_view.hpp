@@ -162,7 +162,7 @@ public:
   {
     if ( _ps.update_on_add )
     {
-      Ntk::events().release_add_event( _add_event );
+      // Ntk::events().release_add_event( _add_event );
     }
   }
 

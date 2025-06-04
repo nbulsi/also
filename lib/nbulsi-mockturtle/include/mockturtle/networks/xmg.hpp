@@ -40,11 +40,11 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 #include <optional>
 #include <stack>
 #include <string>
-#include <map>
 
 #include <kitty/dynamic_truth_table.hpp>
 #include <kitty/operators.hpp>
@@ -67,7 +67,7 @@ namespace mockturtle
   `data[0].h1`: Fan-out size (we use MSB to indicate whether a node is dead)
   `data[0].h2`: Application-specific value
   `data[1].h1`: Visited flag
-  `data[1].h2`: Is terminal node (PI or CI)
+  `data[1].h2`: Node phase
 */
 using xmg_storage = storage<regular_node<3, 2, 1>>;
 
@@ -82,6 +82,7 @@ public:
   using storage = std::shared_ptr<xmg_storage>;
   using node = std::size_t;
   std::map<node, std::vector<node>> parentss;
+  static constexpr node XMG_NULL{ 0x7FFFFFFFFFFFFFFFu };
 
   struct signal
   {
@@ -159,7 +160,10 @@ public:
     }
 #endif
   };
-
+  enum FLAG_TYPE
+  {
+    F_PHASE = 0x1,
+  };
   xmg_network()
       : _storage( std::make_shared<xmg_storage>() ),
         _events( std::make_shared<decltype( _events )::element_type>() )
@@ -189,7 +193,8 @@ public:
     const auto index = _storage->nodes.size();
     auto& node = _storage->nodes.emplace_back();
     node.children[0].data = node.children[1].data = node.children[2].data = _storage->inputs.size();
-    node.data[1].h2 = 1; // mark as PI
+    // node.data[1].h2 = 1; // mark as PI
+    phase( index, 0 );
     _storage->inputs.emplace_back( index );
     return { index, 0 };
   }
@@ -215,12 +220,12 @@ public:
 
   bool is_ci( node const& n ) const
   {
-    return _storage->nodes[n].data[1].h2 == 1;
+    return _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data;
   }
 
   bool is_pi( node const& n ) const
   {
-    return _storage->nodes[n].data[1].h2 == 1 && !is_constant( n );
+    return _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data && !is_constant( n );
   }
 
   bool constant_value( node const& n ) const
@@ -268,7 +273,7 @@ public:
     {
       return ( b.complement == c.complement ) ? b : a;
     }
-    else if ( ( a.index == b.index) && ( b.index == c.index ) )
+    else if ( ( a.index == b.index ) && ( b.index == c.index ) )
     {
       return ( a.complement == b.complement ) ? a : c;
     }
@@ -308,6 +313,9 @@ public:
     _storage->nodes.push_back( node );
 
     _storage->hash[node] = index;
+
+    // phase
+    phase( index, ( phase( a.index ) ^ a.complement ) & ( phase( b.index ) ^ b.complement ) & ( phase( c.index ) ^ c.complement ) );
 
     /* increase ref-count to children */
     _storage->nodes[a.index].data[0].h1++;
@@ -376,6 +384,9 @@ public:
 
     _storage->hash[node] = index;
 
+    // phase
+    phase( index, ( phase( a.index ) ^ a.complement ) & ( phase( b.index ) ^ b.complement ) & ( phase( c.index ) ^ c.complement ) );
+
     /* increase ref-count to children */
     _storage->nodes[a.index].data[0].h1++;
     _storage->nodes[b.index].data[0].h1++;
@@ -418,7 +429,7 @@ public:
     {
       return ( b.complement == c.complement ) ? b : a;
     }
-    else if ( ( a.index == b.index) && ( b.index == c.index ) )
+    else if ( ( a.index == b.index ) && ( b.index == c.index ) )
     {
       return ( a.complement == b.complement ) ? a : c;
     }
@@ -435,7 +446,7 @@ public:
     const auto it = _storage->hash.find( node );
     if ( it != _storage->hash.end() )
     {
-      return {it->second, node_complement};
+      return { it->second, node_complement };
     }
 
     const auto index = _storage->nodes.size();
@@ -457,10 +468,10 @@ public:
 
     for ( auto const& fn : _events->on_add )
     {
-      (*fn)( index );
+      ( *fn )( index );
     }
 
-    return {index, node_complement};
+    return { index, node_complement };
   }
 
   signal create_xor3_without_complement_opt( signal a, signal b, signal c )
@@ -481,7 +492,7 @@ public:
 
     /* propagate complement edges */
     bool fcompl = ( a.complement != b.complement ) != c.complement;
-    //a.complement = b.complement = c.complement = false;
+    // a.complement = b.complement = c.complement = false;
 
     /* trivial cases */
     if ( a.index == b.index )
@@ -509,7 +520,7 @@ public:
     const auto it = _storage->hash.find( node );
     if ( it != _storage->hash.end() )
     {
-      return {it->second, fcompl};
+      return { it->second, fcompl };
     }
 
     const auto index = _storage->nodes.size();
@@ -531,10 +542,10 @@ public:
 
     for ( auto const& fn : _events->on_add )
     {
-      (*fn)( index );
+      ( *fn )( index );
     }
 
-    return {index, fcompl};
+    return { index, fcompl };
   }
 
   signal create_ite( signal cond, signal f_then, signal f_else )
@@ -1013,9 +1024,9 @@ public:
     }
 
     // remember before
-    const auto old_child0 = signal{node.children[0]};
-    const auto old_child1 = signal{node.children[1]};
-    const auto old_child2 = signal{node.children[2]};
+    const auto old_child0 = signal{ node.children[0] };
+    const auto old_child1 = signal{ node.children[1] };
+    const auto old_child2 = signal{ node.children[2] };
 
     // erase old node in hash table
     _storage->hash.erase( node );
@@ -1034,7 +1045,7 @@ public:
 
     for ( auto const& fn : _events->on_modified )
     {
-      (*fn)( n, {old_child0, old_child1, old_child2} );
+      ( *fn )( n, { old_child0, old_child1, old_child2 } );
     }
 
     return std::nullopt;
@@ -1304,7 +1315,7 @@ public:
   void substitute_node_without_complement_opt( node const& old_node, signal const& new_signal )
   {
     std::stack<std::pair<node, signal>> to_substitute;
-    to_substitute.push( {old_node, new_signal} );
+    to_substitute.push( { old_node, new_signal } );
 
     while ( !to_substitute.empty() )
     {
@@ -1650,6 +1661,18 @@ public:
       fn( signal{ _storage->nodes[n].children[2] }, 2 );
     }
   }
+  signal get_child0( node const& p ) const
+  {
+    return _storage->nodes[p].children[0];
+  }
+  signal get_child1( node const& p ) const
+  {
+    return _storage->nodes[p].children[1];
+  }
+  signal get_child2( node const& p ) const
+  {
+    return _storage->nodes[p].children[2];
+  }
 #pragma endregion
 
 #pragma region Value simulation
@@ -1748,97 +1771,114 @@ public:
 #pragma endregion
 
 #pragma region Inverters propagations
-void complement_node( node const& n, std::vector<node> const& parents )
-{
-  assert( n != 0 && !is_pi( n ) );
-
-  auto & c1 = _storage->nodes[n].children[0];
-  auto & c2 = _storage->nodes[n].children[1];
-  auto & c3 = _storage->nodes[n].children[2];
-
-  if( is_maj( n ) )
+  void complement_node( node const& n, std::vector<node> const& parents )
   {
-    c1.weight = !c1.weight;
-    c2.weight = !c2.weight;
-    c3.weight = !c3.weight;
-  }
-  else
-  {
-    if( c3.weight )
+    assert( n != 0 && !is_pi( n ) );
+
+    auto& c1 = _storage->nodes[n].children[0];
+    auto& c2 = _storage->nodes[n].children[1];
+    auto& c3 = _storage->nodes[n].children[2];
+
+    if ( is_maj( n ) )
     {
-      c3.weight = !c3.weight;
-    }
-    else if( c2.weight )
-    {
+      c1.weight = !c1.weight;
       c2.weight = !c2.weight;
+      c3.weight = !c3.weight;
     }
     else
     {
-      c1.weight = !c1.weight;
-    }
-  }
-
-  for( auto& p : parents )
-  {
-    for( auto i = 0; i < 3; i++ )
-    {
-      auto& c = _storage->nodes[p].children[i];
-      if( c.index == n )
+      if ( c3.weight )
       {
-        c.weight = !c.weight;
+        c3.weight = !c3.weight;
+      }
+      else if ( c2.weight )
+      {
+        c2.weight = !c2.weight;
+      }
+      else
+      {
+        c1.weight = !c1.weight;
+      }
+    }
+
+    for ( auto& p : parents )
+    {
+      for ( auto i = 0; i < 3; i++ )
+      {
+        auto& c = _storage->nodes[p].children[i];
+        if ( c.index == n )
+        {
+          c.weight = !c.weight;
+        }
+      }
+    }
+
+    /* pos */
+    for ( auto& output : _storage->outputs )
+    {
+      if ( output.index == n )
+      {
+        output.weight = !output.weight;
       }
     }
   }
 
-  /* pos */
-  for ( auto& output : _storage->outputs )
+  /*
+   * f = !(0 xor a xor b) = ( 0 xor !a xor b) = ( 0 xor a xor !b) =
+   * ( 1 xor a xor b)
+   * */
+  void xor_inv_jump( node const& n )
   {
-    if( output.index == n )
+    assert( n != 0 && !is_pi( n ) && is_xor3( n ) );
+
+    auto& c1 = _storage->nodes[n].children[0];
+    auto& c2 = _storage->nodes[n].children[1];
+    auto& c3 = _storage->nodes[n].children[2];
+
+    auto tmp = static_cast<int>( c1.weight ) + static_cast<int>( c2.weight ) + static_cast<int>( c3.weight );
+
+    if ( tmp == 0 )
     {
-      output.weight = !output.weight;
+      return;
+    }
+    else if ( tmp == 1 )
+    {
+      if ( c2.weight )
+      {
+        c1.weight = !c1.weight;
+        c2.weight = !c2.weight;
+      }
+      if ( c3.weight )
+      {
+        c1.weight = !c1.weight;
+        c3.weight = !c3.weight;
+      }
+    }
+    else if ( tmp == 2 )
+    {
+      if ( c1.weight )
+      {
+        c1.weight = !c1.weight;
+      }
+      if ( c2.weight )
+      {
+        c2.weight = !c2.weight;
+      }
+      if ( c3.weight )
+      {
+        c3.weight = !c3.weight;
+      }
+    }
+    else if ( tmp == 3 )
+    {
+      c2.weight = !c2.weight;
+      c3.weight = !c3.weight;
+    }
+    else
+    {
+      assert( false );
     }
   }
-}
-
-/*
- * f = !(0 xor a xor b) = ( 0 xor !a xor b) = ( 0 xor a xor !b) =
- * ( 1 xor a xor b)
- * */
-void xor_inv_jump( node const& n )
-{
-  assert( n != 0 && !is_pi( n ) && is_xor3( n ) );
-
-  auto & c1 = _storage->nodes[n].children[0];
-  auto & c2 = _storage->nodes[n].children[1];
-  auto & c3 = _storage->nodes[n].children[2];
-
-  auto tmp = static_cast<int>( c1.weight ) + static_cast<int>( c2.weight ) + static_cast<int>( c3.weight );
-
-  if( tmp == 0 )
-  {
-    return;
-  }
-  else if( tmp == 1 )
-  {
-    if( c2.weight ) { c1.weight = !c1.weight; c2.weight = !c2.weight; }
-    if( c3.weight ) { c1.weight = !c1.weight; c3.weight = !c3.weight; }
-  }
-  else if( tmp == 2 )
-  {
-    if( c1.weight ) { c1.weight = !c1.weight; }
-    if( c2.weight ) { c2.weight = !c2.weight; }
-    if( c3.weight ) { c3.weight = !c3.weight; }
-  }
-  else if( tmp == 3 )
-  {
-    c2.weight = !c2.weight;
-    c3.weight = !c3.weight;
-  }
-  else
-  {
-    assert( false );
-  }
-}
 #pragma endregion
 
 #pragma region Custom node values
@@ -1895,6 +1935,26 @@ void xor_inv_jump( node const& n )
   }
 #pragma endregion
 
+#pragma region phase flags
+  bool phase( node const& n ) const
+  {
+    return _storage->nodes[n].data[1].h2 & F_PHASE;
+  }
+
+  void phase( node const& n, bool b )
+  {
+    if ( b )
+    {
+      _storage->nodes[n].data[1].h2 |= F_PHASE;
+    }
+    else
+    {
+      _storage->nodes[n].data[1].h2 &= ~F_PHASE;
+    }
+  }
+
+#pragma endregion
+
 #pragma region General methods
   auto& events() const
   {
@@ -1903,9 +1963,127 @@ void xor_inv_jump( node const& n )
 
 #pragma endregion
 
+#pragma region Choice nodes
+
+  void init_choices( uint64_t size )
+  {
+    _equivs.assign( size, XMG_NULL );
+    _reprs.clear();
+    _reprs.reserve( size );
+    for ( uint64_t n = 0; n < size; ++n )
+    {
+      _reprs.push_back( n );
+    }
+  }
+
+  bool is_repr( node const& n ) const
+  {
+    return get_equiv_node( n ) != XMG_NULL && fanout_size( n ) > 0;
+  }
+
+  node get_equiv_node( node const& n ) const
+  {
+    return _equivs[n];
+  }
+
+  node get_repr( node const& n ) const
+  {
+    return _reprs[n];
+  }
+
+  bool set_choice( node const& n, node const& r )
+  {
+
+    if ( r >= n )
+    {
+      return false;
+    }
+
+    if ( check_tfi( n, r ) )
+    {
+      return false;
+    }
+
+    // set representative
+    _reprs[n] = r;
+
+    // add n to the tail of the linked list
+    node tmp = r;
+    while ( _equivs[tmp] != XMG_NULL )
+    {
+      tmp = _equivs[tmp];
+    }
+
+    assert( _equivs[tmp] == XMG_NULL );
+    _equivs[tmp] = n;
+    assert( _equivs[n] == XMG_NULL );
+
+    return true;
+  }
+
+  void set_equiv( node const& n, node const& equiv ) { _equivs[n] = equiv; }
+
+  bool check_tfi( node const& n, node const& r )
+  {
+
+    bool inTFI = false;
+
+    for ( node tmp = r; tmp != XMG_NULL; tmp = _equivs[tmp] )
+    {
+      set_value( tmp, 1 ); // mark as 1
+    }
+
+    // will traverse the TFI of n
+    incr_trav_id();
+    inTFI = check_tfi_rec( n );
+
+    for ( node tmp = r; tmp != XMG_NULL; tmp = _equivs[tmp] )
+    {
+      set_value( tmp, 0 ); // unmark
+    }
+
+    return inTFI;
+  }
+
+  bool check_tfi_rec( node const& n )
+  {
+    if ( n == XMG_NULL )
+
+      return false;
+
+    if ( is_ci( n ) )
+
+      return false;
+
+    if ( value( n ) == 1 )
+
+      return true;
+
+    if ( visited( n ) == trav_id() )
+
+      return false;
+
+    set_visited( n, trav_id() );
+
+    if ( check_tfi_rec( get_child0( n ).index ) )
+      return true;
+    if ( check_tfi_rec( get_child1( n ).index ) )
+      return true;
+    if ( check_tfi_rec( get_child2( n ).index ) )
+      return true;
+
+    return check_tfi_rec( _equivs[n] );
+  }
+
+#pragma endregion
+
 public:
   std::shared_ptr<xmg_storage> _storage;
   std::shared_ptr<network_events<base_type>> _events;
+
+private:
+  std::vector<node> _equivs;
+  std::vector<node> _reprs;
 };
 
 } // namespace mockturtle
