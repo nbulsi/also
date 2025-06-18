@@ -71,5 +71,6 @@
 #include "commands/decomp_flow.hpp"
 #include "commands/rm_mp2.hpp"
 #include "commands/ps2.hpp"
+#include "commands/resyn.hpp"
 ALICE_MAIN( also )
 

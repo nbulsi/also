@@ -9,7 +9,8 @@
  * @author Chunliu Liao
  * @since  0.1
  */
-
+#ifndef PS2_IMPLEMENTED_HPP
+#define PS2_IMPLEMENTED_HPP
 #include <alice/alice.hpp>
 #include <mockturtle/mockturtle.hpp>
 #include <string>
@@ -323,3 +324,4 @@ static int computeLevel( Ntk const& ntk, int index )
   return 0;
 }
 } // namespace also
+#endif

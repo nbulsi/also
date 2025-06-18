@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD ${MOCKTURTLE_CXX_STANDARD})
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Options
-option(MOCKTURTLE_EXAMPLES "Build examples" ON)
+option(MOCKTURTLE_EXAMPLES "Build examples" OFF)
 option(MOCKTURTLE_TEST "Build tests" OFF)
 option(MOCKTURTLE_EXPERIMENTS "Build experiments" OFF)
 option(BILL_Z3 "Enable Z3 interface for bill library" OFF)
@@ -49,9 +49,9 @@ if (ENABLE_ABC)
   endif()
 endif()
 
-if(MOCKTURTLE_EXAMPLES)
-  add_subdirectory(examples)
-endif()
+# if(MOCKTURTLE_EXAMPLES)
+#   add_subdirectory(examples)
+# endif()
 
 if(MOCKTURTLE_TEST)
   add_subdirectory(test)
