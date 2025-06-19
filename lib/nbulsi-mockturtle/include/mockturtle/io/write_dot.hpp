@@ -172,6 +172,24 @@ public:
       }
     }
 
+    // if constexpr ( has_is_rm3_v<Ntk> )
+    // {
+    //   if ( ntk.is_rm3( n ) )
+    //   {
+    //     std::string label{ "RM3" };
+    //     ntk.foreach_fanin( n, [&]( auto const& f ) {
+    //       if ( ntk.is_constant( ntk.get_node( f ) ) )
+    //       {
+    //         const auto v = ntk.constant_value( ntk.get_node( f ) ) != ntk.is_complemented( f );
+    //         label = v ? "AND" : "OR";
+    //         return false;
+    //       }
+    //       return true;
+    //     } );
+    //     return label;
+    //   }
+    // }
+
     if constexpr ( has_is_xor3_v<Ntk> )
     {
       if ( ntk.is_xor3( n ) )

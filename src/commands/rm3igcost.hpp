@@ -2,11 +2,9 @@
  * Copyright (C) 2019- Ningbo University, Ningbo, China */
 
 /**
- * @file xmgcost.hpp
+ * @file rm3igcost.hpp
  *
- * @brief The nanotechnology implemention cost of XMGs
- * @modified from https://github.com/msoeken/cirkit/blob/cirkit3/cli/algorithms/migcost.hpp
- * @author Zhufei Chu
+ * @author Yan Ming
  * @since  0.1
  */
 

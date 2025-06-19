@@ -24,6 +24,16 @@ private:
   aig_network aig; // source graph
 };
 
+class aig2mig_manager
+{
+public:
+  aig2mig_manager( aig_network aig );
+  mig_network run();
+
+private:
+  aig_network aig; // source graph
+};
+
 class mig2xmg_manager
 {
 public:
@@ -52,6 +62,16 @@ public:
 
 private:
   xmg_network xmg; // source graph
+};
+
+class mig2rm3_manager
+{
+public:
+  mig2rm3_manager( mig_network mig );
+  rm3_network run();
+
+private:
+  mig_network mig; // source graph
 };
 
 /******************************************************************************
@@ -95,6 +115,47 @@ xmg_network aig2xmg_manager::run()
         xmg.create_po( o ); } );
 
   return xmg;
+}
+
+// aig to mig
+aig2mig_manager::aig2mig_manager( aig_network aig )
+    : aig( aig )
+{
+}
+
+mig_network aig2mig_manager::run()
+{
+  mig_network mig;
+  node_map<mig_network::signal, aig_network> node2new( aig );
+
+  node2new[aig.get_node( aig.get_constant( false ) )] = mig.get_constant( false );
+
+  /* create pis */
+  aig.foreach_pi( [&]( auto n )
+                  { node2new[n] = mig.create_pi(); } );
+
+  /* create mig nodes */
+  topo_view aig_topo{ aig };
+  aig_topo.foreach_node( [&]( auto n )
+                         {
+      if ( aig.is_constant( n ) || aig.is_pi( n ) )
+        return;
+
+      std::vector<mig_network::signal> children;
+      aig.foreach_fanin( n, [&]( auto const& f ) {
+        children.push_back( aig.is_complemented( f ) ? mig.create_not( node2new[f] ) : node2new[f] );
+      } );
+
+      assert( children.size() == 2u );
+      node2new[n] = mig.create_and( children[0], children[1] ); } );
+
+  /* create pos */
+  aig.foreach_po( [&]( auto const& f, auto index )
+                  {
+        auto const o = aig.is_complemented( f ) ? mig.create_not( node2new[f] ) : node2new[f];
+        mig.create_po( o ); } );
+
+  return mig;
 }
 
 // mig to xmg
@@ -302,6 +363,117 @@ rm3_network xmg2rm3_manager::run()
   return rm3;
 }
 
+// mig to rm3
+mig2rm3_manager::mig2rm3_manager( mig_network mig )
+    : mig( mig )
+{
+}
+
+rm3_network mig2rm3_manager::run()
+{
+  rm3_network rm3;
+  node_map<rm3_network::signal, mig_network> node2new( mig );
+
+  node2new[mig.get_node( mig.get_constant( false ) )] = rm3.get_constant( false );
+
+  /* create pis */
+  mig.foreach_pi( [&]( auto n )
+                  { node2new[n] = rm3.create_pi(); } );
+
+  /* create xmg nodes */
+  topo_view mig_topo{ mig };
+  mig_topo.foreach_node( [&]( auto n )
+                         {
+      if ( mig.is_constant( n ) || mig.is_pi( n ) )
+        return;
+
+      std::vector<rm3_network::signal> children;
+      mig.foreach_fanin( n, [&]( auto const& f ) {
+        children.push_back( mig.is_complemented( f ) ? rm3.create_not( node2new[f] ) : node2new[f] );
+      } );
+
+
+
+      assert( children.size() == 3u );
+
+
+      if ( mig.is_maj( n ) )
+      {
+        const auto& xx = children[0u].index;
+        const auto& yy = children[1u].index;
+        const auto& zz = children[2u].index;
+        const auto cx = children[0u].complement;
+        const auto cy = children[1u].complement;
+        const auto cz = children[2u].complement;
+
+
+        /* AND/OR */
+        if ( xx == 0u )
+        {
+          if ( !cy && !cz )
+          {
+            node2new[n] = rm3.create_rm3( children[1u], cx ? rm3.get_constant( false ) : rm3.get_constant( true ), children[2u] );
+          }
+          else if ( !cy && cz )
+          {
+            node2new[n] = rm3.create_rm3( cx ? rm3.get_constant( true ) : rm3.get_constant( false ), rm3.create_not(children[2u]), children[1u] );
+          }
+          else if ( cy && !cz )
+          {
+            node2new[n] = rm3.create_rm3( cx ? rm3.get_constant( true ) : rm3.get_constant( false ), rm3.create_not(children[1u]), children[2u] );
+          }
+          else if ( cy && cz )
+          {
+            node2new[n] = rm3.create_not( rm3.create_rm3( children[1u], cx ? rm3.get_constant( true ) : rm3.get_constant( false ), children[2u] ) );
+          }
+        }
+        /* MAJ */
+        else
+        {
+          // 根据极性判断属于哪一种情况
+          if ( cx )
+          {
+            assert( !cy && !cz );
+            node2new[n] = rm3.create_rm3( children[1u], rm3.create_not(children[0u]), children[2u] );
+          }
+          else if ( cy )
+          {
+            assert( !cx && !cz );
+            node2new[n] = rm3.create_rm3( children[0u], rm3.create_not(children[1u]), children[2u] );
+          }
+          else if ( cz )
+          {
+            assert( !cx && !cy );
+            node2new[n] = rm3.create_rm3( children[0u], rm3.create_not(children[2u]), children[1u] );
+          }
+          else
+          {
+            node2new[n] = rm3.create_rm3( children[0u], rm3.create_not(children[1u]) , children[2u] );
+          }
+        }
+      }
+      // else
+      // {
+      //   //assert( xmg.is_maj( n ) );
+      //   // xor3
+      //   node2new[n] = rm3.create_xor3( children[0], children[1], children[2] );
+
+      //   // auto minority = rm3.create_rm3( children[0], rm3.create_not( children[1] ), children[2] ) ;
+      //   // node2new[n] = rm3.create_rm3( children[2],
+      //   //                               rm3.create_not( minority ),
+      //   //                               rm3.create_rm3( children[0], minority, children[1] ) );
+      // } 
+      } );
+
+  /* create pos */
+  mig.foreach_po( [&]( auto const& f, auto index )
+                  {
+        auto const o = mig.is_complemented( f ) ? rm3.create_not( node2new[f] ) : node2new[f];
+        rm3.create_po( o ); } );
+
+  return rm3;
+}
+
 /******************************************************************************
  * Public functions                                                           *
  ******************************************************************************/
@@ -323,9 +495,21 @@ mig_network mig_from_xmg( const xmg_network& xmg )
   return mgr.run();
 }
 
+mig_network mig_from_aig( const aig_network& aig )
+{
+  aig2mig_manager mgr( aig );
+  return mgr.run();
+}
+
 rm3_network rm3_from_xmg( const xmg_network& xmg )
 {
   xmg2rm3_manager mgr( xmg );
+  return mgr.run();
+}
+
+rm3_network rm3_from_mig( const mig_network& mig )
+{
+  mig2rm3_manager mgr( mig );
   return mgr.run();
 }
 

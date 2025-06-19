@@ -1330,7 +1330,7 @@ bool create_from_formula( TT& tt, const std::string& expression, const std::vect
     char const c = expression.at( i );
     switch ( c )
     {
-    case ' ':
+    //case ' ':
     case '\t':
     case '\r':
     case '\n':
@@ -1380,6 +1380,7 @@ bool create_from_formula( TT& tt, const std::string& expression, const std::vect
       truth_tables.push( ~temp_tt );
       break;
 
+    case ' ':
     case '*':
     case '&':
       if ( flag != VAR )

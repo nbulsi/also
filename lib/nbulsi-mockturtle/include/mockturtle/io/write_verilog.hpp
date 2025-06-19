@@ -233,13 +233,13 @@ void write_verilog( Ntk const& ntk, std::ostream& os, write_verilog_params const
     static_assert( has_is_buf_v<Ntk>, "Ntk does not implement the is_buf method" );
     ntk.foreach_node( [&]( auto const& n ) {
       if ( ntk.fanin_size( n ) > 0 )
-        ws.emplace_back( fmt::format( "n{}", ntk.node_to_index( n ) ) );
+        ws.emplace_back( fmt::format( "n{}", ntk.node_to_index( n ) - ntk.num_pis() -1) );
     } );
   }
   else
   {
     ntk.foreach_gate( [&]( auto const& n ) {
-      ws.emplace_back( fmt::format( "n{}", ntk.node_to_index( n ) ) );
+      ws.emplace_back( fmt::format( "n{}", ntk.node_to_index( n ) - ntk.num_pis() - 1 ) );
     } );
   }
 
@@ -303,7 +303,7 @@ void write_verilog( Ntk const& ntk, std::ostream& os, write_verilog_params const
       return true;
 
     /* assign a name */
-    node_names[n] = fmt::format( "n{}", ntk.node_to_index( n ) );
+    node_names[n] = fmt::format( "n{}", ntk.node_to_index( n ) - ntk.num_pis() - 1 );
 
     if constexpr ( has_is_buf_v<Ntk> )
     {
@@ -624,7 +624,7 @@ void write_verilog_with_binding( Ntk const& ntk, std::ostream& os, write_verilog
   ntk.foreach_gate( [&]( auto const& n ) {
     if ( !po_nodes.has( n ) )
     {
-      ws.emplace_back( fmt::format( "n{}", ntk.node_to_index( n ) ) );
+      ws.emplace_back( fmt::format( "n{}", ntk.node_to_index( n ) - ntk.num_pis() - 1 ) );
     }
   } );
 
@@ -695,7 +695,7 @@ void write_verilog_with_binding( Ntk const& ntk, std::ostream& os, write_verilog
     }
     else if ( !ntk.is_constant( n ) && !ntk.is_pi( n ) )
     {
-      node_names[n] = fmt::format( "n{}", ntk.node_to_index( n ) );
+      node_names[n] = fmt::format( "n{}", ntk.node_to_index( n ) - ntk.num_pis() - 1 );
     }
 
     if ( ntk.has_binding( n ) )

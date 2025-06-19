@@ -177,7 +177,7 @@ private:
       while ( ( pos = line.find_first_of( deliminators, prev ) ) != std::string::npos )
       {
         /* equation */
-        if ( tokens.size() == 3 && !in_equation )
+        if ( tokens.size() == 4 && !in_equation )
         {
           /* equation is not finished */
           if ( token.substr( prev, pos - prev ).find_first_of( ";" ) == std::string::npos )
@@ -214,7 +214,7 @@ private:
       }
     }
 
-    if ( tokens.size() < 4u )
+    if ( tokens.size() < 5u )
     {
       if ( diag )
       {
@@ -231,8 +231,8 @@ private:
       }
       return false;
     }
-    auto const beg = tokens[3].find_first_of( "=" );
-    auto const end = tokens[3].find_first_of( ";" );
+    auto const beg = tokens[4].find_first_of( "=" );
+    auto const end = tokens[4].find_first_of( ";" );
     if ( beg == std::string::npos || end == std::string::npos )
     {
       if ( diag )
@@ -243,14 +243,14 @@ private:
     }
 
     std::string const& name = tokens[1];
-    std::string const& expression = tokens[3].substr( beg + 1, end - beg - 1 );
-    std::string const& output_name = detail::trim_copy( tokens[3].substr( 0, beg ) );
+    std::string const& expression = tokens[4].substr( beg + 1, end - beg - 1 );
+    std::string const& output_name = detail::trim_copy( tokens[4].substr( 0, beg ) );
     double const area = std::stod( tokens[2] );
 
     std::vector<pin_spec> pins;
 
     bool generic_pin{false};
-    uint64_t i{4};
+    uint64_t i{5};
     for ( ; i+8 < tokens.size(); i += 9 )
     {
       /* check PIN specification */

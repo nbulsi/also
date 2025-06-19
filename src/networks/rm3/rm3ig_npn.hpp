@@ -103,7 +103,7 @@ private:
   // 从文件中加载预先计算好的最优 rm3ig 结构
   void load_optimal_rm3ig()
   {
-    std::ifstream infile( "/home/ym/also/src/networks/rm3/opt_rm3.txt" );
+    std::ifstream infile( "/home/ym/rram/also/src/networks/rm3/opt_rm3.txt" );
     if ( !infile )
     {
       std::cout << " Cannot open file " << std::endl;

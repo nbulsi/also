@@ -26,6 +26,7 @@ namespace alice
         add_flag( "--aig_to_xmg",  "AIG to XMG" );
         add_flag( "--xmg_to_mig",  "XMG to MIG" );
         add_flag( "--mig_to_xmg",  "MIG to XMG" );
+        add_flag( "--aig_to_mig",  "AIG to MIG" );
       }
 
     protected:
@@ -38,6 +39,14 @@ namespace alice
 
               store<xmg_network>().extend();
               store<xmg_network>().current() = also::xmg_from_aig( aig );
+          }
+          else if( is_set( "aig_to_mig" ) )
+          {
+              assert( store<aig_network>().size() > 0 );
+              aig_network aig = store<aig_network>().current();
+
+              store<mig_network>().extend();
+              store<mig_network>().current() = also::mig_from_aig( aig );
           }
           else if( is_set(  "xmg_to_mig" ) )
           {

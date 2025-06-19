@@ -13,7 +13,7 @@
 namespace std {
 
 template<class T>
-inline void hash_combine(std::size_t& seed, T const& v)
+inline void hash_combine_custom(std::size_t& seed, T const& v)
 {
 	seed ^= std::hash<T>()(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
@@ -39,9 +39,9 @@ struct hash<pair<uint32_t, uint32_t>> {
 	result_type operator()(argument_type const& in) const
 	{
 		result_type seed = 0;
-		hash_combine(seed, in.first);
-		hash_combine(seed, in.second);
-		return seed;
+		hash_combine_custom(seed, in.first);
+                hash_combine_custom( seed, in.second );
+                return seed;
 	}
 };
 

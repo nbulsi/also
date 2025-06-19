@@ -1,3 +1,0 @@
-source -s abc.rc
-cec -h
-cec -n /home/ym/also1/paper1/log2.v /home/ym/benchmarks/epfl/arithmetic/log2/verilog/log2.v

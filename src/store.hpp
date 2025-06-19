@@ -310,7 +310,7 @@ namespace alice
     auto aig_copy = mockturtle::cleanup_dangling( aig );
     mockturtle::depth_view depth_aig{aig_copy};
     os << fmt::format( "AIG   i/o = {}/{}   gates = {}   level = {}",
-          aig.num_pis(), aig.num_pos(), aig.num_gates(), depth_aig.depth() );
+          aig_copy.num_pis(), aig_copy.num_pos(), aig_copy.num_gates(), depth_aig.depth() );
     os << "\n";
   }
 
@@ -605,6 +605,20 @@ namespace alice
 
     return true;
   }
+
+  // template<>
+  // bool can_show<rm3_network>( std::string& extension, command& cmd )
+  // {
+  //   extension = "dot";
+
+  //   return true;
+  // }
+
+  // void show<rm3_network>( std::ostream& os, const rm3_network& element, const command& cmd )
+  // {
+  //   gate_dot_drawer<rm3_network> drawer;
+  //   write_dot( element, os, drawer );
+  // }
 
   template<>
   void show<xmg_network>( std::ostream& os, const xmg_network& element, const command& cmd )

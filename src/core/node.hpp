@@ -16,7 +16,8 @@
 #include "exact_sto_m3ig.hpp"
 
 #define MULTIPLE (1.5)
-#define w 2
+//#define w 2
+constexpr int w_value = 2;
 
 #include <vector>
 #include <stack>

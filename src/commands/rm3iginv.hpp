@@ -47,8 +47,6 @@ protected:
                           store<rm3_network>().extend();
                           store<rm3_network>().current() = rm3ig_opt; } );
 
-    //store<rm3_network>().extend();
-    //store<rm3_network>().current() = rm3ig_opt;
     std::cout << fmt::format( "[time]: {:5.2f} seconds\n", to_seconds( time ) );
   }
 };

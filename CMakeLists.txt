@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.8.0)
 project(also LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -25,6 +25,21 @@ if(UNIX)
     endif()
   endforeach()
 endif()
+
+# Dependencies
+set(MAIN_Boost_LIBRARIES
+  unit_test_framework
+  filesystem
+  graph
+  program_options
+  system
+  timer
+)
+
+find_package(Boost REQUIRED COMPONENTS ${MAIN_Boost_LIBRARIES})
+#find_package(GMP REQUIRED)
+
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ext/include)
 
 add_subdirectory(lib)
 add_subdirectory(src)

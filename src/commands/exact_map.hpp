@@ -44,6 +44,7 @@ public:
   explicit exact_map_command( const environment::ptr& env ) : command( env, "exact map for logic networks transformation" )
   {
     add_flag( "--logic_sharing, -l", "Enable logic sharing" );
+    add_flag( "--aig", "aig by exact synthsis" );
     add_flag( "--aig_to_xmg, -a", "aig convert to xmg by exact synthsis" );
     add_flag( "--xmg_to_aig, -x", "xmg convert to aig by exact synthsis" );
     add_flag( "--aig_to_xag", "aig convert to xag by exact synthsis" );
@@ -61,10 +62,30 @@ protected:
     clock_t begin, end;
     double totalTime = 0.0;
     map_params ps;
-    if ( is_set( "aig_to_xmg" ) )
+    if ( is_set( "aig" ) )
+    {
+      assert( store<aig_network>().size() > 0 );
+      aig_network aig1 = store<aig_network>().current();
+      
+      xag_npn_resynthesis<aig_network> resyn;
+      exact_library<aig_network, xag_npn_resynthesis<aig_network>> lib( resyn );
+
+      map_stats st;
+      ps.skip_delay_round = true;
+      //ps.use_dont_cares = true;
+
+      aig_network aig = mockturtle::map( aig1, lib, ps, &st );
+      also::print_stats( aig );
+
+      store<aig_network>().extend();
+      store<aig_network>().current() = aig;
+    }
+    else if ( is_set( "aig_to_xmg" ) )
     {
       assert( store<aig_network>().size() > 0 );
       aig_network aig = store<aig_network>().current();
+      aig = cleanup_dangling( aig );
+      also::print_stats( aig );
       xmg_npn_resynthesis resyn;
       exact_library<xmg_network, xmg_npn_resynthesis> lib( resyn );
 
@@ -260,10 +281,10 @@ protected:
     else if ( is_set( "direct_rm3" ) )
     {
       rm3_network rm3;
-      assert( store<xmg_network>().size() > 0 );
+      assert( store<mig_network>().size() > 0 );
       // aig_network aig;
-      xmg_network xmg = store<xmg_network>().current();
-      rm3 = also::rm3_from_xmg( xmg );
+      mig_network mig = store<mig_network>().current();
+      rm3 = also::rm3_from_mig( mig );
       int x;
       x = mockturtle::num_inverters( rm3 );
       std::cout << "反相器个数为" << x << std::endl;

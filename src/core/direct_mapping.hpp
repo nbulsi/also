@@ -22,9 +22,11 @@
 namespace also
 {
 mockturtle::xmg_network xmg_from_aig( const mockturtle::aig_network& aig );
+mockturtle::mig_network mig_from_aig( const mockturtle::aig_network& aig );
 mockturtle::xmg_network xmg_from_mig( const mockturtle::mig_network& mig );
 mockturtle::mig_network mig_from_xmg( const mockturtle::xmg_network& xmg );
 mockturtle::rm3_network rm3_from_xmg( const mockturtle::xmg_network& xmg );
+mockturtle::rm3_network rm3_from_mig( const mockturtle::mig_network& mig );
 } // namespace also
 
 #endif

@@ -57,9 +57,6 @@ namespace alice
             print_all_expr( spec, rm3ig );
             nr_solutions++;
             rm3 = rm3ig_to_rm3ig_network( spec, rm3ig );
-            int x;
-            x = mockturtle::num_inverters( rm3 );
-            std::cout << "反相器个数为" << x << std::endl;
           }
 
           std::cout << "There are " << nr_solutions << " solutions found." << std::endl;
@@ -91,10 +88,7 @@ namespace alice
                 verb = true;
             }
 
-            spec.verbosity = 0;
-            // spec.add_alonce_clauses = true;
-            // spec.add_colex_clauses = true;
-            // spec.add_symvar_clauses = true;
+            spec.verbosity = 3;
 
             spec.initial_steps = num_steps;
 
@@ -124,9 +118,6 @@ namespace alice
                 {
                   print_all_expr( spec, rm3ig );
                   rm3 = rm3ig_to_rm3ig_network( spec, rm3ig );
-                  int x;
-                  x = mockturtle::num_inverters( rm3 );
-                  std::cout << "反相器个数为" << x << std::endl;
 
                   store<rm3_network>().extend();
                   store<rm3_network>().current() = rm3;
@@ -166,15 +157,6 @@ namespace alice
                   });
             }
 
-            // else
-            // {
-            //   call_with_stopwatch( time, [&]()
-            //                        {
-            //     auto rm3 = also::nbu_rm3_encoder_test( opt.function);
-            //     also::print_stats( rm3 );
-            //     store<rm3_network>().extend(); 
-            //     store<rm3_network>().current() = rm3; } );
-            // }
             std::cout << fmt::format("[time]: {:5.2f} seconds\n", to_seconds(time));
         }
     };

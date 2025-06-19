@@ -1132,8 +1132,8 @@ synth_result rm_three_synthesize( spec& spec, rm3ig& rm3ig, solver_wrapper& solv
 
     if ( status == success )
     {
-      // encoder.show_verbose_result();
-      //encoder.show_variable_correspondence( spec );
+      encoder.show_verbose_result();
+      encoder.show_variable_correspondence( spec );
       encoder.extract_rm3ig( spec, rm3ig );
       return success;
     }

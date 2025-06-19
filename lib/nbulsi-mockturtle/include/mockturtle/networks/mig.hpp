@@ -725,6 +725,11 @@ public:
 #pragma region Nodes and signals
   node get_node( signal const& f ) const
   {
+    //std::cout << "get_node called with signal index: " << f.index << std::endl;
+    //std::cout << "_storage->nodes.size() is: " << _storage->nodes.size() << std::endl;
+    //assert( f.index < _storage->nodes.size() && "Invalid signal index" );
+    //assert( !is_complemented( f ) && "Function called on complemented signal" );
+    //return _storage->nodes[f.index];
     return f.index;
   }
 
@@ -1042,22 +1047,22 @@ public:
 
 } // namespace mockturtle
 
-namespace std
-{
+// namespace std
+// {
 
-template<>
-struct hash<mockturtle::mig_network::signal>
-{
-  uint64_t operator()( mockturtle::mig_network::signal const& s ) const noexcept
-  {
-    uint64_t k = s.data;
-    k ^= k >> 33;
-    k *= 0xff51afd7ed558ccd;
-    k ^= k >> 33;
-    k *= 0xc4ceb9fe1a85ec53;
-    k ^= k >> 33;
-    return k;
-  }
-}; /* hash */
+// template<>
+// struct hash<mockturtle::mig_network::signal>
+// {
+//   uint64_t operator()( mockturtle::mig_network::signal const& s ) const noexcept
+//   {
+//     uint64_t k = s.data;
+//     k ^= k >> 33;
+//     k *= 0xff51afd7ed558ccd;
+//     k ^= k >> 33;
+//     k *= 0xc4ceb9fe1a85ec53;
+//     k ^= k >> 33;
+//     return k;
+//   }
+// }; /* hash */
 
-} // namespace std
+// } // namespace std
