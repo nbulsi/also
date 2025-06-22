@@ -68,6 +68,7 @@ namespace mockturtle
       const auto img = node_resynthesis<img_network>( klut, resyn );
    \endverbatim
  */
+template<class Ntk = img_network>
 class img_npn_resynthesis
 {
 public:
@@ -80,53 +81,53 @@ public:
   }
 
   template<typename LeavesIterator, typename Fn>
-  void operator()( img_network& img, 
+  void operator()( Ntk& img, 
                    kitty::dynamic_truth_table const& function, 
                    LeavesIterator begin, 
                    LeavesIterator end, 
-                   Fn&& fn )
+                   Fn&& fn ) const
   {
-    assert( function.num_vars() <= 3 );
-    const auto fe = kitty::extend_to( function, 3 );
-    const auto config = kitty::exact_npn_canonization( fe );
+      assert( function.num_vars() <= 3 );
+      const auto fe = kitty::extend_to( function, 3 );
+      const auto config = kitty::exact_npn_canonization( fe );
+      auto func_str = "0x" + kitty::to_hex( std::get<0>( config ) );
+      // std::cout << "func: " << func_str << std::endl;
+      const auto it = class2signal.find( func_str );
+      assert( it != class2signal.end() );
 
-    auto func_str = "0x" + kitty::to_hex( std::get<0>( config ) );
-    const auto it = class2signal.find( func_str );
-    assert( it != class2signal.end() );
+      std::vector<img_network::signal> pis( 3 ,img.get_constant( false ) );
+      std::copy( begin, end, pis.begin() );
 
-    std::vector<img_network::signal> pis( 3, img.get_constant( false ) );
-    std::copy( begin, end, pis.begin() );
-
-    std::vector<img_network::signal> pis_perm( 3 );
-    auto perm = std::get<2>( config );
-    for ( auto i = 0; i < 3; ++i )
-    {
-      pis_perm[i] = pis[perm[i]];
-    }
-
-    const auto& phase = std::get<1>( config );
-    for ( auto i = 0; i < 3; ++i )
-    {
-      if ( ( phase >> perm[i] ) & 1 )
+      std::vector<img_network::signal> pis_perm( 3 );
+      auto perm = std::get<2>( config );
+      for ( auto i = 0; i < 3; ++i )
       {
-        pis_perm[i] = !pis_perm[i];
-        //TODO: HERE we need to add new nodes to convert invtered
-        //signals
+        pis_perm[i] = pis[perm[i]];
       }
-    }
 
-    for ( auto const& po : it->second )
-    {
-      topo_view topo{db, po};
-      auto f = cleanup_dangling( topo, img, pis_perm.begin(), pis_perm.end() ).front();
-
-      if ( !fn( ( ( phase >> 3 ) & 1 ) ? !f : f ) ) 
+      const auto& phase = std::get<1>( config );
+      for ( auto i = 0; i < 3; ++i )
       {
-        //TODO: HERE we need to add new nodes to convert invtered
-        //signals
-        return; /* quit */
+        if ( ( phase >> perm[i] ) & 1 )
+        {
+          pis_perm[i] = !pis_perm[i];
+          //TODO: HERE we need to add new nodes to convert invtered
+          //signals
+        }
       }
-    }
+
+      for ( auto const& po : it->second )
+      {
+        topo_view topo{db, po};
+        auto f = cleanup_dangling( topo, img, pis_perm.begin(), pis_perm.end() ).front();
+
+        if ( !fn( ( ( phase >> 3 ) & 1 ) ? !f : f ) ) 
+        {
+          //TODO: HERE we need to add new nodes to convert invtered
+          //signals
+          return; /* quit */
+        }
+      }
   }
 
 private:
@@ -134,7 +135,7 @@ private:
   
   void load_optimal_img()
   {
-    std::ifstream infile( "../src/networks/img/opt_img_npn3.txt" );
+    std::ifstream infile( "/home/ltt/also/src/networks/img/opt_img_npn3.txt" );
     if( !infile )
     {
       std::cout << " Cannot open file " << std::endl; 

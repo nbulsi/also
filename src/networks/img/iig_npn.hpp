@@ -24,10 +24,8 @@
  */
 
 /*!
-  \file img_all.hpp
-  \brief Replace with size-optimum imgs from optimal IMG with up to 3 inputs
-
-  \author Zhufei Chu
+  \file iig_npn.hpp
+  \brief Replace with size-optimum imgs from optimal IMG with up to 4 inputs
 */
 
 #pragma once
@@ -69,13 +67,13 @@ namespace mockturtle
    \endverbatim
  */
 template<class Ntk = img_network>
-class img_all_resynthesis
+class iig_npn_resynthesis
 {
 public:
   /*! \brief Default constructor.
    *
    */
-   img_all_resynthesis( )
+   iig_npn_resynthesis( )
   {
     build_db();
   }
@@ -86,35 +84,81 @@ public:
                    LeavesIterator begin, 
                    LeavesIterator end, 
                    Fn&& fn ) const
-  {
-    assert( function.num_vars() <= 3 );
-    // const auto fe = kitty::extend_to( function, 3 );
+   {
+    assert( function.num_vars() <= 4 );
+    // const auto fe = kitty::extend_to( function, 4 );
     auto fe = function;
-    auto func_str = "0x" + kitty::to_hex( fe );
-    const auto it = class2signal.find( func_str );
-    assert( it != class2signal.end() );
+    if(fe.num_vars() <= 3)
+    { 
+      // std::cout << "1111" << std::endl;
+      auto func_str = "0x" + kitty::to_hex( fe );
+      const auto it = class2signal.find( func_str );
+      assert( it != class2signal.end() );
+      std::vector<img_network::signal> pis( 4, img.get_constant( false ) );
+      std::copy( begin, end, pis.begin() );
 
-    std::vector<img_network::signal> pis( 3, img.get_constant( false ) );
-    std::copy( begin, end, pis.begin() );
-
-    for ( auto const& po : it->second )
-    {
-      topo_view topo{db, po};
-      auto f = cleanup_dangling( topo, img, pis.begin(), pis.end() ).front();
-
-      if ( !fn( f ) ) 
+      for ( auto const& po : it->second )
       {
-        return; /* quit */
+        topo_view topo{db, po};
+        auto f = cleanup_dangling( topo, img, pis.begin(), pis.end() ).front();
+
+        if ( !fn( f ) ) 
+        {
+          return; /* quit */
+        }
       }
     }
-  }
+    else
+    {
+      const auto config = kitty::exact_npn_canonization( fe );
+      auto func_str = "0x" + kitty::to_hex( std::get<0>( config ) );
+      // std::cout << "func: " << func_str << std::endl;
+      const auto it = class2signal.find( func_str );
+      assert( it != class2signal.end() );
+
+      std::vector<img_network::signal> pis( 4, img.get_constant( false ) );
+      std::copy( begin, end, pis.begin() );
+
+      std::vector<img_network::signal> pis_perm( 4 );
+      auto perm = std::get<2>( config );
+      for ( auto i = 0; i < 4; ++i )
+      {
+        pis_perm[i] = pis[perm[i]];
+      }
+
+      const auto& phase = std::get<1>( config );
+      for ( auto i = 0; i < 4; ++i )
+      {
+        if ( ( phase >> perm[i] ) & 1 )
+        {
+          pis_perm[i] = !pis_perm[i];
+          //TODO: HERE we need to add new nodes to convert invtered
+          //signals
+        }
+      }
+
+      for ( auto const& po : it->second )
+      {
+        topo_view topo{db, po};
+        auto f = cleanup_dangling( topo, img, pis_perm.begin(), pis_perm.end() ).front();
+
+        if ( !fn( ( ( phase >> 4 ) & 1 ) ? !f : f ) ) 
+        {
+          //TODO: HERE we need to add new nodes to convert invtered
+          //signals
+          return; /* quit */
+        }
+      }
+    }
+   }
+   
 
 private:
   std::unordered_map<std::string, std::vector<std::string>> opt_img;
   
   void load_optimal_img()
   {
-    std::ifstream infile( "/home/ltt/also/src/networks/img/opt_img_fanout_free.txt" );
+    std::ifstream infile( "/home/ltt/also/src/networks/img/opt_img_npn4.txt" );
     if( !infile )
     {
       std::cout << " Cannot open file " << std::endl; 
@@ -133,35 +177,6 @@ private:
       }
       opt_img.insert( std::make_pair( strs[0],  v ) );
     }
-  }
-
-  std::vector<img_network::signal> create_img_from_str_vec( const std::vector<std::string> strs, 
-                                                            const std::vector<img_network::signal>& signals )
-  {
-    auto sig  = signals;
-    auto size = strs.size();
-
-    std::vector<img_network::signal> result;
-    
-    int a, b;
-
-    for( auto i = 0; i < size; i++ )
-    {
-      const auto substrs = also::split_by_delim( strs[i], '-' );
-
-      assert( substrs.size() == 3u );
-
-      a = std::stoi( substrs[1] );
-      b = std::stoi( substrs[2] );
-
-      auto f = db.create_imp( sig[a], sig[b] );
-      sig.push_back( f );
-    }
-    
-    const auto driver = sig[ sig.size() - 1]; 
-    db.create_po( driver );
-    result.push_back( driver ); 
-    return result;
   }
 
   std::vector<img_network::signal> create_img_from_str_vec_new_fromat( const std::vector<std::string> strs,
@@ -213,7 +228,7 @@ private:
     std::vector<img_network::signal> signals;
     signals.push_back( db.get_constant( false ) );
 
-    for ( auto i = 0u; i < 3; ++i )
+    for ( auto i = 0u; i < 4; ++i )
     {
       signals.push_back( db.create_pi() );
     }
@@ -222,29 +237,9 @@ private:
 
     for( const auto e : opt_img )
     {
-      if( e.first == "0x00" || e.first == "0x0" )
+      if( e.first == "0x0000" )
       {
         std::vector<img_network::signal> tmp{ signals[0] };
-        class2signal.insert( std::make_pair( e.first, tmp ) );
-      }
-      else if( e.first == "0xff" || e.first == "0xf" )
-      {
-        std::vector<img_network::signal> tmp{ db.create_not( signals[0] ) };
-        class2signal.insert( std::make_pair( e.first, tmp ) );
-      }
-      else if( e.first == "0xaa" || e.first == "0xa" )
-      {
-        std::vector<img_network::signal> tmp{ signals[1] };
-        class2signal.insert( std::make_pair( e.first, tmp ) );
-      }
-      else if( e.first == "0xcc" || e.first == "0xc" )
-      {
-        std::vector<img_network::signal> tmp{ signals[2] };
-        class2signal.insert( std::make_pair( e.first, tmp ) );
-      }
-      else if( e.first == "0xf0" )
-      {
-        std::vector<img_network::signal> tmp{ signals[3] };
         class2signal.insert( std::make_pair( e.first, tmp ) );
       }
       else

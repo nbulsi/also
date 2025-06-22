@@ -191,23 +191,12 @@ public:
     return {0, static_cast<uint64_t>( value ? 1 : 0 )};
   }
 
-  // signal get_constant( bool value ) const
-  // {
-  //   if ( value )
-  //   {
-  //     return { 0, 0 };
-  //   }
-  //   else
-  //   {
-  //     return { 1, 0 };
-  //   }
-  // }
-
   signal create_pi( std::string const& name = std::string() )
   {
     const auto index = _storage->nodes.size();
     auto& node = _storage->nodes.emplace_back();
-    node.children[0].data = node.children[1].data = _storage->inputs.size();
+
+    node.children[0].data = node.children[1].data = ~static_cast<uint64_t>( 0);
     _storage->inputs.emplace_back( index );
     return {index, 0};
   }
@@ -260,6 +249,7 @@ public:
   {
     /* do not order inputs */
     /* trivial cases */
+   
     if ( a.index == b.index )
     {
       return ( a.complement == b.complement ) ? get_constant( true ) : !a;
@@ -279,7 +269,6 @@ public:
     {
       return {it->second, 0};
     }
-
     const auto index = _storage->nodes.size();
 
     if ( index >= .9 * _storage->nodes.capacity() )
@@ -303,11 +292,64 @@ public:
 
     return {index, 0};
   }
+  //To avoid being structurally hashed when creating a new node
+  signal create_imp_without_hash( signal a, signal b )
+  {
+    /* do not order inputs */
+    /* trivial cases */
+   
+    if ( a.index == b.index )
+    {
+      return ( a.complement == b.complement ) ? get_constant( true ) : !a;
+    }
+    else if ( a.index == 0 )
+    {
 
-  //complemented signals are created by imply
+      return get_constant( true );
+    }
+
+    storage::element_type::node_type node;
+    node.children[0] = a;
+    node.children[1] = b;
+
+    std::cout<< " 1 "<<std::endl;
+    const auto index = _storage->nodes.size();
+
+    if ( index >= .9 * _storage->nodes.capacity() )
+    {
+      _storage->nodes.reserve( static_cast<uint64_t>( 3.1415f * index ) );
+      _storage->hash.reserve( static_cast<uint64_t>( 3.1415f * index ) );
+    }
+
+    _storage->nodes.push_back( node );
+
+   if( _storage->hash.find( node ) == _storage->hash.end())
+    {
+       _storage->hash[node] = index;
+    }
+   
+
+    /* increase ref-count to children */
+    _storage->nodes[a.index].data[0].h1++;
+    _storage->nodes[b.index].data[0].h1++;
+
+    for ( auto const& fn : _events->on_add )
+    {
+      (*fn)( index );
+    }
+
+    return {index, 0};
+  }
+  // complemented signals are created by imply
   signal create_not( signal const& a )
   {
     return create_imp( a, get_constant( false ) );
+  }
+
+   signal create_not_without_hash( signal const& a )
+  {
+    std::cout<< " 2 "<<std::endl;
+    return create_imp_without_hash( a, get_constant( false ) );
   }
 
   signal create_or( signal const& a, signal const& b )
@@ -443,6 +485,21 @@ public:
     return create_or( create_and( a, b ),
                       create_or( create_and( a, c ), create_and( b, c ) ) );
   }
+  //maj without fanout
+    signal create_maj_nf( signal const& a, signal const& b, signal const& c )
+  {
+      auto f1 = create_not( c );
+      auto f2 = create_imp( f1, a);
+      auto f3 = create_not( b );
+      auto f4 = create_imp( f2, f3);
+
+      auto f5 = create_imp( a, b);
+      auto f6 = create_imp( c, f5);
+      auto f7 = create_not( f6 );
+
+    return create_imp( f4, f7);
+  }
+
 #pragma endregion
 
 #pragma region Create nary functions
@@ -550,6 +607,61 @@ public:
 
     return std::nullopt;
   }
+//add for mocktt
+  void replace_in_node_no_restrash( node const& n, node const& old_node, signal new_signal )
+  {
+    auto& node = _storage->nodes[n];
+
+    uint32_t fanin = 0u;
+    if ( node.children[0].index == old_node )
+    {
+      fanin = 0u;
+      new_signal.complement ^= node.children[0].weight;
+    }
+    else if ( node.children[1].index == old_node )
+    {
+      fanin = 1u;
+      new_signal.complement ^= node.children[1].weight;
+    }
+    else
+    {
+      return;
+    }
+
+    // determine potential new children of node n
+    signal child1 = new_signal;
+    signal child0 = node.children[fanin ^ 1];
+
+    if ( child0.index > child1.index )
+    {
+      std::swap( child0, child1 );
+    }
+
+    // don't check for trivial cases
+
+    // remember before
+    const auto old_child0 = signal{ node.children[0] };
+    const auto old_child1 = signal{ node.children[1] };
+
+    // erase old node in hash table
+    _storage->hash.erase( node );
+
+    // insert updated node into the hash table
+    node.children[0] = child0;
+    node.children[1] = child1;
+    if ( _storage->hash.find( node ) == _storage->hash.end() )
+    {
+      _storage->hash[node] = n;
+    }
+
+    // update the reference counter of the new signal
+    _storage->nodes[new_signal.index].data[0].h1++;
+
+    for ( auto const& fn : _events->on_modified )
+    {
+      ( *fn )( n, { old_child0, old_child1 } );
+    }
+  }
 
   void replace_in_outputs( node const& old_node, signal const& new_signal )
   {
@@ -593,7 +705,33 @@ public:
       }
     }
   }
+//add from mocktt
+  void revive_node( node const& n )
+  {
+    if ( !is_dead( n ) )
+      return;
+    
+    assert( n < _storage->nodes.size() );
+    auto& nobj = _storage->nodes[n];
+    nobj.data[0].h1 = UINT32_C( 0 ); /* fanout size 0, but not dead (like just created) */
+    _storage->hash[nobj] = n;
 
+    for ( auto const& fn : _events->on_add )
+    {
+      ( *fn )( n );
+    }
+
+    /* revive its children if dead, and increment their fanout_size */
+    for ( auto i = 0u; i < 2u; ++i )
+    {
+      if ( is_dead( nobj.children[i].index ) )
+      {
+        revive_node( nobj.children[i].index );
+      }
+      incr_fanout_size( nobj.children[i].index );
+    }
+  }
+  
   inline bool is_dead( node const& n ) const
   {
     return ( _storage->nodes[n].data[0].h1 >> 31 ) & 1;
@@ -625,6 +763,32 @@ public:
 
       // reset fan-in of old node
       take_out_node( _old );
+    }
+  }
+//add from mocktt
+  void substitute_node_no_restrash( node const& old_node, signal const& new_signal )
+  {
+    if ( is_dead( get_node( new_signal ) ) )
+    {
+      revive_node( get_node( new_signal ) );
+    }
+
+    for ( auto idx = 1u; idx < _storage->nodes.size(); ++idx )
+    {
+      if ( is_ci( idx ) || is_dead( idx ) )
+        continue; /* ignore CIs and dead nodes */
+
+      replace_in_node_no_restrash( idx, old_node, new_signal );
+    }
+
+    /* check outputs */
+    replace_in_outputs( old_node, new_signal );
+    std::cout << " 3 " <<std::endl;
+ 
+    /* recursively reset old node */
+    if ( old_node != new_signal.index )
+    {
+      take_out_node( old_node );
     }
   }
 
@@ -668,6 +832,7 @@ public:
 #pragma endregion
 
 #pragma region Structural properties
+
   auto size() const
   {
     return static_cast<uint32_t>( _storage->nodes.size() );

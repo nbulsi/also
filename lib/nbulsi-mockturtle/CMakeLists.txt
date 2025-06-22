@@ -42,9 +42,9 @@ if(ENABLE_NAUTY)
   add_definitions(-DENABLE_NAUTY)
 endif()
 
-if(MOCKTURTLE_EXAMPLES)
-  add_subdirectory(examples)
-endif()
+# if(MOCKTURTLE_EXAMPLES)
+#   add_subdirectory(examples)
+# endif()
 
 if(MOCKTURTLE_TEST)
   add_subdirectory(test)

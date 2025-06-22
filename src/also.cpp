@@ -74,6 +74,7 @@
 #include "commands/xmgcost.hpp"
 #include "commands/xmgcost2.hpp"
 #include "commands/xmgrs.hpp"
+#include "commands/img_lr.hpp"
 //#include "commands/xmgrw.hpp"
 // #include "commands/npn.hpp"
 // #include "commands/cut_rewrite.hpp"

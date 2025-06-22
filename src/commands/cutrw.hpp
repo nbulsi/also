@@ -13,14 +13,16 @@
 #ifndef CUTRW_HPP
 #define CUTRW_HPP
 
-#include "../core/misc.hpp"
-#include "../networks/aoig/xag_lut_npn.hpp"
-#include "../networks/img/fc_cost.hpp"
-#include "../networks/img/img_all.hpp"
-#include "../networks/m5ig/m5ig_npn.hpp"
-#include <mockturtle/algorithms/node_resynthesis/bidecomposition.hpp>
-#include <mockturtle/algorithms/node_resynthesis/xag_npn.hpp>
 #include <mockturtle/mockturtle.hpp>
+#include <mockturtle/algorithms/node_resynthesis/bidecomposition.hpp>
+
+#include "../networks/m5ig/m5ig_npn.hpp"
+#include "../networks/img/img_all.hpp"
+#include "../networks/img/fc_cost.hpp"
+#include "../networks/aoig/xag_lut_npn.hpp"
+#include "../core/misc.hpp"
+#include "../../src/networks/img/iig_npn.hpp"
+#include "../../src/networks/img/img_npn.hpp"
 
 namespace alice
 {
@@ -36,7 +38,8 @@ namespace alice
         add_flag( "--img_all,-a",     "cut rewriting based on img_all for size optimization" );
         add_flag( "--xag_npn_lut,-g", "cut rewriting based on xag_npn_lut" );
         add_flag( "--xag_npn,-p",     "cut rewriting based on xag_npn" );
-        add_flag( "--aig", "cut rewriting based on aig" );
+        add_flag( "--img_npn,-b",     "cut rewriting based on img npn for size optimization" );
+        add_flag( "--iig_npn,-c",     "cut rewriting based on iig for size optimization" );
       }
 
       void execute()
@@ -186,6 +189,7 @@ namespace alice
           
           cut_rewriting_params ps;
           ps.cut_enumeration_ps.cut_size = 3u;
+          ps.allow_zero_gain= true ;
           
           img_all_resynthesis<img_network> resyn;
           img = cut_rewriting( img, resyn, ps );
@@ -196,23 +200,41 @@ namespace alice
           store<img_network>().extend(); 
           store<img_network>().current() = cleanup_dangling( img );
         }
-        else if ( is_set( "aig" ) )
+        else if( is_set( "img_npn" ) )
         {
-          aig_network aig = store<aig_network>().current();
-          also::print_stats( aig );
+          img_network img = store<img_network>().current();
+          also::print_stats( img );
+          
           cut_rewriting_params ps;
-          ps.cut_enumeration_ps.cut_size = 4;
-          ps.progress = true;
+          ps.cut_enumeration_ps.cut_size = 3u;
+          ps.allow_zero_gain= true ;
+          
+          mockturtle::img_npn_resynthesis resyn;
+          img = cut_rewriting( img, resyn, ps );
+          img = cleanup_dangling( img );
 
-          uint32_t size_before = aig.num_gates();
-          cut_rewriting_stats st;
-          xag_npn_resynthesis<aig_network> resyn;
-          aig = cut_rewriting( aig, resyn, ps, &st );
-          aig = cleanup_dangling( aig );
-          also::print_stats( aig );
+          also::print_stats( img );
+          
+          store<img_network>().extend(); 
+          store<img_network>().current() = cleanup_dangling( img );
+        }
+        else if( is_set( "iig_npn" ) )
+        {
+          img_network img = store<img_network>().current();
+          also::print_stats( img );
+          
+          cut_rewriting_params ps;
+          ps.cut_enumeration_ps.cut_size = 4u;
+          ps.allow_zero_gain= true ;
+          
+          iig_npn_resynthesis<img_network> resyn;
+          img = cut_rewriting( img, resyn, ps );
+          img = cleanup_dangling( img );
 
-          store<aig_network>().extend();
-          store<aig_network>().current() = cleanup_dangling( aig );
+          also::print_stats( img );
+          
+          store<img_network>().extend(); 
+          store<img_network>().current() = cleanup_dangling( img );
         }
         else
         {
