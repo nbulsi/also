@@ -7,7 +7,7 @@ A modern compiler is required to build the libraries. Compiled successfully with
 
 ## How to Compile
 ```bash
-git clone --recursive https://gitee.com/zfchu/also.git
+git clone --recursive https://github.com/nbulsi/also.git
 cd also
 mkdir build
 cd build
@@ -29,6 +29,6 @@ if the third-party libraries are updated.
 
 Then, run
 ```bash
-git pull origin master
+git pull origin CiM
 ```
 for the main repository updates.
