@@ -8,7 +8,7 @@
 #include <optional>
 #include <unordered_map>
 using namespace mockturtle;
-namespace lsmap {
+namespace also {
 template <class NtkDest, class Ntk>
 class collapse_mapped_choice_impl {
  public:
@@ -170,7 +170,7 @@ std::optional<NtkDest> choice_to_luts(Ntk const& ntk) {
   if (!ntk.has_mapping() && ntk.num_gates() > 0) {
     return std::nullopt;
   } else {
-    lsmap::collapse_mapped_choice_impl<NtkDest, Ntk> p(ntk);
+    also::collapse_mapped_choice_impl<NtkDest, Ntk> p(ntk);
     NtkDest dest;
     p.run(dest);
     return dest;
@@ -182,11 +182,11 @@ bool choice_to_luts(NtkDest& dest, Ntk const& ntk) {
   if (!ntk.has_mapping() && ntk.num_gates() > 0) {
     return false;
   } else {
-    lsmap::collapse_mapped_choice_impl<NtkDest, Ntk> p(ntk);
+    also::collapse_mapped_choice_impl<NtkDest, Ntk> p(ntk);
     p.run(dest);
     return true;
   }
 }
 
-}  // namespace lsmap
+}  // namespace also
 #endif

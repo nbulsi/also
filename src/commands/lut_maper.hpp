@@ -20,6 +20,7 @@ public:
     add_flag( "--aig, -a", "lut map for AIG" );
     add_flag( "--xag, -g", "lut map for XAG" );
     add_flag( "--xmg, -x", "lut map for XMG" );
+    add_flag( "--seq, -q", "lut map for sequential AIG (SeqAIG -> SeqLUT)" );
     add_option( "cut_size, -k", cut_size,
                 "set the cut size from 2 to 8, default = 6" );
     add_option( "cut_limit, -l", cut_limit,
@@ -35,7 +36,37 @@ protected:
     double totalTime;
     begin = clock();
     mockturtle::lut_map_params ps;
-    if ( is_set( "aig" ) )
+    if ( is_set( "seq" ) )
+    {
+      /* LUT mapping for sequential AIG */
+      if ( store<seq_aig_network>().empty() )
+      {
+        std::cerr << "[e] no sequential AIG in the store\n";
+        return;
+      }
+
+      auto seq_aig = store<seq_aig_network>().current();
+      if ( is_set( "area" ) )
+      {
+        ps.area_oriented_mapping = true;
+      }
+      mockturtle::mapping_view<seq_aig_network, true> mapped{ seq_aig };
+      ps.cut_enumeration_ps.cut_size = cut_size;
+      ps.cut_enumeration_ps.cut_limit = cut_limit;
+      lut_map<mapping_view<seq_aig_network, true>, true>( mapped, ps );
+
+      /* collapse into sequential k-LUT network */
+      auto seq_klut = *collapse_mapped_network<seq_klut_network>( mapped );
+
+      store<seq_klut_network>().extend();
+      store<seq_klut_network>().current() = seq_klut;
+
+      mockturtle::depth_view depth_klut{ seq_klut };
+      std::cout << fmt::format( "[i] SeqLUT mapped: {} PIs, {} POs, {} regs, {} LUTs, level = {}\n",
+                                seq_klut.num_pis(), seq_klut.num_pos(), seq_klut.num_registers(),
+                                seq_klut.num_gates(), depth_klut.depth() );
+    }
+    else if ( is_set( "aig" ) )
     {
       if ( !store<aig_network>().empty() )
       {
