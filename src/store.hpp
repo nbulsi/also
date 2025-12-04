@@ -49,7 +49,7 @@
 
 using namespace mockturtle;
 
-// Define sequential network types for time-sequential circuit support
+// Define sequential network types for sequential circuit support
 using seq_aig_network = sequential<aig_network>;
 using seq_klut_network = sequential<klut_network>;
 
