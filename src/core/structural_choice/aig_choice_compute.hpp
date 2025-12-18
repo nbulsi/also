@@ -29,6 +29,10 @@ struct aig_choice_compute_params
 
   bool use_reconvergence_cut{ true };
   bool verbose{ false };
+
+  // 自适应策略参数
+  bool enable_adaptive{ false };             // 是否启用自适应策略
+  uint32_t large_circuit_threshold{ 10000 }; // 大电路阈值（节点数）
 };
 struct aig_choice_compute_stats
 {
@@ -90,15 +94,58 @@ public:
         refactoring_fn2( refactoring_fn2 ),
         ps( ps ),
         st( st ),
-        cost_fn( cost_fn ) {}
+        cost_fn( cost_fn )
+  {
+  }
+
   Ntk run()
   {
+    // 自适应策略：根据电路规模调整参数
+    auto adaptive_ps = ps;
+    float ratio = adaptive_ps.ratio; // 保存原始ratio
+    if ( ps.enable_adaptive )
+    {
+      const uint32_t num_gates = ntk.num_gates();
+      if ( num_gates > ps.large_circuit_threshold * 20 ) // 超大电路 (>200k)
+      {
+        // 超大电路：快速模式
+        adaptive_ps.cut_enumeration_ps.cut_limit = 4;
+        ratio = 0.9; // 适度限制范围以加速
+        if ( ps.verbose )
+          fmt::print( "[i] Adaptive: Ultra-large circuit detected ({} gates), using fast mode (ratio=0.9, cut_limit=4)\n", num_gates );
+      }
+      else if ( num_gates > ps.large_circuit_threshold )
+      {
+        // 大电路：平衡模式
+        adaptive_ps.cut_enumeration_ps.cut_limit = 6;
+        ratio = 1.0; // 标准范围
+        if ( ps.verbose )
+          fmt::print( "[i] Adaptive: Large circuit detected ({} gates), using balanced mode (ratio=1.0, cut_limit=6)\n", num_gates );
+      }
+      else if ( num_gates < ps.large_circuit_threshold / 2 )
+      {
+        // 小电路：高质量模式
+        adaptive_ps.cut_enumeration_ps.cut_limit = 10;
+        ratio = 1.2; // 扩大范围以获取更多候选
+        if ( ps.verbose )
+          fmt::print( "[i] Adaptive: Small circuit detected ({} gates), using quality mode (ratio=1.2, cut_limit=10)\n", num_gates );
+      }
+      else
+      {
+        // 中等电路：标准模式
+        adaptive_ps.cut_enumeration_ps.cut_limit = 8;
+        ratio = 1.0; // 标准范围
+        if ( ps.verbose )
+          fmt::print( "[i] Adaptive: Medium circuit ({} gates), using standard mode (ratio=1.0, cut_limit=8)\n", num_gates );
+      }
+    }
+
     const auto cuts =
         cut_enumeration<Ntk, true, cut_enumeration_choice_compute_cut>(
-            ntk, ps.cut_enumeration_ps );
+            ntk, adaptive_ps.cut_enumeration_ps );
     ntk.clear_values();
     reconvergence_driven_cut_parameters rps;
-    rps.max_leaves = ps.max_pis;
+    rps.max_leaves = adaptive_ps.max_pis;
     reconvergence_driven_cut_statistics rst;
     mockturtle::detail::reconvergence_driven_cut_impl<Ntk, false, false>
         reconv_cuts( ntk, rps, rst );
@@ -112,7 +159,7 @@ public:
     std::array<uint8_t, num_vars> permutation;
     auto& db = library.get_database();
 
-    critical_path = get_critical_path();
+    critical_path = get_critical_path( ratio );
     for ( node const& n : critical_path )
     {
       if ( ntk.is_constant( n ) || ntk.is_pi( n ) || mffc_size( ntk, n ) == 1 )
@@ -120,10 +167,11 @@ public:
 
       for ( auto& cut : cuts.cuts( ntk.node_to_index( n ) ) )
       {
-        if ( cut->size() < ps.min_cand_cut_size )
+        if ( cut->size() < adaptive_ps.min_cand_cut_size )
           continue;
         const auto tt_cut = cuts.truth_table( *cut );
         const kitty::static_truth_table<4> fe = kitty::extend_to<4>( tt_cut );
+
         // exact library rewrite function
         auto config = kitty::exact_npn_canonization( fe );
         auto tt_npn = std::get<0>( config );
@@ -237,7 +285,7 @@ public:
         return true;  // 跳过 critical_path 中的节点
       }
       for (auto& cut : cuts.cuts(ntk.node_to_index(n))) {
-        if (cut->size() < ps.min_cand_cut_size) continue;
+        if (cut->size() < adaptive_ps.min_cand_cut_size) continue;
         const auto tt_cut = cuts.truth_table(*cut);
         std::vector<signal> children;
         for (auto l : *cut) {
@@ -275,13 +323,13 @@ public:
 
       const auto mffc = mffc_view<Ntk>(ntk, n);
       if (mffc.num_pos() == 0 ||
-          (!ps.use_reconvergence_cut && mffc.num_pis() > ps.max_pis) ||
+          (!adaptive_ps.use_reconvergence_cut && mffc.num_pis() > adaptive_ps.max_pis) ||
           mffc.size() < 4) {
         return true;
       }
 
       kitty::dynamic_truth_table tt;
-      std::vector<signal> leaves(ps.max_pis);
+      std::vector<signal> leaves(adaptive_ps.max_pis);
       uint32_t num_leaves = 0;
 
       if (mffc.num_pis() <= ps.max_pis) {
@@ -297,7 +345,7 @@ public:
         auto const extended_leaves = reconv_cuts.run(roots).first;
 
         num_leaves = extended_leaves.size();
-        assert(num_leaves <= ps.max_pis);
+        assert(num_leaves <= adaptive_ps.max_pis);
 
         for (auto j = 0u; j < num_leaves; ++j) {
           leaves[j] = ntk.make_signal(extended_leaves[j]);
@@ -362,6 +410,7 @@ public:
     auto awc = call_with_stopwatch( st.time_copy,
                                     [&]()
                                     { return derive_choice_aig(); } );
+
     // st.report();
     return awc;
   }
@@ -386,14 +435,14 @@ private:
     return { value, contains };
   }
 
-  std::vector<node> get_critical_path()
+  std::vector<node> get_critical_path( float ratio )
   {
     int depth = depth_ntk.depth();
     depth_ntk.clear_visited();
     depth_ntk.foreach_po( [&]( auto const& po, auto i )
                           {
       node out_put = depth_ntk.get_node(po);
-      if (depth_ntk.level(out_put) < depth * ps.ratio) return;
+      if (depth_ntk.level(out_put) < depth * ratio) return;
       recursive(out_put, critical_path, i); } );
     return critical_path;
   }
@@ -659,156 +708,6 @@ private:
     }
     old2new[n] = new_node;
     return new_node;
-  }
-
-  Ntk derive_choice_aig_bfs()
-  {
-    ntk.clear_values();
-    ntk.init_choices( ntk.size() );
-    Ntk choice_aig;
-    choice_aig.clear_values();
-    choice_aig.init_choices( ntk.size() );
-    std::vector<signal> old2new( ntk.size(), AIG_SIGNAL_NULL );
-    old2new[0] = ntk.get_constant( false );
-    std::vector<bool> visited( ntk.size(), false ); // 标记节点是否已访问
-
-    ntk.foreach_pi( [&]( node const& i )
-                    {
-      choice_aig.create_pi();
-      old2new[i] = signal(i, 0); } );
-
-    std::queue<node> bfs_queue;
-    ntk.foreach_gate( [&]( node const& n )
-                      { bfs_queue.push( n ); } );
-
-    auto get_repr_signal = [&]( signal const& s )
-    {
-      auto repr = choice_aig.get_repr( s.index );
-      return signal( repr, choice_aig.phase( repr ) ^ choice_aig.phase( s.index ) ^
-                               s.complement );
-    };
-
-    while ( !bfs_queue.empty() )
-    {
-      node n = bfs_queue.front();
-      bfs_queue.pop();
-
-      if ( visited[n] )
-        continue; // 如果已访问则跳过
-      visited[n] = true;
-
-      // node repr = n;
-      // while (forward_map[repr] != repr) {
-      //   repr = forward_map[repr];
-      // }
-      node repr = ntk.get_choice_representative( n );
-
-      if ( ntk.is_constant( repr ) || ntk.is_ci( repr ) || repr == 0 )
-      {
-        old2new[n] = old2new[repr] ^ ( ntk.phase( n ) ^ ntk.phase( repr ) );
-        continue;
-      }
-
-      auto old_child0 = ntk.get_child0( n );
-      auto old_child1 = ntk.get_child1( n );
-      auto new_child0 = old2new[old_child0.index] ^ old_child0.complement;
-      auto new_child1 = old2new[old_child1.index] ^ old_child1.complement;
-      auto new_node = choice_aig.create_and( get_repr_signal( new_child0 ),
-                                             get_repr_signal( new_child1 ) );
-
-      while ( true )
-      {
-        auto new2 = new_node;
-        new_node = get_repr_signal( new2 );
-        if ( new_node == new2 )
-          break;
-      }
-      old2new[n] = new_node;
-
-      if ( repr >= n || choice_aig.fanout_size( new_node.index ) != 0 )
-        continue;
-
-      auto new_repr = old2new[repr];
-      if ( new_repr.index < new_node.index )
-      {
-        choice_aig.set_choice( new_node.index, new_repr.index );
-      }
-    }
-
-    ntk.foreach_co( [&]( signal const& o )
-                    {
-      auto new_signal = old2new[o.index] ^ o.complement;
-      auto new_repr = choice_aig.get_repr(new_signal.index);
-      choice_aig.create_po(signal(new_repr, choice_aig.phase(new_signal.index) ^
-                                                choice_aig.phase(new_repr) ^
-                                                new_signal.complement)); } );
-
-    return man_dup_bfs( choice_aig );
-  }
-
-  Ntk man_dup_bfs( Ntk const& tmp )
-  {
-    Ntk new_ntk;
-    new_ntk.clear_values();
-    new_ntk.init_choices( tmp.size() );
-    std::vector<signal> old2new( tmp.size(), AIG_SIGNAL_NULL );
-    old2new[0] = tmp.get_constant( false );
-    tmp.foreach_ci( [&]( node const& i )
-                    {
-      new_ntk.create_pi();
-      old2new[i] = signal(i, 0); } );
-
-    // Queue for BFS
-    std::queue<node> bfs_queue;
-    tmp.foreach_gate( [&]( node const& n )
-                      { bfs_queue.push( n ); } );
-
-    // Perform BFS traversal
-    while ( !bfs_queue.empty() )
-    {
-      node n = bfs_queue.front();
-      bfs_queue.pop();
-
-      signal new_equiv = signal( AIG_NULL, 0 );
-      if ( tmp.get_equiv_node( n ) != AIG_NULL )
-      {
-        auto equiv_node = tmp.get_equiv_node( n );
-        if ( old2new[equiv_node] == AIG_SIGNAL_NULL )
-        {
-          bfs_queue.push(
-              equiv_node ); // Make sure the equivalent node is processed
-        }
-        new_equiv = old2new[equiv_node];
-      }
-
-      auto old_child0 = tmp.get_child0( n );
-      auto old_child1 = tmp.get_child1( n );
-
-      // Ensure both children are processed before the current node
-      if ( old2new[old_child0.index] == AIG_SIGNAL_NULL )
-      {
-        bfs_queue.push( old_child0.index );
-      }
-      if ( old2new[old_child1.index] == AIG_SIGNAL_NULL )
-      {
-        bfs_queue.push( old_child1.index );
-      }
-
-      auto new_child0 = old2new[old_child0.index] ^ old_child0.complement;
-      auto new_child1 = old2new[old_child1.index] ^ old_child1.complement;
-      signal new_node = new_ntk.create_and( new_child0, new_child1 );
-
-      if ( new_equiv != AIG_SIGNAL_NULL && new_equiv.index < new_node.index )
-      {
-        new_ntk.set_equiv( new_node.index, new_equiv.index );
-      }
-      old2new[n] = new_node;
-    }
-
-    tmp.foreach_co( [&]( signal const& o )
-                    { new_ntk.create_po( old2new[o.index] ^ o.complement ); } );
-
-    return new_ntk;
   }
 
 private:
