@@ -60,6 +60,7 @@ public:
     add_option( "--ratio, -r", ratio,
                 "Critical path node ratio, default = 0.8" );
     add_flag( "--verbose, -v", "print the information" );
+    add_flag( "--adaptive", "Enable adaptive strategy based on circuit size" );
   }
 
   // rules validity_rules() const
@@ -97,6 +98,9 @@ protected:
 
     aig_choice_compute_params aig_ps;
     aig_ps.ratio = ratio;
+    aig_ps.verbose = is_set( "verbose" );
+    aig_ps.enable_adaptive = is_set( "adaptive" );
+
     xmg_choice_compute_params xmg_ps;
     xmg_ps.ratio = ratio;
     mig_choice_compute_params mig_ps;
@@ -554,12 +558,11 @@ private:
   {
     choice_view<aig_network> choice_aig( aig );
     xag_npn_resynthesis<aig_network> npn_resyn;
+    exact_library<aig_network> exact_lib( npn_resyn );
     sop_factoring<aig_network> sop_resyn;
     dsd_resynthesis<aig_network, decltype( sop_resyn )> dsd_resyn( sop_resyn );
-    exact_library<aig_network> exact_lib( npn_resyn );
-    shannon_resynthesis<aig_network> shannon_resyn;
 
-    return aig_choice_compute( choice_aig, npn_resyn, dsd_resyn, exact_lib,
+    return aig_choice_compute( choice_aig, npn_resyn, sop_resyn, exact_lib,
                                sop_resyn, dsd_resyn, params );
   }
 
