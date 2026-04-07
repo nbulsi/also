@@ -72,5 +72,6 @@
 #include "commands/rm_mp2.hpp"
 #include "commands/ps2.hpp"
 #include "commands/resyn.hpp"
+#include "commands/read_verilog_with_cell.hpp"
 ALICE_MAIN( also )
 
