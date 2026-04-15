@@ -219,9 +219,9 @@ public:
   {
     /* increase ref-count to children */
     _storage->nodes[f.index].data[0].h1++;
-    auto const po_index = static_cast<uint32_t>( _storage->outputs.size() );
+    auto const po_index = _storage->outputs.size();
     _storage->outputs.emplace_back( f.index, f.complement );
-    return po_index;
+    return static_cast<uint32_t>( po_index );
   }
 
   bool is_combinational() const
@@ -288,8 +288,18 @@ public:
     _storage->nodes.push_back( node );
 
     _storage->hash[node] = index;
-    // phase
-    phase( index, ( phase( a.index ) ^ a.complement ) & ( phase( b.index ) ^ b.complement ) );
+    
+    // phase: AND gate (a.index < b.index) uses AND, XOR gate (a.index > b.index) uses XOR
+    if ( a.index < b.index )
+    {
+      // AND gate
+      phase( index, ( phase( a.index ) ^ a.complement ) & ( phase( b.index ) ^ b.complement ) );
+    }
+    else
+    {
+      // XOR gate
+      phase( index, ( phase( a.index ) ^ a.complement ) ^ ( phase( b.index ) ^ b.complement ) );
+    }
 
     /* increase ref-count to children */
     _storage->nodes[a.index].data[0].h1++;
