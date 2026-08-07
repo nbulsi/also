@@ -61,7 +61,7 @@ namespace alice
       }
     
     private:
-      img_ff_rewriting_params ps;
+      also::img_ff_rewriting_params ps;
   };
 
   ALICE_ADD_COMMAND( imgff, "Rewriting" )

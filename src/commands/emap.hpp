@@ -33,8 +33,9 @@ public:
   explicit emap_command( const environment::ptr& env )
       : command( env, "Standard cell mapping " )
   {
-    add_flag( "--aig, -a", "emap map for AIG" );
-    add_flag( "--xag, -g", "emap map for XAG" );
+    add_flag( "--aig, -a", "emap for AIG" );
+    add_flag( "--xag, -g", "emap for XAG" );
+    add_flag( "--xmg, -x", "emap for xmg" );
     add_flag( "--mul", "Technology mapping using multioutput cells" );
     add_flag( "--area, -A", "toggles area-oriented mapping [default = false]" );
     add_option( "--output, -o", filename, "the verilog filename" );
@@ -164,6 +165,30 @@ protected:
 
         std::cout << fmt::format(
             "Mapped XAG into #gates = {}, area = {:.2f}, delay = {:.2f}, "
+            "multioutputs = {},runtime = {}\n",
+            res.num_gates(), res.compute_area(), res.compute_worst_delay(),
+            st.multioutput_gates, to_seconds( st.time_total ) );
+      }
+    }
+    else if ( is_set( "xmg" ) )
+    {
+      if ( store<xmg_network>().size() == 0u )
+      {
+        std::cerr << "[e] no XMG in the store\n";
+      }
+      else
+      {
+        auto xmg = store<xmg_network>().current();
+
+        cell_view<block_network> res = emap<9>( xmg, tech_lib, ps, &st );
+
+        if ( is_set( "output" ) )
+        {
+          write_verilog_with_cell( res, filename );
+        }
+
+        std::cout << fmt::format(
+            "Mapped XMG into #gates = {}, area = {:.2f}, delay = {:.2f}, "
             "multioutputs = {},runtime = {}\n",
             res.num_gates(), res.compute_area(), res.compute_worst_delay(),
             st.multioutput_gates, to_seconds( st.time_total ) );

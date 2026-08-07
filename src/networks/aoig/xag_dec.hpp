@@ -325,7 +325,7 @@ namespace also
     xag_dec_params const& _ps;
   };
 
-    xag_network::signal xag_dec( xag_network& ntk, kitty::dynamic_truth_table const& func, std::vector<xag_network::signal> const& children,
+  inline xag_network::signal xag_dec( xag_network& ntk, kitty::dynamic_truth_table const& func, std::vector<xag_network::signal> const& children,
                                  std::unordered_map<std::string, std::string>& opt_xags,
                                    xag_dec_params const& ps = {} )
     {

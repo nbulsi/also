@@ -24,6 +24,8 @@
 #include <unordered_set>
 
 #include "../core/exact_m5ig_encoder.hpp"
+#include "../core/img_encoder.hpp"
+#include "../core/exact_m3ig_encoder.hpp"
 #include "../core/m5ig_helper.hpp"
 #include "../core/m3ig_helper.hpp"
 #include "../core/misc.hpp"

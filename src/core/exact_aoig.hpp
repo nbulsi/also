@@ -19,7 +19,7 @@ using namespace percy;
 namespace also
 {
 
-  void tt2aoig( const kitty::dynamic_truth_table& tt, int verbose = 0 )
+  inline void tt2aoig( const kitty::dynamic_truth_table& tt, int verbose = 0 )
   {
     chain c;
     spec spec;

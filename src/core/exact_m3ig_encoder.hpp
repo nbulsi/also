@@ -1593,7 +1593,7 @@ namespace also
 /******************************************************************************
  * Public functions                                                           *
  ******************************************************************************/
-   synth_result mig_three_synthesize( spec& spec, mig3& mig3, solver_wrapper& solver, mig_three_encoder& encoder )
+  inline synth_result mig_three_synthesize( spec& spec, mig3& mig3, solver_wrapper& solver, mig_three_encoder& encoder )
    {
       spec.preprocess();
 
@@ -1651,7 +1651,7 @@ namespace also
 
 
    /* cegar synthesis */
-   synth_result mig_three_cegar_synthesize( spec& spec, mig3& mig3, solver_wrapper& solver, mig_three_encoder& encoder )
+  inline synth_result mig_three_cegar_synthesize( spec& spec, mig3& mig3, solver_wrapper& solver, mig_three_encoder& encoder )
    {
       spec.preprocess();
 
@@ -1727,7 +1727,7 @@ namespace also
     * 10%, then the synthesized tt is acceptable for n * (1 - 10%)
     * * n correct outputs.
     * */
-   synth_result mig_three_cegar_approximate_synthesize( spec& spec, mig3& mig3, solver_wrapper& solver, mig_three_encoder& encoder, float error_rate )
+  inline synth_result mig_three_cegar_approximate_synthesize( spec& spec, mig3& mig3, solver_wrapper& solver, mig_three_encoder& encoder, float error_rate )
    {
       spec.preprocess();
 
@@ -1809,13 +1809,13 @@ namespace also
       return success;
    }
 
-   synth_result next_solution( spec& spec, mig3& mig3, solver_wrapper& solver, mig_three_encoder& encoder )
+  inline synth_result next_solution( spec& spec, mig3& mig3, solver_wrapper& solver, mig_three_encoder& encoder )
      {
        //spec.verbosity = 3;
        if (!encoder.is_dirty())
        {
             encoder.set_dirty(true);
-            return mig_three_synthesize(spec, mig3, solver, encoder);
+  return mig_three_synthesize(spec, mig3, solver, encoder);
        }
 
        // The special case when the Boolean chain to be synthesized
@@ -1843,7 +1843,7 @@ namespace also
        return failure;
     }
 
-   synth_result mig_three_fence_synthesize(spec& spec, mig3& mig3, solver_wrapper& solver, mig_three_encoder& encoder)
+  inline synth_result mig_three_fence_synthesize(spec& spec, mig3& mig3, solver_wrapper& solver, mig_three_encoder& encoder)
     {
         spec.preprocess();
 
@@ -1909,7 +1909,7 @@ namespace also
         }
     }
 
-   synth_result mig_three_cegar_fence_synthesize( spec& spec, mig3& mig3, solver_wrapper& solver, mig_three_encoder& encoder)
+  inline synth_result mig_three_cegar_fence_synthesize( spec& spec, mig3& mig3, solver_wrapper& solver, mig_three_encoder& encoder)
    {
      assert(spec.get_nr_in() >= spec.fanin);
 
@@ -1994,7 +1994,7 @@ namespace also
    /// One thread generates fences and places them on a concurrent
    /// queue. The remaining threads dequeue fences and try to
    /// synthesize chains with them.
-   synth_result parallel_nocegar_mig_three_fence_synthesize( spec& spec, mig3& mig3,
+  inline synth_result parallel_nocegar_mig_three_fence_synthesize( spec& spec, mig3& mig3,
                                                               int num_threads = std::thread::hardware_concurrency() )
     {
         spec.preprocess();
@@ -2108,7 +2108,7 @@ namespace also
         return success;
     }
 
-   synth_result parallel_mig_three_fence_synthesize( spec& spec, mig3& mig3,
+  inline synth_result parallel_mig_three_fence_synthesize( spec& spec, mig3& mig3,
                                                      int num_threads = std::thread::hardware_concurrency())
      {
         spec.preprocess();

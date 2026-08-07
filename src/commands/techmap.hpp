@@ -22,6 +22,7 @@
 #include <mockturtle/networks/xmg.hpp>
 #include <mockturtle/properties/xmgcost.hpp>
 #include "../core/properties.hpp"
+using namespace also;
 
 namespace alice
 {
