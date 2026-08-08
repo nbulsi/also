@@ -936,13 +936,13 @@ namespace also
   /******************************************************************************
    * Public functions by class comb and select                                  *
    ******************************************************************************/
-  std::map<std::vector<int>, std::vector<int>> comput_input_and_set_map( input_type type )
+  inline std::map<std::vector<int>, std::vector<int>> comput_input_and_set_map( input_type type )
   {
     comb c( type );
     return c.get_on_set_map();
   }
 
-  std::map<int, std::vector<unsigned>> comput_select_vars_map( int nr_steps, 
+  inline std::map<int, std::vector<unsigned>> comput_select_vars_map( int nr_steps, 
       int nr_in, 
       bool allow_two_const = true, 
       bool allow_two_equal = true )
@@ -951,7 +951,7 @@ namespace also
     return s.get_sel_var_map();
   }
   
-  std::map<int, std::vector<unsigned>> fence_comput_select_vars_map(  int nr_steps, 
+  inline std::map<int, std::vector<unsigned>> fence_comput_select_vars_map(  int nr_steps, 
                                                                       int nr_in, 
                                                                       fence f,
                                                                       bool allow_two_const = true, 
@@ -961,7 +961,7 @@ namespace also
     return s.get_sel_var_map();
   }
   
-  int comput_select_vars_for_each_step( int nr_steps, 
+  inline int comput_select_vars_for_each_step( int nr_steps,
       int nr_in, 
       int step_idx, 
       bool allow_two_const = true, 
@@ -972,7 +972,7 @@ namespace also
     return s.get_num_of_sel_vars_for_each_step( step_idx );
   }
   
-  int fence_comput_select_vars_for_each_step( int nr_steps, 
+  inline int fence_comput_select_vars_for_each_step( int nr_steps,
                                               int nr_in, 
                                               fence f,
                                               int step_idx, 
@@ -985,7 +985,7 @@ namespace also
   }
 
   /* mig5 to expressions */
-  std::string mig5_to_string( const spec& spec, const mig5& mig5 )
+  inline std::string mig5_to_string( const spec& spec, const mig5& mig5 )
   {
     if( mig5.get_nr_steps() == 0 )
     {

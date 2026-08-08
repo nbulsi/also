@@ -14,6 +14,7 @@
 #ifndef VFC_HPP
 #define VFC_HPP
 #include "../core/format_convert.hpp"
+using namespace also;
 
 namespace alice
 {

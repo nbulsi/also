@@ -315,8 +315,7 @@ public:
     _storage->hash[node] = index;
 
     // phase
-    phase( index, ( phase( a.index ) ^ a.complement ) & ( phase( b.index ) ^ b.complement ) & ( phase( c.index ) ^ c.complement ) );
-
+    phase( index, ( phase( a.index ) ^ a.complement ) & ( phase( b.index ) ^ b.complement ) | ( phase( a.index ) ^ a.complement ) & ( phase( c.index ) ^ c.complement ) | ( phase( b.index ) ^ b.complement ) & ( phase( c.index ) ^ c.complement ) );
     /* increase ref-count to children */
     _storage->nodes[a.index].data[0].h1++;
     _storage->nodes[b.index].data[0].h1++;

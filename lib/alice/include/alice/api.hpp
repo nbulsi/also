@@ -119,6 +119,19 @@ struct alice_globals
   std::vector<std::pair<std::string, std::string>> command_names;
   std::vector<std::string> read_tags, write_tags;
   std::vector<std::string> read_names, write_names;
+
+  /*! \brief Runtime command factory descriptor.
+      Records the command name, its category, and a factory that constructs a
+      fresh command instance bound to a given environment.  Registration happens
+      at static-init time from each command's own translation unit, which lets
+      every command live in a separately compiled file (incremental builds). */
+  struct command_factory
+  {
+    std::string name;
+    std::string category;
+    std::function<std::shared_ptr<alice::command>( const alice::environment::ptr& )> make;
+  };
+  std::vector<command_factory> command_factories;
 };
 /*! \endcond */
 
@@ -310,7 +323,7 @@ struct io_##tag##_tag_t \
     alice_globals::get().write_names.push_back(name); \
   } \
 }; \
-io_##tag##_tag_t _##tag##_tag; \
+static io_##tag##_tag_t _##tag##_tag; \
 _ALICE_ADD_TO_LIST(alice_read_tags, io_##tag##_tag_t) \
 _ALICE_ADD_TO_LIST(alice_write_tags, io_##tag##_tag_t)
 
@@ -331,7 +344,7 @@ struct io_##tag##_tag_t \
     alice_globals::get().read_names.push_back(name); \
   } \
 }; \
-io_##tag##_tag_t _##tag##_tag; \
+static io_##tag##_tag_t _##tag##_tag; \
 _ALICE_ADD_TO_LIST(alice_read_tags, io_##tag##_tag_t)
 
 /*! \brief Registers a write-only file type to alice
@@ -351,7 +364,7 @@ struct io_##tag##_tag_t \
     alice_globals::get().write_names.push_back(name); \
   } \
 }; \
-io_##tag##_tag_t _##tag##_tag; \
+static io_##tag##_tag_t _##tag##_tag; \
 _ALICE_ADD_TO_LIST(alice_write_tags, io_##tag##_tag_t)
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -449,6 +462,19 @@ struct insert_commands<CLI, Tuple, 0>
   }
 };
 
+/*! \brief Inserts all commands that were registered through runtime factories.
+  The factory table is filled at static-init time by each command's own
+  translation unit, so commands may be compiled separately from the main TU. */
+template<typename CLI>
+void insert_runtime_commands( CLI& cli )
+{
+  for ( auto const& cf : alice_globals::get().command_factories )
+  {
+    cli.set_category( cf.category );
+    cli.insert_command( cf.name, cf.make( cli.env ) );
+  }
+}
+
 #define _ALICE_COMMAND_INIT(name, category) \
 struct name##_command_init \
 { \
@@ -491,6 +517,12 @@ void name##_command::execute()
   a class of name ``<name>_command`` must have been defined that inherits from
   ``alice::command`` or some of its subclasses.
 
+  The command is registered *at runtime* against the global
+  ``alice_globals::command_factories`` table through a static-initializer
+  factory.  This decouples command registration from the compile-time
+  ``__COUNTER__`` tuple that the ``ALICE_COMMAND`` macro relies on, so each
+  command can be compiled in its own translation unit (incremental builds).
+
   The command is accessible from the shell interface using ``name``.  In Python
   mode, the module will contain a function ``name``.
 
@@ -498,8 +530,29 @@ void name##_command::execute()
   \param category Category of the command (as shown in ``help``)
  */
 #define ALICE_ADD_COMMAND(name, category) \
-_ALICE_COMMAND_INIT(name, category) \
-_ALICE_ADD_TO_LIST(alice_commands, name##_command)
+_ALICE_REGISTER_COMMAND(name, category)
+
+/*! \cond PRIVATE */
+/*! \brief Register a command factory against the runtime registry.
+  The command class ``name``_command`` is expected to be already defined. */
+#define _ALICE_REGISTER_COMMAND(name, category) \
+struct name##_command_register_ \
+{ \
+  name##_command_register_() \
+  { \
+    alice_globals::get().command_factories.push_back( \
+      alice_globals::command_factory{ \
+        #name, \
+        category, \
+        []( const alice::environment::ptr& env ) -> std::shared_ptr<alice::command> \
+        { \
+          return std::make_shared<name##_command>( env ); \
+        } } ); \
+    alice_globals::get().command_names.emplace_back( #name, category ); \
+  } \
+}; \
+name##_command_register_ _##name##_command_register_;
+/*! \endcond */
 
 /*! \cond PRIVATE */
 #define ALICE_INIT \
@@ -520,7 +573,8 @@ _ALICE_START_LIST( alice_write_tags )
   \
   insert_read_commands<cli_t, alice_read_tags, std::tuple_size<alice_read_tags>::value> irc( cli ); \
   insert_write_commands<cli_t, alice_write_tags, std::tuple_size<alice_write_tags>::value> iwc( cli ); \
-  insert_commands<cli_t, alice_commands, std::tuple_size<alice_commands>::value> ic( cli );
+  insert_commands<cli_t, alice_commands, std::tuple_size<alice_commands>::value> ic( cli ); \
+  insert_runtime_commands( cli );
 /*! \endcond */
 
 #if defined ALICE_PYTHON
@@ -552,6 +606,7 @@ extern "C" { \
     insert_read_commands<cli_t, alice_read_tags, std::tuple_size<alice_read_tags>::value> irc( *cli ); \
     insert_write_commands<cli_t, alice_write_tags, std::tuple_size<alice_write_tags>::value> iwc( *cli ); \
     insert_commands<cli_t, alice_commands, std::tuple_size<alice_commands>::value> ic( *cli ); \
+    insert_runtime_commands( *cli ); \
     return reinterpret_cast<void*>( cli ); \
   } \
   \

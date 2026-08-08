@@ -13,8 +13,11 @@
 #ifndef MAGCOST_HPP
 #define MAGCOST_HPP
 #include <fstream>
+#include <string>
 #include <mockturtle/mockturtle.hpp>
 #include <mockturtle/properties/migcost.hpp>
+
+using namespace std;
 
 namespace alice
 {

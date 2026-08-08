@@ -16,6 +16,7 @@
 #include <kitty/kitty.hpp>
 #include <percy/percy.hpp>
 #include "misc.hpp"
+#include "exact_img.hpp"
 
 using namespace percy;
 
@@ -123,13 +124,13 @@ namespace also
   };
 
   /* public function */
-  std::map<int, std::vector<unsigned>> comput_select_imp_vars_map( int nr_steps, int nr_in ) 
+  inline std::map<int, std::vector<unsigned>> comput_select_imp_vars_map( int nr_steps, int nr_in )
   { 
     select_imp s( nr_steps, nr_in );
     return s.get_sel_var_map();
   }
 
-  int comput_select_imp_vars_for_each_step( int nr_steps, int nr_in, int step_idx ) 
+  inline int comput_select_imp_vars_for_each_step( int nr_steps, int nr_in, int step_idx )
   {
     assert( step_idx >= 0 && step_idx < nr_steps );
     select_imp s( nr_steps, nr_in );
@@ -137,7 +138,7 @@ namespace also
   }
 
   /* create img from string */
-  img_network img_from_expr( const std::string& expr, const unsigned& num_pis )
+  inline img_network img_from_expr( const std::string& expr, const unsigned& num_pis )
   {
     img_network img;
     std::vector<img_network::signal> sig;
@@ -377,7 +378,7 @@ namespace also
 
   };
   
-  std::string img_to_string( const spec& spec, const img& img )
+  inline std::string img_to_string( const spec& spec, const img& img )
   {
     if( img.get_nr_steps() == 0 )
     {
@@ -1359,7 +1360,7 @@ namespace also
   /******************************************************************************
    * Public functions                                                           *
    ******************************************************************************/
-  synth_result implication_syn_by_img_encoder( spec& spec, img& img, solver_wrapper& solver, img_encoder& encoder )
+  inline synth_result implication_syn_by_img_encoder( spec& spec, img& img, solver_wrapper& solver, img_encoder& encoder )
   {
     spec.verbosity = 0;
     spec.preprocess();
@@ -1403,7 +1404,7 @@ namespace also
     return success;
   }
   
-  synth_result implication_syn_by_fixed_num_steps( spec& spec, img& img, solver_wrapper& solver, img_encoder& encoder, int& num_steps )
+  inline synth_result implication_syn_by_fixed_num_steps( spec& spec, img& img, solver_wrapper& solver, img_encoder& encoder, int& num_steps )
   {
     spec.verbosity = 0;
     spec.preprocess();
@@ -1423,7 +1424,7 @@ namespace also
     return status;
   }
 
-  synth_result img_cegar_synthesize( spec& spec, img& img, solver_wrapper& solver, img_encoder& encoder )
+  inline synth_result img_cegar_synthesize( spec& spec, img& img, solver_wrapper& solver, img_encoder& encoder )
   {
     spec.verbosity = 0;
     spec.preprocess();
@@ -1485,7 +1486,7 @@ namespace also
     return success;
   }
 
-  std::string nbu_img_aig_upper_bound_synthesize( const kitty::dynamic_truth_table& tt )
+  inline std::string nbu_img_aig_upper_bound_synthesize( const kitty::dynamic_truth_table& tt )
   {
     bsat_wrapper solver;
     spec spec;
@@ -1549,10 +1550,10 @@ namespace also
       }
     }
 
-    return img_to_string( spec, best_img );
+  return img_to_string( spec, best_img );
   }
   
-  img_network nbu_img_encoder_test( const kitty::dynamic_truth_table& tt, const bool& enable_fanout_clauses )
+  inline img_network nbu_img_encoder_test( const kitty::dynamic_truth_table& tt, const bool& enable_fanout_clauses )
   {
     bsat_wrapper solver;
     spec spec;
@@ -1582,10 +1583,10 @@ namespace also
       std::cout << "[i] Fail " << std::endl;
     }
 
-    return img_from_expr( img.img_to_expression(), spec[0].num_vars() );
+  return img_from_expr( img.img_to_expression(), spec[0].num_vars() );
   }
 
-  std::string nbu_cog( const kitty::dynamic_truth_table& tt, const bool& enable_fanout_clauses )
+  inline std::string nbu_cog( const kitty::dynamic_truth_table& tt, const bool& enable_fanout_clauses )
   {
     bsat_wrapper solver;
     spec spec;
@@ -1617,7 +1618,7 @@ namespace also
     }
   }
   
-  void nbu_img_cegar_synthesize( const kitty::dynamic_truth_table& tt )
+  inline void nbu_img_cegar_synthesize( const kitty::dynamic_truth_table& tt )
   {
     bsat_wrapper solver;
     spec spec;
@@ -1647,13 +1648,13 @@ namespace also
     }
   }
    
-  synth_result next_solution( spec& spec, img& img, solver_wrapper& solver, img_encoder& encoder )
+  inline synth_result next_solution( spec& spec, img& img, solver_wrapper& solver, img_encoder& encoder )
   {
     //spec.verbosity = 3;
     if (!encoder.is_dirty()) 
     {
       encoder.set_dirty(true);
-      return implication_syn_by_img_encoder(spec, img, solver, encoder);
+  return implication_syn_by_img_encoder(spec, img, solver, encoder);
     }
 
     if (encoder.block_solution(spec)) 
@@ -1677,7 +1678,7 @@ namespace also
   }
 
   
-  void enumerate_img( const kitty::dynamic_truth_table& tt, const bool& enable_fanout_clauses )
+  inline void enumerate_img( const kitty::dynamic_truth_table& tt, const bool& enable_fanout_clauses )
   {
     bsat_wrapper solver;
     spec spec;

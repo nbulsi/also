@@ -1392,7 +1392,7 @@ namespace also
 /******************************************************************************
  * Public functions                                                           *
  ******************************************************************************/
-   synth_result mig_five_synthesize( spec& spec, mig5& mig5, solver_wrapper& solver, mig_five_encoder& encoder )
+  inline synth_result mig_five_synthesize( spec& spec, mig5& mig5, solver_wrapper& solver, mig_five_encoder& encoder )
    {
       spec.preprocess();
       
@@ -1450,7 +1450,7 @@ namespace also
 
 
    /* cegar synthesis */
-   synth_result mig_five_cegar_synthesize( spec& spec, mig5& mig5, solver_wrapper& solver, mig_five_encoder& encoder )
+  inline synth_result mig_five_cegar_synthesize( spec& spec, mig5& mig5, solver_wrapper& solver, mig_five_encoder& encoder )
    {
       spec.preprocess();
       
@@ -1527,7 +1527,7 @@ namespace also
     * 10%, then the synthesized tt is acceptable for n * (1 - 10%)
     * * n correct outputs.
     * */
-   synth_result mig_five_cegar_approximate_synthesize( spec& spec, mig5& mig5, solver_wrapper& solver, mig_five_encoder& encoder, float error_rate )
+  inline synth_result mig_five_cegar_approximate_synthesize( spec& spec, mig5& mig5, solver_wrapper& solver, mig_five_encoder& encoder, float error_rate )
    {
       spec.preprocess();
       
@@ -1610,13 +1610,13 @@ namespace also
       return success;
    }
    
-   synth_result next_solution( spec& spec, mig5& mig5, solver_wrapper& solver, mig_five_encoder& encoder )
+  inline synth_result next_solution( spec& spec, mig5& mig5, solver_wrapper& solver, mig_five_encoder& encoder )
      {
        //spec.verbosity = 3;
        if (!encoder.is_dirty()) 
        {
             encoder.set_dirty(true);
-            return mig_five_synthesize(spec, mig5, solver, encoder);
+  return mig_five_synthesize(spec, mig5, solver, encoder);
         }
        
        // The special case when the Boolean chain to be synthesized
@@ -1645,7 +1645,7 @@ namespace also
        return failure;
     }
    
-   synth_result mig_five_fence_synthesize(spec& spec, mig5& mig5, solver_wrapper& solver, mig_five_encoder& encoder)
+  inline synth_result mig_five_fence_synthesize(spec& spec, mig5& mig5, solver_wrapper& solver, mig_five_encoder& encoder)
     {
         spec.preprocess();
 
@@ -1712,7 +1712,7 @@ namespace also
         }
     }
    
-   synth_result parallel_nocegar_mig_five_fence_synthesize( spec& spec, mig5& mig5, 
+  inline synth_result parallel_nocegar_mig_five_fence_synthesize( spec& spec, mig5& mig5,
                                                               int num_threads = std::thread::hardware_concurrency() )
     {
         spec.preprocess();
@@ -1827,7 +1827,7 @@ namespace also
         return success;
     }
    
-   synth_result parallel_mig_five_fence_synthesize( spec& spec, mig5& mig5,
+  inline synth_result parallel_mig_five_fence_synthesize( spec& spec, mig5& mig5,
                                                      int num_threads = std::thread::hardware_concurrency())
      { 
         spec.preprocess();
@@ -1954,7 +1954,7 @@ namespace also
         return success;
     }
    
-   synth_result mig_five_cegar_fence_synthesize( spec& spec, mig5& mig5, solver_wrapper& solver, mig_five_encoder& encoder)
+  inline synth_result mig_five_cegar_fence_synthesize( spec& spec, mig5& mig5, solver_wrapper& solver, mig_five_encoder& encoder)
    {
      assert(spec.get_nr_in() >= spec.fanin);
 

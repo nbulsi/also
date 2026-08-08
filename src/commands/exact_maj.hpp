@@ -41,6 +41,7 @@ namespace alice
     protected:
       void execute()
       {
+        using namespace percy;
         auto& opt = store<optimum_network>().current();
 
         bsat_wrapper solver;

@@ -16,6 +16,7 @@
 
 #include <mockturtle/mockturtle.hpp>
 #include "../core/rm_mixed_polarity.hpp"
+#include "../core/misc.hpp"
 
 namespace alice {
 

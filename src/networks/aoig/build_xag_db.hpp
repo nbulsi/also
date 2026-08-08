@@ -204,13 +204,13 @@ namespace also
   };
 
 
-  std::unordered_map<std::string, std::vector<xag_network::signal>> get_xag_db( xag_network& xag )
+  inline std::unordered_map<std::string, std::vector<xag_network::signal>> get_xag_db( xag_network& xag )
   {
     build_xag_db manager( xag );
     return manager.run();
   }
   
-  std::unordered_map<std::string, std::string> load_xag_string_db( xag_network& xag )
+  inline std::unordered_map<std::string, std::string> load_xag_string_db( xag_network& xag )
   {
     build_xag_db manager( xag );
     return manager.get_opt_xag_map();

@@ -16,6 +16,7 @@
 #include <fstream>
 #include<string>
 #include "../core/exact_sto_m3ig.hpp"
+using namespace also;
 
 namespace alice
 {
